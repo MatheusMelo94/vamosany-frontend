@@ -11,7 +11,7 @@ import {
   ShieldIcon,
   SparkleIcon,
 } from "./icons";
-import { BrandLogo } from "./ui";
+import { BrandLogo, Button, SectionHeading } from "./ui";
 
 /* Fictional account state for the preview — nothing here is live. */
 const USER = { name: "Marta", trip: "14 – 19 Oct 2026", daysToGo: 23 };
@@ -128,7 +128,26 @@ function MapSketch() {
 
 export function DashboardPreview() {
   return (
-    <section id="dashboard" className="min-h-screen bg-surface-2 px-4 py-6 sm:px-8 sm:py-10 lg:px-14 lg:py-14">
+    <section id="dashboard" className="min-h-screen bg-surface-2 px-4 py-14 sm:px-8 sm:py-20 lg:px-14">
+      {/* Call to action above the app window */}
+      <div className="mx-auto mb-10 flex max-w-3xl flex-col items-center text-center sm:mb-14">
+        <SectionHeading
+          eyebrow="Your trip, in one place"
+          title="Plan it once. Carry it everywhere."
+          description="Every itinerary you buy lands in your dashboard: the countdown, each day's route, what still needs booking and the map that works offline. This is what it looks like."
+          align="center"
+          highlight
+        />
+        <div data-reveal className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button href="#services" size="lg">
+            Get your itinerary
+          </Button>
+          <Button href="#how" variant="secondary" size="lg">
+            See how it works
+          </Button>
+        </div>
+      </div>
+
       {/* The app window sits inside the tinted section with breathing room on
           every side; the section itself still fills the viewport, so nothing
           reads as empty while it scrolls. */}
