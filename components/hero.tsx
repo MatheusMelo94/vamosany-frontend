@@ -25,9 +25,15 @@ export function Hero() {
             If you can make it here, you can make it anywhere.
           </p>
 
-          {/* Decorative 3D ring between the tagline and the CTA. The ring is
+          <div data-hero-actions className="mt-7 flex justify-center sm:mt-8">
+            <Button href="#services" size="lg">
+              Embark on this journey
+            </Button>
+          </div>
+
+          {/* Decorative 3D ring below the CTA. The ring is
               full-width, so it breaks out of the centred column. */}
-          <div className="mt-8 w-full self-stretch sm:mt-10" data-hero-ring>
+          <div className="mt-10 w-full self-stretch sm:mt-12" data-hero-ring>
             <HeroRing
               images={[
                 { src: "/img/ring/murray-hill", position: "50% 55%" },
@@ -37,12 +43,6 @@ export function Hero() {
                 { src: "/img/ring/midtown-rooftops", position: "40% 70%" },
               ]}
             />
-          </div>
-
-          <div data-hero-actions className="mt-7 flex justify-center sm:mt-8">
-            <Button href="#services" size="lg">
-              Embark on this journey
-            </Button>
           </div>
 
 
