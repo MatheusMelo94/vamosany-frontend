@@ -52,13 +52,37 @@ export function HeroRing({ images, count = 16, radius = 560, speed = 36 }: Props
     const ring = ringRef.current;
     const stage = ring?.parentElement;
     if (!ring || !stage) return;
-    /* Reduced motion: no tween, no handlers — the ring simply stands still. */
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    /* Reduced motion: no tween, no handlers — the ring simply stands still,
+       but the far hemisphere still has to be hidden once. */
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const n = ring.children.length;
+      Array.from(ring.children).forEach((card, i) => {
+        const facing = Math.cos(((i * 360) / n) * (Math.PI / 180));
+        (card as HTMLElement).style.setProperty("--vis", facing <= 0 ? "0" : String(Math.min(1, facing / 0.26)));
+      });
+      return;
+    }
 
     gsap.registerPlugin(ScrollTrigger);
 
+    /* Cards on the far hemisphere are hidden per frame: a card is "near" when
+       its angle plus the ring's rotation faces the camera (cos > 0). */
+    const cards = Array.from(ring.querySelectorAll<HTMLElement>(".ringCard"));
+    const n = cards.length;
+    const cull = () => {
+      const ringDeg = Number(gsap.getProperty(ring, "rotateY")) || 0;
+      cards.forEach((card, i) => {
+        const deg = ((i * 360) / n + ringDeg) * (Math.PI / 180);
+        const facing = Math.cos(deg);
+        /* fade over the last 15° before the edge so cards do not pop */
+        const vis = facing <= 0 ? 0 : Math.min(1, facing / 0.26);
+        card.style.setProperty("--vis", vis.toFixed(3));
+      });
+    };
+    cull();
+
     /* 1. spin — one full turn every `speed` seconds, linear, forever */
-    const spin = gsap.to(ring, { rotateY: -360, duration: speed, ease: "none", repeat: -1 });
+    const spin = gsap.to(ring, { rotateY: -360, duration: speed, ease: "none", repeat: -1, onUpdate: cull });
 
     /* 2. hover — ease down to quarter speed, back up on leave */
     const slow = () => gsap.to(spin, { timeScale: 0.25, duration: 0.6, overwrite: true });

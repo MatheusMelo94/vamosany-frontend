@@ -37,6 +37,7 @@ export function Hero() {
             <HeroRing
               count={20}
               radius={610}
+              speed={60}
               images={[
                 { src: "/img/ring/vamosany2", position: "50% 45%" },
                 { src: "/img/ring/vamosany3", position: "50% 55%" },

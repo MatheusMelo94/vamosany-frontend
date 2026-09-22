@@ -430,6 +430,12 @@ main > .pin-spacer {
   box-shadow: 0 14px 34px rgba(20, 20, 19, 0.16);
   backface-visibility: hidden; /* cards facing away disappear */
   transform: rotateY(calc(var(--i) * 360deg / var(--count))) translateZ(var(--radius));
+  /* the far hemisphere is faded out per frame by the spin (see hero-ring.tsx):
+     a card past ±90° still faces the camera but sits behind the axis, where the
+     short perspective projects it larger than the front and it paints over the
+     curve. Fading it is the only reliable fix — backface-visibility cannot. */
+  opacity: var(--vis, 1);
+  transition: opacity 120ms linear;
 }
 .ringCard img {
   display: block;
