@@ -402,13 +402,6 @@ main > .pin-spacer {
   perspective-origin: 50% 40%;
   overflow: hidden;
 }
-.ringStage::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, #fff 0%, transparent 10%, transparent 90%, #fff 100%);
-}
 .ring {
   --radius: var(--radius-desktop, 560px);
   position: absolute;
