@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GlobeIcon } from "./icons";
-import { BrandLogo, Button } from "./ui";
+import { BrandLogo } from "./ui";
 
 type Item = { title: string; blurb: string; tag?: string; price?: string; href?: string };
 type Group = { label: string; columns: { heading: string; items: Item[] }[] };
@@ -302,15 +302,12 @@ export function Navbar() {
               </ul>
             ) : null}
           </div>
-          <Link href="#login" className={textLink}>
+          <Link href="#login" className={`${textLink} bg-ink/5 hover:bg-ink/10`}>
             Log in
           </Link>
-          <Link href="#signup" className={textLink}>
+          <Link href="#signup" className={`${textLink} bg-ink/5 hover:bg-ink/10`}>
             Sign up
           </Link>
-          <Button href="#services" variant="inverse" size="sm" pill className="ml-1">
-            Buy an itinerary
-          </Button>
         </div>
 
         <button
@@ -445,15 +442,20 @@ export function Navbar() {
             </div>
           </div>
           <div className="mt-5 flex flex-col gap-3">
-            <Button href="#services" variant="inverse" size="lg" pill className="w-full">
-              Buy an itinerary
-            </Button>
-            <Button href="#signup" variant="secondary" size="lg" pill className="w-full">
+            <Link
+              href="#signup"
+              onClick={() => setMobileOpen(false)}
+              className="label-button flex min-h-12 items-center justify-center rounded-full bg-ink/5 px-6 text-ink transition-colors hover:bg-ink/10"
+            >
               Sign up
-            </Button>
-            <Button href="#login" variant="tertiary" size="lg" pill className="w-full">
+            </Link>
+            <Link
+              href="#login"
+              onClick={() => setMobileOpen(false)}
+              className="label-button flex min-h-12 items-center justify-center rounded-full bg-ink/5 px-6 text-ink transition-colors hover:bg-ink/10"
+            >
               Log in
-            </Button>
+            </Link>
           </div>
         </div>
       ) : null}
