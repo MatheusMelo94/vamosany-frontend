@@ -111,7 +111,7 @@
 /* --- Display type: mechanical, uppercase, tight leading --- */
 @utility display-xl {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4.6vw, 3.75rem);
+  font-size: clamp(1.75rem, 4.6vw, 3.75rem);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: 0.04em;
@@ -387,4 +387,96 @@
 main,
 main > .pin-spacer {
   background: var(--color-canvas);
+}
+
+/* ---------------------------------------------------------------
+   Hero ring — a horizontal cylinder of photo cards seen from the front.
+   Fixed stage height (no CLS); cards placed with rotateY + translateZ.
+   No `filter` on cards: 3D planes must stay composite-only.
+   --------------------------------------------------------------- */
+.ringStage {
+  position: relative;
+  height: 440px;
+  /* full viewport width, regardless of the column it sits in */
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  perspective: 3000px;
+  /* Vanishing point well below the drum: the flank cards' bottoms then
+     project lower than the front card's, so the bottom edge of the ring
+     dips in a wave toward the sides instead of running straight. */
+  perspective-origin: 50% 140%;
+  overflow: hidden;
+}
+/* white fade on both ends of the stage */
+.ringStage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, #fff 0%, transparent 4%, transparent 96%, #fff 100%);
+}
+.ring {
+  --radius: var(--radius-desktop, 780px);
+  position: absolute;
+  left: 50%;
+  /* the low vanishing point projects the drum upward; sit the ring lower so
+     the front card is centred in the stage and no top edge is clipped */
+  top: 70%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+.ringCard {
+  position: absolute;
+  width: 200px;
+  height: 282px;
+  margin: -141px 0 0 -100px;
+  border-radius: 16px;
+  overflow: hidden;
+  /* overflow:hidden does not clip children inside a preserve-3d context, so
+     the <img> would paint over the radius. The card flattens its own
+     content, gets its own stacking context (Safari) and a radial mask as
+     the Safari clip fallback; the radius is repeated on the image itself. */
+  transform-style: flat;
+  isolation: isolate;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  background: var(--color-surface-2);
+  box-shadow: 0 14px 34px rgba(20, 20, 19, 0.16);
+  backface-visibility: hidden; /* cards facing away disappear */
+  transform: rotateY(calc(var(--i) * 360deg / var(--count))) translateZ(var(--radius));
+  /* the far hemisphere is faded out per frame by the spin (see hero-ring.tsx):
+     a card past ±90° still faces the camera but sits behind the axis and
+     would paint over the curved front. */
+  opacity: var(--vis, 1);
+  transition: opacity 120ms linear;
+}
+.ringCard picture,
+.ringCard img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--pos);
+  border-radius: inherit;
+}
+@media (min-width: 1700px) {
+  .ringStage { height: 400px; }
+}
+@media (max-width: 768px) {
+  /* stage height = card height + shadow room, so no white band under the ring;
+     it bleeds to the screen edges so the outer cards are cut by the viewport,
+     not by the column gutter */
+  .ringStage { height: 270px; perspective: 1400px; perspective-origin: 50% 120%; }
+  .ring { top: 74%; }
+  .ring { --radius: 500px; } /* 24 cards: step 131px for 120px cards, ~10px of air */
+  .ringCard { width: 120px; height: 170px; margin: -85px 0 0 -60px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 20, 19, 0.14); }
+}
+@media (max-width: 480px) {
+  /* 24 cards at r=300 overlapped each other by ~55px on a phone. r=440
+     with 110px cards opens ~8px of air between neighbours; the longer
+     perspective keeps the front card small enough that three fit on a
+     390px screen with nothing clipped. */
+  .ringStage { height: 270px; perspective: 1800px; perspective-origin: 50% 125%; }
+  .ring { --radius: 440px; top: 66%; }
+  .ringCard { width: 110px; height: 156px; margin: -78px 0 0 -55px; }
 }

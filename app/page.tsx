@@ -23,8 +23,8 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <DashboardPreview />
         <NeighborhoodTicker />
+        <DashboardPreview />
         <Services />
         <SampleDay />
         <HowItWorks />

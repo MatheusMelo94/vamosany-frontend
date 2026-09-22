@@ -49,6 +49,10 @@ export function Overscroll() {
           const next = all[i + 1];
           if (panelHeight < windowHeight * 0.85) return;
           if (next && next.offsetHeight < windowHeight * 0.85) return;
+          /* A section much taller than the viewport would fake-scroll for its
+             whole overflow before the next one arrives — hundreds of pixels of
+             apparent blank space. Those scroll normally instead. */
+          if (panelHeight > windowHeight * 1.25) return;
 
           const overflow = Math.max(0, panelHeight - windowHeight);
 
