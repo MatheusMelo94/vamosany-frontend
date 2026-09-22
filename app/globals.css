@@ -396,7 +396,7 @@ main > .pin-spacer {
    --------------------------------------------------------------- */
 .ringStage {
   position: relative;
-  height: 340px;
+  height: 440px;
   /* full viewport width, regardless of the column it sits in */
   width: 100vw;
   margin-inline: calc(50% - 50vw);
@@ -419,7 +419,9 @@ main > .pin-spacer {
   --radius: var(--radius-desktop, 780px);
   position: absolute;
   left: 50%;
-  top: 50%;
+  /* the low vanishing point projects the drum upward; sit the ring lower so
+     the front card is centred in the stage and no top edge is clipped */
+  top: 70%;
   width: 0;
   height: 0;
   transform-style: preserve-3d;
@@ -464,11 +466,13 @@ main > .pin-spacer {
   /* stage height = card height + shadow room, so no white band under the ring;
      it bleeds to the screen edges so the outer cards are cut by the viewport,
      not by the column gutter */
-  .ringStage { height: 200px; perspective: 1400px; }
+  .ringStage { height: 250px; perspective: 1400px; perspective-origin: 50% 120%; }
+  .ring { top: 69%; }
   .ring { --radius: 400px; } /* 24 cards: step 105px for 120px cards, drum stays solid */
   .ringCard { width: 120px; height: 170px; margin: -85px 0 0 -60px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 20, 19, 0.14); }
 }
 @media (max-width: 480px) {
-  .ringStage { perspective: 900px; }
+  .ringStage { height: 270px; perspective: 900px; perspective-origin: 50% 125%; }
+  .ring { top: 76%; }
   .ring { --radius: 300px; } /* 24 cards on a phone: step 79px for 120px cards */
 }
