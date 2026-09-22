@@ -1,6 +1,5 @@
 import { Blog } from "@/components/blog";
 import { CTA } from "@/components/cta";
-import { DashboardPreview } from "@/components/dashboard-preview";
 import { Footer } from "@/components/footer";
 import { Hero } from "@/components/hero";
 import { HowItWorks } from "@/components/how-it-works";
@@ -23,7 +22,6 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <DashboardPreview />
         <NeighborhoodTicker />
         <Services />
         <SampleDay />

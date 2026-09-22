@@ -1,3 +1,4 @@
+import { HeroRing } from "./hero-ring";
 import { Button } from "./ui";
 
 export function Hero() {
@@ -24,17 +25,30 @@ export function Hero() {
             If you can make it here, you can make it anywhere.
           </p>
 
+          {/* Decorative 3D ring between the tagline and the CTA. The ring is
+              full-width, so it breaks out of the centred column. */}
+          <div className="mt-8 w-full self-stretch sm:mt-10" data-hero-ring>
+            <HeroRing
+              images={[
+                { src: "/img/ring/murray-hill", position: "50% 55%" },
+                { src: "/img/ring/east-river", position: "60% 55%" },
+                { src: "/img/ring/empire-haze", position: "55% 40%" },
+                { src: "/img/ring/aerial-downtown", position: "50% 45%" },
+                { src: "/img/ring/midtown-rooftops", position: "40% 70%" },
+              ]}
+            />
+          </div>
+
           <div data-hero-actions className="mt-7 flex justify-center sm:mt-8">
             <Button href="#services" size="lg">
               Embark on this journey
             </Button>
           </div>
 
-          {/* Photo corridor hidden for now — re-enable by rendering <HeroRibbon />
-              inside a flex-1 gap here (see git history for the wrapper). */}
 
         </div>
       </div>
+
     </section>
   );
 }

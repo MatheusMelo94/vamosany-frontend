@@ -25,9 +25,9 @@ npm run build
 | Component | What it is |
 |---|---|
 | `navbar` | Sticky header, five mega menus (~48 pages, Services shown as priced tiers), Log in / Sign up / Buy an itinerary, mobile drawer |
-| `hero` | SplitText line-reveal headline with the marker highlight, over a Melius-style perspective corridor of NYC photos (`hero-ribbon`, endless GSAP loop) |
+| `hero` | SplitText line-reveal headline with the marker highlight, tagline, CTA |
 | `neighborhood-ticker` | Scroll-reactive marquee of neighbourhoods |
-| `dashboard-preview` | Static mock of the traveller dashboard: countdown, KPI tiles, day plan, route map sketch, owned itineraries, bookings |
+| `dashboard-preview` | Static mock of the traveller dashboard (kept in code, not rendered) |
 | `services` | Three priced tiers — curated by Belén, custom with Belén, walk with Belén |
 | `sample-day` | Day 1–5 tabs showing an hour-by-hour plan |
 | `how-it-works` | Three numbered steps plus the research pitch |
