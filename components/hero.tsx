@@ -36,11 +36,11 @@ export function Hero() {
           <div className="mt-8 w-full self-stretch sm:mt-12" data-hero-ring>
             <HeroRing
               images={[
-                { src: "/img/ring/murray-hill", position: "50% 55%" },
-                { src: "/img/ring/east-river", position: "60% 55%" },
-                { src: "/img/ring/empire-haze", position: "55% 40%" },
-                { src: "/img/ring/aerial-downtown", position: "50% 45%" },
-                { src: "/img/ring/midtown-rooftops", position: "40% 70%" },
+                { src: "/img/ring/vamosany2", position: "50% 45%" },
+                { src: "/img/ring/vamosany3", position: "50% 55%" },
+                { src: "/img/ring/vamosany5", position: "50% 60%" },
+                { src: "/img/ring/vamosany6", position: "50% 50%" },
+                { src: "/img/ring/vamosany4", position: "50% 50%" },
               ]}
             />
           </div>
