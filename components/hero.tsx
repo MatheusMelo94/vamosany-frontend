@@ -3,7 +3,7 @@ import { Button } from "./ui";
 
 export function Hero() {
   return (
-    <section className="relative isolate pb-12 pt-16 sm:pb-16 sm:pt-24">
+    <section className="relative isolate pb-8 pt-12 sm:pb-16 sm:pt-24">
       <div className="container-ds relative z-10">
         <div
           data-hero-copy
@@ -20,12 +20,12 @@ export function Hero() {
 
           <p
             data-hero-quote
-            className="body-lg mt-7 max-w-2xl text-pretty text-ink-subtle sm:mt-8 sm:text-xl"
+            className="body-lg mt-5 max-w-2xl text-pretty text-ink-subtle sm:mt-8 sm:text-xl"
           >
             If you can make it here, you can make it anywhere.
           </p>
 
-          <div data-hero-actions className="mt-7 flex justify-center sm:mt-8">
+          <div data-hero-actions className="mt-6 flex justify-center sm:mt-8">
             <Button href="#services" size="lg">
               Embark on this journey
             </Button>
@@ -33,7 +33,7 @@ export function Hero() {
 
           {/* Decorative 3D ring below the CTA. The ring is
               full-width, so it breaks out of the centred column. */}
-          <div className="mt-10 w-full self-stretch sm:mt-12" data-hero-ring>
+          <div className="mt-8 w-full self-stretch sm:mt-12" data-hero-ring>
             <HeroRing
               images={[
                 { src: "/img/ring/murray-hill", position: "50% 55%" },

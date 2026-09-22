@@ -111,7 +111,7 @@
 /* --- Display type: mechanical, uppercase, tight leading --- */
 @utility display-xl {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4.6vw, 3.75rem);
+  font-size: clamp(1.75rem, 4.6vw, 3.75rem);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: 0.04em;
@@ -430,7 +430,13 @@ main > .pin-spacer {
   object-fit: cover;
 }
 @media (max-width: 768px) {
-  .ringStage { height: 260px; }
+  /* stage height = card height + shadow room, so no white band under the ring;
+     it bleeds to the screen edges so the outer cards are cut by the viewport,
+     not by the column gutter */
+  .ringStage { height: 200px; perspective: 1100px; width: 100vw; margin-inline: calc(50% - 50vw); }
   .ring { --radius: 280px; } /* 300 leaves the neighbours 10px off a 390px screen */
-  .ringCard { width: 120px; height: 170px; margin: -85px 0 0 -60px; }
+  .ringCard { width: 120px; height: 170px; margin: -85px 0 0 -60px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 20, 19, 0.14); }
+}
+@media (max-width: 400px) {
+  .ring { --radius: 235px; } /* perspective widens the projection: 260 still clips at 360px */
 }
