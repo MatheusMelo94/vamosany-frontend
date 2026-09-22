@@ -1,0 +1,390 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------
+   Design system: vamosany-design-system.md (Vamos a NY)
+   Near-black + taxi yellow, bold mechanical display type,
+   squared-off geometry, minimal UI decoration.
+
+   The utility and token NAMES are unchanged from the previous
+   system so the page markup did not have to move — only the
+   values behind them did.
+   --------------------------------------------------------------- */
+
+@theme {
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-display: var(--font-courier-prime), "Roboto Slab", Rockwell, serif;
+  --font-mono: var(--font-courier-prime), ui-monospace, "SF Mono", monospace;
+
+  /* Brand — yellow is punctuation, never a flood fill */
+  --color-brand: #ffd800;
+  --color-brand-hover: #f1cc00;
+  --color-brand-focus: #f1cc00;
+  --color-brand-secure: #484846;
+  --color-on-brand: #080a0b;
+
+  /* Surfaces */
+  --color-canvas: #ffffff;
+  --color-surface-1: #f7f7f5;
+  --color-surface-2: #eeeeea;
+  --color-surface-3: #eeeeea;
+  --color-surface-4: #f7f7f5;
+
+  /* Rules & dividers */
+  --color-hairline: #eeeeea;
+  --color-hairline-strong: #a8a8a4;
+  --color-hairline-tertiary: #eeeeea;
+
+  /* Text */
+  --color-ink: #080a0b;
+  --color-ink-muted: #484846;
+  --color-ink-subtle: #484846;
+  --color-ink-tertiary: #a8a8a4;
+
+  /* Inverse */
+  --color-inverse-canvas: #080a0b;
+  --color-inverse-ink: #ffffff;
+
+  /* Status reads through contrast, not a second accent colour */
+  --color-success: #080a0b;
+
+  /* Radius — restrained. Buttons 4px, cards 8px, panels 12–16px */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-xxl: 16px;
+
+  /* Shadows — used sparingly */
+  --shadow-soft: 0 8px 30px rgb(0 0 0 / 0.08);
+  --shadow-card: 0 4px 16px rgb(0 0 0 / 0.08);
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 300ms;
+  --ease-default: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --animate-marquee: marquee 44s linear infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--color-canvas);
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-brand);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
+
+/* --- Container: 1200px, 32px desktop gutters / 20px mobile --- */
+@utility container-ds {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1200px;
+  padding-inline: 20px;
+
+  @media (width >= 48rem) {
+    padding-inline: 32px;
+  }
+}
+
+/* --- Display type: mechanical, uppercase, tight leading --- */
+@utility display-xl {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.6vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@utility display-lg {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.2vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@utility display-md {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@utility headline {
+  font-family: var(--font-display);
+  font-size: clamp(1.375rem, 1.7vw, 1.625rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@utility card-title {
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@utility subhead {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* --- Body type: plain grotesque, generous leading --- */
+@utility body-lg {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+@utility body-base {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+@utility body-sm {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+@utility caption {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* --- Buttons and labels carry the display voice --- */
+@utility label-button {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@utility eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+}
+
+/* --- Signature highlighted heading -----------------------------
+   The spec's ::after block only covers a single line, so this uses
+   the inline equivalent: a hard-stop background clipped per line
+   box. Same mark, survives wrapping.
+   --------------------------------------------------------------- */
+@utility highlight-heading {
+  /* The marker is a "train": a six-car band drawn in the left third of a
+     3x-wide image, so sliding the image with --train moves the whole
+     composition. 100% parks it off the left edge (in the tunnel); 0% is
+     the platform. Percent positioning on an oversized image maps p% to a
+     shift of -2p% of the box, so the tween stays linear in one variable. */
+  --train: 0%;
+  background-image: linear-gradient(
+    to right,
+    var(--color-brand) 0.00% 5.20%,
+    transparent 5.20% 5.68%,
+    var(--color-brand) 5.68% 10.88%,
+    transparent 10.88% 11.36%,
+    var(--color-brand) 11.36% 16.56%,
+    transparent 16.56% 17.04%,
+    var(--color-brand) 17.04% 22.24%,
+    transparent 22.24% 22.72%,
+    var(--color-brand) 22.72% 27.92%,
+    transparent 27.92% 28.40%,
+    var(--color-brand) 28.40% 33.60%,
+    transparent 33.60% 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 300% 0.4em;
+  background-position: var(--train) 0.4em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Dark-canvas device from the previous system; no edge lift on white. */
+@utility panel-edge {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Scroll motion (GSAP ScrollTrigger)
+   The `gsap` class is set by a blocking inline script in <head>, so
+   reveal targets start hidden without a flash. No JS or reduced
+   motion → the class is never added and everything renders static.
+   --------------------------------------------------------------- */
+
+.gsap [data-reveal],
+.gsap [data-reveal-group] > * {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+/* Marker trains start in the tunnel; GSAP brings them into the station. */
+.gsap [data-sweep] {
+  --train: 100%;
+}
+
+/* Hero copy and section headings are choreographed by GSAP timelines, so
+   they start hidden and each timeline reveals its wrapper on frame one. */
+.gsap [data-hero-copy],
+.gsap [data-heading-block] {
+  opacity: 0;
+}
+
+/* GSAP drives the marquee once it takes over, so drop the CSS loop. */
+.marquee-track.is-gsap {
+  animation: none;
+}
+
+.site-nav.is-scrolled .nav-capsule {
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.1);
+}
+
+/* ---------------------------------------------------------------
+   Hero ribbon — a contained perspective corridor of photographs.
+   Lives in a centred container with a max-width and clips there, so
+   the outer cards read as an intentional crop and nothing can reach
+   the headline, copy or CTA. Both walls are pushed back and rotated
+   toward the line of sight; size comes from perspective alone.
+   --------------------------------------------------------------- */
+.hero-ribbon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  overflow: hidden;
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+  pointer-events: none;
+}
+.gsap .hero-ribbon {
+  opacity: 0; /* GSAP fades it in */
+}
+.ribbon-wall {
+  position: absolute;
+  top: 50%;
+  width: 1500px;
+  height: 250px;
+  /* clip in the wall's own plane: cards never run past the near end
+     toward the camera, and the looped strip wraps out of sight */
+  overflow: hidden;
+}
+.ribbon-wall-left {
+  right: 50%;
+  margin-right: 5px;
+  transform-origin: 100% 50%;
+  transform: translateY(-50%) translateZ(-700px) rotateY(72deg);
+}
+.ribbon-wall-right {
+  left: 50%;
+  margin-left: 5px;
+  transform-origin: 0% 50%;
+  transform: translateY(-50%) translateZ(-700px) rotateY(-72deg);
+}
+.ribbon-track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  will-change: transform;
+}
+.ribbon-set {
+  display: flex;
+  gap: 14px;
+  padding-right: 14px;
+}
+/* The right wall's far end is its left edge: reverse so the set order
+   still reads outward from the centre. */
+.ribbon-wall-right .ribbon-set {
+  flex-direction: row-reverse;
+  padding-right: 0;
+  padding-left: 14px;
+}
+.ribbon-card {
+  width: 200px;
+  height: 250px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--color-surface-2);
+  backface-visibility: hidden;
+}
+@media (max-width: 1024px) {
+  .hero-ribbon { perspective: 1000px; }
+  .ribbon-wall { width: 1150px; height: 212px; }
+  .ribbon-wall-left { transform: translateY(-50%) translateZ(-560px) rotateY(70deg); }
+  .ribbon-wall-right { transform: translateY(-50%) translateZ(-560px) rotateY(-70deg); }
+  .ribbon-card { width: 170px; height: 212px; }
+}
+@media (max-width: 640px) {
+  /* simpler perspective: shorter walls, gentler angle; cards sized so the
+     corridor fills the phone width and the outer cards run to the edges */
+  .hero-ribbon { perspective: 820px; }
+  .ribbon-wall { width: 900px; height: 190px; }
+  .ribbon-wall-left { transform: translateY(-50%) translateZ(-340px) rotateY(64deg); }
+  .ribbon-wall-right { transform: translateY(-50%) translateZ(-340px) rotateY(-64deg); }
+  .ribbon-set { gap: 10px; padding-right: 10px; }
+  .ribbon-wall-right .ribbon-set { padding-left: 10px; }
+  .ribbon-card { width: 152px; height: 190px; border-radius: 6px; }
+}
+
+/* Overscroll: the pin spacer that stands in for a pinned section keeps
+   the canvas colour, so the transition never exposes a bare void. */
+main,
+main > .pin-spacer {
+  background: var(--color-canvas);
+}
