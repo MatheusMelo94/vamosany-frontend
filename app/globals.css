@@ -392,7 +392,7 @@ main > .pin-spacer {
 /* ---------------------------------------------------------------
    Hero ring — a horizontal cylinder of photo cards seen from the front.
    Fixed stage height (no CLS); cards placed with rotateY + translateZ.
-   No `filter` on cards: sixteen 3D planes must stay composite-only.
+   No `filter` on cards: 3D planes must stay composite-only.
    --------------------------------------------------------------- */
 .ringStage {
   position: relative;
@@ -400,18 +400,20 @@ main > .pin-spacer {
   /* full viewport width, regardless of the column it sits in */
   width: 100vw;
   margin-inline: calc(50% - 50vw);
-  /* Curvature comes from the ratio perspective/radius: the closer the front
-     card sits to the camera, the more the flanks foreshorten. 1150/610 keeps
-     the front card 540px from the eye — curved, but nothing crosses the
-     camera plane and blows up (900/720 did exactly that). A solid drum also
-     needs more cards than the circumference: 20 cards at r=610 step 192px
-     for 190px-wide cards, so neighbours overlap instead of leaving gaps. */
-  perspective: 1150px;
+  perspective: 3000px;
   perspective-origin: 50% 40%;
   overflow: hidden;
 }
+/* white fade on both ends of the stage */
+.ringStage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, #fff 0%, transparent 4%, transparent 96%, #fff 100%);
+}
 .ring {
-  --radius: var(--radius-desktop, 560px);
+  --radius: var(--radius-desktop, 780px);
   position: absolute;
   left: 50%;
   top: 50%;
@@ -421,43 +423,49 @@ main > .pin-spacer {
 }
 .ringCard {
   position: absolute;
-  width: 190px;
-  height: 270px;
-  margin: -135px 0 0 -95px;
+  width: 170px;
+  height: 240px;
+  margin: -120px 0 0 -85px;
   border-radius: 16px;
   overflow: hidden;
+  /* overflow:hidden does not clip children inside a preserve-3d context, so
+     the <img> would paint over the radius. The card flattens its own
+     content, gets its own stacking context (Safari) and a radial mask as
+     the Safari clip fallback; the radius is repeated on the image itself. */
+  transform-style: flat;
+  isolation: isolate;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
   background: var(--color-surface-2);
   box-shadow: 0 14px 34px rgba(20, 20, 19, 0.16);
   backface-visibility: hidden; /* cards facing away disappear */
   transform: rotateY(calc(var(--i) * 360deg / var(--count))) translateZ(var(--radius));
   /* the far hemisphere is faded out per frame by the spin (see hero-ring.tsx):
-     a card past ±90° still faces the camera but sits behind the axis, where the
-     short perspective projects it larger than the front and it paints over the
-     curve. Fading it is the only reliable fix — backface-visibility cannot. */
+     a card past ±90° still faces the camera but sits behind the axis and
+     would paint over the curved front. */
   opacity: var(--vis, 1);
   transition: opacity 120ms linear;
 }
+.ringCard picture,
 .ringCard img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: var(--pos);
+  border-radius: inherit;
 }
 @media (min-width: 1700px) {
-  /* wide screens: bigger cards and a wider ring so the flanks still reach the edges */
-  /* step = 2π·720/20 ≈ 226px, cards 260px wide → 34px overlap, no gaps */
-  .ringStage { height: 420px; perspective: 1350px; }
-  .ring { --radius: 720px; }
-  .ringCard { width: 260px; height: 368px; margin: -184px 0 0 -130px; }
+  .ringStage { height: 400px; }
 }
 @media (max-width: 768px) {
   /* stage height = card height + shadow room, so no white band under the ring;
      it bleeds to the screen edges so the outer cards are cut by the viewport,
      not by the column gutter */
-  .ringStage { height: 200px; perspective: 720px; }
-  .ring { --radius: 280px; } /* 300 leaves the neighbours 10px off a 390px screen */
+  .ringStage { height: 200px; perspective: 1400px; }
+  .ring { --radius: 400px; } /* 24 cards: step 105px for 120px cards, drum stays solid */
   .ringCard { width: 120px; height: 170px; margin: -85px 0 0 -60px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 20, 19, 0.14); }
 }
-@media (max-width: 400px) {
-  .ring { --radius: 235px; } /* perspective widens the projection: 260 still clips at 360px */
+@media (max-width: 480px) {
+  .ringStage { perspective: 900px; }
+  .ring { --radius: 300px; } /* 24 cards on a phone: step 79px for 120px cards */
 }

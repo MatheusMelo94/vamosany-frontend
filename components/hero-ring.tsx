@@ -160,7 +160,6 @@ export function HeroRing({ images, count = 16, radius = 560, speed = 36 }: Props
                 height={1000}
                 loading={i < 3 ? "eager" : "lazy"}
                 decoding="async"
-                style={{ objectPosition: c.position }}
               />
             </picture>
           </div>
