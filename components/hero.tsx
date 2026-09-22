@@ -35,6 +35,8 @@ export function Hero() {
               full-width, so it breaks out of the centred column. */}
           <div className="mt-8 w-full self-stretch sm:mt-12" data-hero-ring>
             <HeroRing
+              count={20}
+              radius={610}
               images={[
                 { src: "/img/ring/vamosany2", position: "50% 45%" },
                 { src: "/img/ring/vamosany3", position: "50% 55%" },

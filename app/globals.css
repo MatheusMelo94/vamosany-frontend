@@ -397,8 +397,16 @@ main > .pin-spacer {
 .ringStage {
   position: relative;
   height: 340px;
-  width: 100%;
-  perspective: 1500px;
+  /* full viewport width, regardless of the column it sits in */
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  /* Curvature comes from the ratio perspective/radius: the closer the front
+     card sits to the camera, the more the flanks foreshorten. 1150/610 keeps
+     the front card 540px from the eye — curved, but nothing crosses the
+     camera plane and blows up (900/720 did exactly that). A solid drum also
+     needs more cards than the circumference: 20 cards at r=610 step 192px
+     for 190px-wide cards, so neighbours overlap instead of leaving gaps. */
+  perspective: 1150px;
   perspective-origin: 50% 40%;
   overflow: hidden;
 }
@@ -429,11 +437,18 @@ main > .pin-spacer {
   height: 100%;
   object-fit: cover;
 }
+@media (min-width: 1700px) {
+  /* wide screens: bigger cards and a wider ring so the flanks still reach the edges */
+  /* step = 2π·720/20 ≈ 226px, cards 260px wide → 34px overlap, no gaps */
+  .ringStage { height: 420px; perspective: 1350px; }
+  .ring { --radius: 720px; }
+  .ringCard { width: 260px; height: 368px; margin: -184px 0 0 -130px; }
+}
 @media (max-width: 768px) {
   /* stage height = card height + shadow room, so no white band under the ring;
      it bleeds to the screen edges so the outer cards are cut by the viewport,
      not by the column gutter */
-  .ringStage { height: 200px; perspective: 1100px; width: 100vw; margin-inline: calc(50% - 50vw); }
+  .ringStage { height: 200px; perspective: 720px; }
   .ring { --radius: 280px; } /* 300 leaves the neighbours 10px off a 390px screen */
   .ringCard { width: 120px; height: 170px; margin: -85px 0 0 -60px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 20, 19, 0.14); }
 }

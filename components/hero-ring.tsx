@@ -21,6 +21,25 @@ type Props = {
 const LAP_POSITIONS = ["55% 35%", "45% 70%", "60% 25%", "40% 50%"];
 
 /**
+ * Deal `count` slots from `n` images so no two neighbours share a photo —
+ * including slot count-1 next to slot 0, where the ring closes. A plain
+ * cycle fails there whenever count % n === 0 or 1; walking the images with
+ * a stride coprime to n never repeats a neighbour, and the seam is fixed
+ * by swapping the last slot with its predecessor when needed.
+ */
+function dealSlots(count: number, n: number): number[] {
+  if (n < 2) return Array.from({ length: count }, () => 0);
+  const stride = [1, 2, 3, 4, 5].find((k) => k < n && gcd(k, n) === 1) ?? 1;
+  const slots = Array.from({ length: count }, (_, i) => (i * stride) % n);
+  if (count > 2 && slots[count - 1] === slots[0]) {
+    const alt = slots.findIndex((v, i) => i > 0 && i < count - 2 && v !== slots[0] && v !== slots[count - 2] && slots[i - 1] !== slots[count - 1] && slots[i + 1] !== slots[count - 1]);
+    if (alt > 0) [slots[count - 1], slots[alt]] = [slots[alt], slots[count - 1]];
+  }
+  return slots;
+}
+const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
+
+/**
  * A horizontal cylinder of photo cards seen from the front. Each card is
  * rotated into place on the ring and pushed out to the radius; back-facing
  * cards hide via backface-visibility. GSAP spins the ring, slows it on hover,
@@ -81,9 +100,12 @@ export function HeroRing({ images, count = 16, radius = 560, speed = 36 }: Props
     };
   }, [speed]);
 
-  const cards = Array.from({ length: count }, (_, i) => {
-    const img = images[i % images.length];
-    const lap = Math.floor(i / images.length);
+  const slots = dealSlots(count, images.length);
+  const seen = new Map<number, number>();
+  const cards = slots.map((idx) => {
+    const img = images[idx];
+    const lap = seen.get(idx) ?? 0;
+    seen.set(idx, lap + 1);
     return {
       src: img.src,
       position: lap === 0 ? (img.position ?? "50% 50%") : LAP_POSITIONS[(lap - 1) % LAP_POSITIONS.length],
