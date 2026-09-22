@@ -401,7 +401,10 @@ main > .pin-spacer {
   width: 100vw;
   margin-inline: calc(50% - 50vw);
   perspective: 3000px;
-  perspective-origin: 50% 40%;
+  /* Vanishing point well below the drum: the flank cards' bottoms then
+     project lower than the front card's, so the bottom edge of the ring
+     dips in a wave toward the sides instead of running straight. */
+  perspective-origin: 50% 140%;
   overflow: hidden;
 }
 /* white fade on both ends of the stage */
