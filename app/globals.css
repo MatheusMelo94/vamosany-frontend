@@ -466,13 +466,17 @@ main > .pin-spacer {
   /* stage height = card height + shadow room, so no white band under the ring;
      it bleeds to the screen edges so the outer cards are cut by the viewport,
      not by the column gutter */
-  .ringStage { height: 250px; perspective: 1400px; perspective-origin: 50% 120%; }
-  .ring { top: 69%; }
-  .ring { --radius: 400px; } /* 24 cards: step 105px for 120px cards, drum stays solid */
+  .ringStage { height: 270px; perspective: 1400px; perspective-origin: 50% 120%; }
+  .ring { top: 74%; }
+  .ring { --radius: 500px; } /* 24 cards: step 131px for 120px cards, ~10px of air */
   .ringCard { width: 120px; height: 170px; margin: -85px 0 0 -60px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 20, 19, 0.14); }
 }
 @media (max-width: 480px) {
-  .ringStage { height: 270px; perspective: 900px; perspective-origin: 50% 125%; }
-  .ring { top: 76%; }
-  .ring { --radius: 300px; } /* 24 cards on a phone: step 79px for 120px cards */
+  /* 24 cards at r=300 overlapped each other by ~55px on a phone. r=440
+     with 110px cards opens ~8px of air between neighbours; the longer
+     perspective keeps the front card small enough that three fit on a
+     390px screen with nothing clipped. */
+  .ringStage { height: 270px; perspective: 1800px; perspective-origin: 50% 125%; }
+  .ring { --radius: 440px; top: 66%; }
+  .ringCard { width: 110px; height: 156px; margin: -78px 0 0 -55px; }
 }
