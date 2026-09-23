@@ -11,6 +11,10 @@
    --------------------------------------------------------------- */
 
 @theme {
+  /* Paleta default do Tailwind desligada: so os tokens do sistema existem (ADR-0004, T-14).
+     `transparent`, `current` e `inherit` sao keywords e continuam disponiveis. */
+  --color-*: initial;
+
   --font-sans: Arial, Helvetica, sans-serif;
   --font-display: var(--font-courier-prime), "Roboto Slab", Rockwell, serif;
   --font-mono: var(--font-courier-prime), ui-monospace, "SF Mono", monospace;
@@ -47,6 +51,17 @@
   /* Status reads through contrast, not a second accent colour */
   --color-success: #080a0b;
 
+  /* Ilustracao: agua no esboco de mapa do dashboard */
+  --color-map-water: #e1e6ea;
+
+  /* Containers */
+  --container-page: 1200px;
+  --container-dashboard: 1400px;
+
+  /* Type sizes below the base scale */
+  --text-2xs: 0.5625rem;
+  --text-label-sm: 0.8125rem;
+
   /* Radius — restrained. Buttons 4px, cards 8px, panels 12–16px */
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -58,6 +73,11 @@
   /* Shadows — used sparingly */
   --shadow-soft: 0 8px 30px rgb(0 0 0 / 0.08);
   --shadow-card: 0 4px 16px rgb(0 0 0 / 0.08);
+  --shadow-nav: 0 8px 30px rgb(0 0 0 / 0.06);
+  --shadow-menu: 0 18px 50px rgb(0 0 0 / 0.08);
+  --shadow-drawer: 0 18px 50px rgb(0 0 0 / 0.1);
+  --shadow-panel: 0 24px 60px rgb(0 0 0 / 0.08);
+  --shadow-inset-hairline: inset 0 0 0 1px var(--color-hairline);
 
   /* Motion */
   --duration-fast: 120ms;
@@ -248,11 +268,6 @@
   -webkit-box-decoration-break: clone;
 }
 
-/* Dark-canvas device from the previous system; no edge lift on white. */
-@utility panel-edge {
-  position: relative;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee {
     animation: none;
@@ -295,125 +310,6 @@
 
 .site-nav.is-scrolled .nav-capsule {
   box-shadow: 0 12px 40px rgb(0 0 0 / 0.1);
-}
-
-/* ---------------------------------------------------------------
-   Hero ribbon — a contained perspective corridor of photographs.
-   Lives in a centred container with a max-width and clips there, so
-   the outer cards read as an intentional crop and nothing can reach
-   the headline, copy or CTA. Both walls are pushed back and rotated
-   toward the line of sight; size comes from perspective alone.
-   --------------------------------------------------------------- */
-.hero-ribbon {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
-  overflow: hidden;
-  perspective: 1200px;
-  perspective-origin: 50% 50%;
-  pointer-events: none;
-}
-.gsap .hero-ribbon {
-  opacity: 0; /* GSAP fades it in */
-}
-.ribbon-wall {
-  position: absolute;
-  top: 50%;
-  width: 1500px;
-  height: 250px;
-  /* clip in the wall's own plane: cards never run past the near end
-     toward the camera, and the looped strip wraps out of sight */
-  overflow: hidden;
-}
-.ribbon-wall-left {
-  right: 50%;
-  margin-right: 5px;
-  transform-origin: 100% 50%;
-  transform: translateY(-50%) translateZ(-700px) rotateY(72deg);
-}
-.ribbon-wall-right {
-  left: 50%;
-  margin-left: 5px;
-  transform-origin: 0% 50%;
-  transform: translateY(-50%) translateZ(-700px) rotateY(-72deg);
-}
-.ribbon-track {
-  display: flex;
-  width: max-content;
-  height: 100%;
-  will-change: transform;
-}
-.ribbon-set {
-  display: flex;
-  gap: 14px;
-  padding-right: 14px;
-}
-/* The right wall's far end is its left edge: reverse so the set order
-   still reads outward from the centre. */
-.ribbon-wall-right .ribbon-set {
-  flex-direction: row-reverse;
-  padding-right: 0;
-  padding-left: 14px;
-}
-.ribbon-card {
-  width: 200px;
-  height: 250px;
-  margin: 0;
-  overflow: hidden;
-  border-radius: 8px;
-  background: var(--color-surface-2);
-  backface-visibility: hidden;
-}
-@media (max-width: 1024px) {
-  .hero-ribbon {
-    perspective: 1000px;
-  }
-  .ribbon-wall {
-    width: 1150px;
-    height: 212px;
-  }
-  .ribbon-wall-left {
-    transform: translateY(-50%) translateZ(-560px) rotateY(70deg);
-  }
-  .ribbon-wall-right {
-    transform: translateY(-50%) translateZ(-560px) rotateY(-70deg);
-  }
-  .ribbon-card {
-    width: 170px;
-    height: 212px;
-  }
-}
-@media (max-width: 640px) {
-  /* simpler perspective: shorter walls, gentler angle; cards sized so the
-     corridor fills the phone width and the outer cards run to the edges */
-  .hero-ribbon {
-    perspective: 820px;
-  }
-  .ribbon-wall {
-    width: 900px;
-    height: 190px;
-  }
-  .ribbon-wall-left {
-    transform: translateY(-50%) translateZ(-340px) rotateY(64deg);
-  }
-  .ribbon-wall-right {
-    transform: translateY(-50%) translateZ(-340px) rotateY(-64deg);
-  }
-  .ribbon-set {
-    gap: 10px;
-    padding-right: 10px;
-  }
-  .ribbon-wall-right .ribbon-set {
-    padding-left: 10px;
-  }
-  .ribbon-card {
-    width: 152px;
-    height: 190px;
-    border-radius: 6px;
-  }
 }
 
 /* Overscroll: the pin spacer that stands in for a pinned section keeps

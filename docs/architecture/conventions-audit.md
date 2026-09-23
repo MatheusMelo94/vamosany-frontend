@@ -336,9 +336,9 @@ Comandos: o projeto usa npm (ADR-0005); onde as conventions dizem `pnpm typechec
 | Q5 | ~~A landing vai crescer para multi-rota?~~ **Resolvida (2026-09-23): sim — o repo vira o produto completo, com muitas páginas e, depois, o dashboard do Traveler.** T-08 usa route group `(marketing)` e `features/` por domínio desde já. | T-08 |
 | Q6 | ~~Motion expressivo é decisão de marca a manter?~~ **Resolvida: o design/motion em produção não muda** → ADR-0006; T-18 vira retro-spec documental + DDR de formalização. | ADR-0006 |
 | Q7 | ~~Confirmar light-only?~~ **Resolvida por implicação (design congelado): light-only permanece.** Falta só o DDR de deferimento de dark mode pelo UX Strategist. | X-3 |
-| Q8 | Esclarecer na convention: `<a href="#fragment">` same-document é permitido ou tudo vai por `Link`? (sugestão de drift abaixo) | T-12 |
+| Q8 | ~~`<a href="#fragment">` same-document é permitido?~~ **Resolvida (2026-09-23): sim.** Âncoras same-document ficam em `<a>`; `Link` é para navegação entre rotas. `Link` com hash passaria pelo router e pelo scroll do App Router, que interage com os pins do ScrollTrigger — risco de mudar o comportamento congelado (ADR-0006) sem ganho. T-12 cancelada; drift para a convention proposto no § 6. | T-12 |
 | Q9 | Se ADR-0002/0003 forem aceitos, quer que eu proponha o texto de atualização de `§ Animation` (gate `.gsap` + controlador headless como alternativas sancionadas)? | conventions |
-| Q10 | Manter este audit em `docs/architecture/` (não listado no `docs/` canônico) ou mover para `docs/adr/README.md`/`docs/tech-design/`? | este arquivo |
+| Q10 | ~~Manter este audit em `docs/architecture/`?~~ **Resolvida (2026-09-23): fica em `docs/architecture/`.** | este arquivo |
 
 ---
 

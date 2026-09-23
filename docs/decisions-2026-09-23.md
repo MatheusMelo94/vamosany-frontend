@@ -19,3 +19,14 @@ Decididas por Matheus Melo, ou delegadas ("decide voce") e resolvidas pela recom
 | 13 | Metrica de sucesso do site publico | nenhuma em v1; definida na primeira spec de marketing | recomendacao |
 | 14 | Multi-rota | sim, o repo vira o produto completo com dashboard | usuario |
 | 15 | Idiomas | es, pt, en | usuario |
+
+## Status das fases (atualizado 2026-09-23)
+
+| Fase | Status | Onde |
+|---|---|---|
+| 0 Governanca | ADRs e constituicao aceitos; DDRs de formalizacao (motion, tipografia, dark mode, copy) pendentes com o UX Strategist | `docs/adr/`, `docs/specs/` |
+| 1 Ferramental | concluida, PR #4 | `main` |
+| 2 Estrutura e estilo | concluida: T-15, T-06, T-08, T-09, T-11, T-23, T-14; T-12 cancelada (Q8) | PR da branch `refactor/phase-2-structure` |
+| 3 Motion | proxima | `conventions-audit.md` § 4 |
+| 4 Interacao, a11y e formularios | depois da 3 | idem |
+| 5 DevOps | parcial: CI, headers, health, Dependabot ja em `main`; Lighthouse CI e smoke pos-deploy pendentes | `docs/devops/setup-gap-report.md` |

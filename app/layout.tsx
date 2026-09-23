@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import type { JSX, ReactNode } from "react";
 import { Courier_Prime } from "next/font/google";
 import "./globals.css";
+import { env } from "@/lib/env";
 
 /* Display face for the system's mechanical / typewriter voice.
    Body type is Arial per the spec, so no second webfont. */
@@ -12,15 +14,15 @@ const courierPrime = Courier_Prime({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://vamosany.example.com"),
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: "Vamos a NY — New York itineraries, planned to the block",
   description:
     "Day-by-day New York itineraries written on foot, not from a spreadsheet. Download the PDF and the offline map, and walk out of the subway knowing exactly where you are going.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+type Props = { children: ReactNode };
+
+export default function RootLayout({ children }: Props): JSX.Element {
   return (
     <html lang="en" className={courierPrime.variable}>
       <head>
