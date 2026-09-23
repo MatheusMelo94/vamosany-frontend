@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update:
@@ -38,9 +39,10 @@ jobs:
           git add tests/e2e/*-snapshots
           git diff --cached --quiet && { echo "baseline sem mudancas"; exit 0; }
           git commit -m "test(e2e): update screenshot baseline"
+          # Push com GITHUB_TOKEN nao dispara o CI; o proximo push humano compara contra este baseline.
           git push
       - name: Remove trigger label
         if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh pr edit ${{ github.event.pull_request.number }} --remove-label update-snapshots
+        run: gh api -X DELETE "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/update-snapshots"
