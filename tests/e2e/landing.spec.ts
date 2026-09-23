@@ -31,7 +31,8 @@ async function scrollThrough(page: Page) {
     }
     window.scrollTo(0, 0);
   });
-  await page.waitForTimeout(1500);
+  // Reveals, contadores (1.2 s) e o pin do overscroll precisam terminar antes da captura.
+  await page.waitForTimeout(3000);
 }
 
 test.describe("landing", () => {
@@ -62,14 +63,30 @@ test.describe("landing", () => {
     });
   });
 
-  test("baseline: after full scroll, motion enabled", async ({ page }) => {
+  test("baseline: viewport at 25/50/75/100% after a full scroll, motion enabled", async ({
+    page,
+  }) => {
+    // Sem fullPage: a captura de pagina inteira redimensiona a viewport, o ScrollTrigger
+    // recalcula os pins do overscroll e a pagina nunca estabiliza. Capturas de viewport em
+    // posicoes fixas sao deterministas (scrub imediato, reveals once ja disparados).
     await page.goto("/");
     await scrollThrough(page);
-    await expect(page).toHaveScreenshot("scrolled-motion.png", {
-      fullPage: true,
-      mask: LOOPING(page),
-      animations: "disabled",
-    });
+    for (const fraction of [0.25, 0.5, 0.75, 1]) {
+      await page.evaluate((f) => {
+        window.scrollTo(
+          0,
+          Math.round((document.body.scrollHeight - window.innerHeight) * f),
+        );
+      }, fraction);
+      await page.waitForTimeout(800);
+      await expect(page).toHaveScreenshot(
+        `scrolled-${Math.round(fraction * 100)}.png`,
+        {
+          mask: LOOPING(page),
+          animations: "disabled",
+        },
+      );
+    }
   });
 
   test.describe("reduced motion", () => {
