@@ -5,7 +5,7 @@ day-by-day itineraries and runs a blog. Single page only; every link is an
 in-page anchor or a `#` placeholder.
 
 - **Stack:** Next.js 15 (App Router) · React 19 · Tailwind CSS v4 · TypeScript · GSAP
-- **Design system:** `vamosany-design-system.md` — near-black ink on white,
+- **Design system:** `docs/design/vamosany-design-system.md` — near-black ink on white,
   taxi-yellow accent, Courier Prime display type, squared-off geometry.
   Tokens live in `app/globals.css` under `@theme`.
 - **Photography:** real New York photographs from Wikimedia Commons, resized and
@@ -106,7 +106,7 @@ renders fully static.
 
 ## Previous design system
 
-`DESIGN.md` holds the Linear system this page was styled with before. Token and
+`docs/design/DESIGN.md` holds the Linear system this page was styled with before. Token and
 utility names are generic (`canvas`, `surface-1`, `ink-subtle`, `brand`,
 `display-lg`, `container-ds`), so swapping systems is mostly a `globals.css`
 rewrite plus the fonts in `app/layout.tsx`.

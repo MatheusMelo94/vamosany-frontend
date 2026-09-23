@@ -10,7 +10,8 @@ npm (nao pnpm, ADR-0005). Node 24 (`.nvmrc`).
 ## Regras que valem sempre
 - **O design e o motion da landing atual sao congelados** (ADR-0006). Refactors devem passar
   no baseline de screenshots (`npm run test:e2e`). Mudanca visual exige DDR.
-- Toda feature passa pelo pipeline em `.claude/README.md`: constitution → spec → plan → implement → review → QA → security → deploy.
+- Toda feature passa pelo pipeline em `.claude/README.md` (agentes em `.claude/agents/`, conventions em `docs/conventions/`): constitution → spec → plan → implement → review → QA → security → deploy.
+- Design system de record: `docs/design/vamosany-design-system.md`.
 - Constituicao: `docs/specs/constitution.md` (herda `vamosany-back/CONSTITUTION.md`).
 - ADRs em `docs/adr/`, decisoes de onboarding em `docs/decisions-2026-09-23.md`.
 - Backlog de migracao: `docs/architecture/conventions-audit.md` § 4.

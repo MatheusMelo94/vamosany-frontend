@@ -32,7 +32,7 @@ Adicao do frontend:
 Herdado do backend § Constraints.
 Adicao do frontend:
 - Stack: Next.js 15 App Router, React 19, TypeScript 5, Tailwind CSS 4, GSAP 3.
-- Design system de record: `vamosany-design-system.md` e os tokens em `app/globals.css`.
+- Design system de record: `docs/design/vamosany-design-system.md` e os tokens em `app/globals.css`.
 - Contrato de API: o `/plan` e `SPECIFICATION.md` do `vamosany-back`.
 
 ## Experience Principles
