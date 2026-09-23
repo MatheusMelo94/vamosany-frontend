@@ -12,6 +12,7 @@ import {
   SparkleIcon,
 } from "./icons";
 import { BrandLogo, Button, SectionHeading } from "./ui";
+import { cn } from "@/lib/utils";
 
 /* Fictional account state for the preview — nothing here is live. */
 const USER = { name: "Marta", trip: "14 – 19 Oct 2026", daysToGo: 23 };
@@ -118,11 +119,12 @@ function StatusPill({ done, label }: { done: boolean; label: string }) {
   return (
     <span className="caption border-hairline bg-canvas text-ink inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 whitespace-nowrap">
       <span
-        className={`grid size-3.5 place-items-center rounded-full ${
+        className={cn(
+          "grid size-3.5 place-items-center rounded-full",
           done
             ? "bg-brand text-ink"
-            : "border-hairline-strong border text-transparent"
-        }`}
+            : "border-hairline-strong border text-transparent",
+        )}
         aria-hidden
       >
         <CheckIcon className="size-2.5" />
@@ -277,11 +279,12 @@ export function DashboardPreview() {
                     {group.items.map((item) => (
                       <li key={item.label}>
                         <span
-                          className={`body-sm flex items-center gap-2.5 rounded-sm px-2 py-1.5 ${
+                          className={cn(
+                            "body-sm flex items-center gap-2.5 rounded-sm px-2 py-1.5",
                             item.active
                               ? "bg-canvas text-ink font-semibold shadow-[inset_0_0_0_1px_var(--color-hairline)]"
-                              : "text-ink-subtle"
-                          }`}
+                              : "text-ink-subtle",
+                          )}
                         >
                           <item.Icon className="size-4 shrink-0" />
                           <span className="flex-1">{item.label}</span>
@@ -447,7 +450,12 @@ export function DashboardPreview() {
                     >
                       <div className="min-w-0 flex-1">
                         <p
-                          className={`body-sm truncate ${bk.done ? "text-ink-subtle line-through" : "text-ink font-semibold"}`}
+                          className={cn(
+                            "body-sm truncate",
+                            bk.done
+                              ? "text-ink-subtle line-through"
+                              : "text-ink font-semibold",
+                          )}
                         >
                           {bk.what}
                         </p>

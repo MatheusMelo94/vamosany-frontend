@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "./ui";
+import { cn } from "@/lib/utils";
 
 const DAYS = [
   {
@@ -108,11 +109,12 @@ export function SampleDay() {
               type="button"
               aria-selected={d.id === active}
               onClick={() => setActive(d.id)}
-              className={`label-button shrink-0 rounded-xs px-4 py-2 transition-colors ${
+              className={cn(
+                "label-button shrink-0 rounded-xs px-4 py-2 transition-colors",
                 d.id === active
                   ? "bg-brand text-ink"
-                  : "text-ink-subtle hover:text-ink"
-              }`}
+                  : "text-ink-subtle hover:text-ink",
+              )}
             >
               {d.id}
             </button>

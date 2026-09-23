@@ -1,5 +1,6 @@
 import { CheckIcon } from "./icons";
 import { Button, SectionHeading } from "./ui";
+import { cn } from "@/lib/utils";
 
 const TIERS = [
   {
@@ -71,9 +72,10 @@ export function Services() {
         {TIERS.map((tier) => (
           <li key={tier.title}>
             <article
-              className={`bg-canvas flex h-full flex-col rounded-lg border p-7 ${
-                tier.featured ? "border-ink border-2" : "border-hairline"
-              }`}
+              className={cn(
+                "bg-canvas flex h-full flex-col rounded-lg border p-7",
+                tier.featured ? "border-ink border-2" : "border-hairline",
+              )}
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="eyebrow">{tier.kicker}</p>

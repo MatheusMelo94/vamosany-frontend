@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CardIcon, CircleTargetIcon, GridIcon, LaptopIcon } from "./icons";
+import { cn } from "@/lib/utils";
 
 const TRACKS = [
   {
@@ -78,11 +79,12 @@ export function PlanningTimeline() {
             type="button"
             aria-selected={t.id === active}
             onClick={() => setActive(t.id)}
-            className={`label-button inline-flex shrink-0 items-center gap-2 rounded-xs px-3.5 py-2 transition-colors ${
+            className={cn(
+              "label-button inline-flex shrink-0 items-center gap-2 rounded-xs px-3.5 py-2 transition-colors",
               t.id === active
                 ? "bg-brand text-ink"
-                : "text-ink-subtle hover:text-ink"
-            }`}
+                : "text-ink-subtle hover:text-ink",
+            )}
           >
             <t.Icon className="size-4" />
             {t.id}
@@ -100,9 +102,10 @@ export function PlanningTimeline() {
             <li key={step.when} className="flex flex-col items-center">
               <span
                 aria-hidden
-                className={`ring-canvas relative z-10 size-3 rounded-full ring-4 ${
-                  i === 0 ? "bg-brand" : "bg-hairline-strong"
-                }`}
+                className={cn(
+                  "ring-canvas relative z-10 size-3 rounded-full ring-4",
+                  i === 0 ? "bg-brand" : "bg-hairline-strong",
+                )}
               />
               <p className="body-sm text-ink mt-5 font-semibold">{step.when}</p>
               <p className="body-sm border-hairline bg-surface-1 text-ink-subtle mt-3 w-full rounded-lg border px-5 py-4 text-center">

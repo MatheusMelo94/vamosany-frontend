@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 /* Buttons — vamosany: squared off (4px), 2px ink border, uppercase
    display label, 48px min height, 1px lift on hover. No pills,
@@ -42,7 +43,13 @@ export function Button({
   className = "",
   ...rest
 }: ButtonProps) {
-  const classes = `${base} ${pill ? "rounded-full" : "rounded-md"} ${variants[variant]} ${sizes[size]} ${className}`;
+  const classes = cn(
+    base,
+    pill ? "rounded-full" : "rounded-md",
+    variants[variant],
+    sizes[size],
+    className,
+  );
 
   if (href) {
     return (
@@ -76,9 +83,10 @@ export function SectionHeading({
   return (
     <div
       data-heading-block
-      className={`flex max-w-2xl flex-col gap-4 ${
-        align === "center" ? "mx-auto items-center text-center" : "items-start"
-      }`}
+      className={cn(
+        "flex max-w-2xl flex-col gap-4",
+        align === "center" ? "mx-auto items-center text-center" : "items-start",
+      )}
     >
       {eyebrow ? (
         <span data-heading-eyebrow className="eyebrow">
@@ -133,7 +141,7 @@ export function BrandLogo({
       width={1196}
       height={395}
       priority
-      className={`h-7 w-auto ${className}`}
+      className={cn("h-7 w-auto", className)}
     />
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GlobeIcon } from "./icons";
 import { BrandLogo } from "./ui";
+import { cn } from "@/lib/utils";
 
 type Item = {
   title: string;
@@ -259,17 +260,20 @@ export function Navbar() {
                     setOpen((cur) => (cur === group.label ? null : group.label))
                   }
                   aria-expanded={open === group.label}
-                  className={`${textLink} flex items-center gap-1.5 ${
-                    open === group.label ? "bg-ink/5" : ""
-                  }`}
+                  className={cn(
+                    textLink,
+                    "flex items-center gap-1.5",
+                    open === group.label && "bg-ink/5",
+                  )}
                 >
                   {group.label}
                   <svg
                     viewBox="0 0 12 12"
                     aria-hidden
-                    className={`size-3 transition-transform duration-200 ${
-                      open === group.label ? "rotate-180" : ""
-                    }`}
+                    className={cn(
+                      "size-3 transition-transform duration-200",
+                      open === group.label && "rotate-180",
+                    )}
                   >
                     <path
                       d="m3 4.5 3 3 3-3"
@@ -294,14 +298,21 @@ export function Navbar() {
               aria-haspopup="listbox"
               aria-expanded={langOpen}
               aria-label="Change language"
-              className={`${textLink} flex items-center gap-1.5 ${langOpen ? "bg-ink/5" : ""}`}
+              className={cn(
+                textLink,
+                "flex items-center gap-1.5",
+                langOpen && "bg-ink/5",
+              )}
             >
               <GlobeIcon className="size-4" />
               {lang}
               <svg
                 viewBox="0 0 12 12"
                 aria-hidden
-                className={`size-3 transition-transform duration-200 ${langOpen ? "rotate-180" : ""}`}
+                className={cn(
+                  "size-3 transition-transform duration-200",
+                  langOpen && "rotate-180",
+                )}
               >
                 <path
                   d="m3 4.5 3 3 3-3"
@@ -329,11 +340,12 @@ export function Navbar() {
                         setLang(l.code);
                         setLangOpen(false);
                       }}
-                      className={`body-sm hover:bg-surface-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors ${
+                      className={cn(
+                        "body-sm hover:bg-surface-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors",
                         lang === l.code
                           ? "bg-surface-1 text-ink font-semibold"
-                          : "text-ink-subtle"
-                      }`}
+                          : "text-ink-subtle",
+                      )}
                     >
                       <span>
                         <span className="text-ink font-mono">{l.code}</span>
@@ -353,13 +365,13 @@ export function Navbar() {
           </div>
           <Link
             href="#login"
-            className={`${textLink} bg-ink/5 hover:bg-ink/10`}
+            className={cn(textLink, "bg-ink/5 hover:bg-ink/10")}
           >
             Log in
           </Link>
           <Link
             href="#signup"
-            className={`${textLink} bg-ink/5 hover:bg-ink/10`}
+            className={cn(textLink, "bg-ink/5 hover:bg-ink/10")}
           >
             Sign up
           </Link>
@@ -412,11 +424,11 @@ export function Navbar() {
                       <li key={item.title}>
                         <Link
                           href={item.href ?? "#services"}
-                          className={`group hover:bg-surface-1 block rounded-xl p-3 transition-colors ${
-                            item.price
-                              ? "border-hairline hover:border-ink border"
-                              : ""
-                          }`}
+                          className={cn(
+                            "group hover:bg-surface-1 block rounded-xl p-3 transition-colors",
+                            item.price &&
+                              "border-hairline hover:border-ink border",
+                          )}
                         >
                           <span className="body-sm text-ink flex items-center gap-2 font-semibold">
                             {item.title}
@@ -505,11 +517,12 @@ export function Navbar() {
                   role="option"
                   aria-selected={lang === l.code}
                   onClick={() => setLang(l.code)}
-                  className={`label-button rounded-full border-2 px-3 py-1.5 transition-colors ${
+                  className={cn(
+                    "label-button rounded-full border-2 px-3 py-1.5 transition-colors",
                     lang === l.code
                       ? "border-ink bg-ink text-white"
-                      : "border-hairline text-ink"
-                  }`}
+                      : "border-hairline text-ink",
+                  )}
                 >
                   {l.code}
                 </button>

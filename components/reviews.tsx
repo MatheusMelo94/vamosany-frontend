@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { ArrowRight, SectionHeading } from "./ui";
+import { cn } from "@/lib/utils";
 
 const REVIEWS = [
   {
@@ -61,7 +62,7 @@ export function Reviews() {
               className="border-ink text-ink hover:bg-brand grid size-10 place-items-center rounded-sm border-2 transition-colors"
             >
               <ArrowRight
-                className={`size-4 ${dir === -1 ? "rotate-180" : ""}`}
+                className={cn("size-4", dir === -1 && "rotate-180")}
               />
             </button>
           ))}
