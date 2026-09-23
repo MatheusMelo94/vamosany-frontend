@@ -14,11 +14,47 @@ in-page anchor or a `#` placeholder.
 
 ## Run
 
+Node 24 (`.nvmrc`), npm. Producao na Vercel (deploy automatico de `main`).
+
 ```bash
-npm install
-npm run dev     # http://localhost:3000
-npm run build
+./run-local.sh            # npm ci + .env.local + next dev
+npm run dev               # http://localhost:3000
+npm run build && npm start
 ```
+
+### Quality gates
+
+```bash
+npm run typecheck         # tsc --noEmit
+npm run lint              # eslint (next/core-web-vitals + jsx-a11y recommended)
+npm run format:check      # prettier (plugin tailwindcss)
+npm test                  # vitest + testing-library (jsdom)
+npm run test:e2e          # playwright: axe + baseline de screenshots em 360/768/1280
+npm run test:e2e:update   # regenera o baseline — so com mudanca visual aprovada por DDR
+```
+
+O baseline de screenshots em `tests/e2e/landing.spec.ts-snapshots/` e o oraculo do
+ADR-0006 (design congelado): todo refactor deve passar com diff zero.
+
+### Environment
+
+| Variavel | Obrigatoria | Onde | Uso |
+|---|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | nao (ainda) | `.env.local`, Vercel Preview/Production | URL canonica; hoje o `metadataBase` esta hard-coded em `app/layout.tsx` (T-23) |
+
+Copie `.env.example` para `.env.local`. Nenhum segredo existe hoje.
+
+### Routes
+
+| Rota | Tipo | O que |
+|---|---|---|
+| `/` | static | a landing |
+| `/api/health` | static | `{"status":"ok"}` para smoke test pos-deploy |
+
+### Governance
+
+`docs/specs/constitution.md` · `docs/adr/` · `docs/architecture/conventions-audit.md` (backlog) ·
+`docs/security/` · `docs/devops/` · `docs/qa/` · `CLAUDE.md`
 
 ## Sections
 

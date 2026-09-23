@@ -13,3 +13,14 @@ next-env.d.ts
 !/logo-pretzel.png
 !/logo-pretzel-dark.png
 !/logos-01.png
+
+# testes / relatorios
+playwright-report/
+test-results/
+coverage/
+.lighthouseci/
+.vercel
+
+# env (o .env.example e versionado)
+.env*
+!.env.example
