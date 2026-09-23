@@ -12,9 +12,13 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
   },
+  // O baseline de screenshots so e comparado no CI (ubuntu-latest, Chromium do
+  // Playwright). Fontes e metricas variam entre maquinas, entao localmente as
+  // capturas sao ignoradas. Para regenerar o baseline: workflow "Update snapshots".
+  ignoreSnapshots: !process.env.CI,
   expect: {
     // Baseline protege o design congelado (ADR-0006). Tolerancia pequena para
-    // diferencas de antialiasing entre maquinas.
+    // antialiasing entre versoes do runner.
     toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
   },
   webServer: {

@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:update": "playwright test --update-snapshots",
+    "test:e2e:update": "echo \"O baseline e gerado no CI: GitHub > Actions > Update snapshots (workflow_dispatch)\" && exit 1",
     "lhci": "lhci autorun",
     "analyze": "ANALYZE=true next build"
   },

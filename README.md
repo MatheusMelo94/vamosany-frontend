@@ -30,11 +30,13 @@ npm run lint              # eslint (next/core-web-vitals + jsx-a11y recommended)
 npm run format:check      # prettier (plugin tailwindcss)
 npm test                  # vitest + testing-library (jsdom)
 npm run test:e2e          # playwright: axe + baseline de screenshots em 360/768/1280
-npm run test:e2e:update   # regenera o baseline — so com mudanca visual aprovada por DDR
+# baseline: GitHub > Actions > "Update snapshots" — so com mudanca visual aprovada por DDR
 ```
 
 O baseline de screenshots em `tests/e2e/landing.spec.ts-snapshots/` e o oraculo do
-ADR-0006 (design congelado): todo refactor deve passar com diff zero.
+ADR-0006 (design congelado): todo refactor deve passar com diff zero. Ele e gerado e
+comparado apenas no CI (fontes variam entre maquinas); localmente `test:e2e` roda axe e
+os asserts funcionais e ignora as capturas.
 
 ### Environment
 
