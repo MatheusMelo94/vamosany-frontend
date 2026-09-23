@@ -11,6 +11,10 @@
    --------------------------------------------------------------- */
 
 @theme {
+  /* Paleta default do Tailwind desligada: so os tokens do sistema existem (ADR-0004, T-14).
+     `transparent`, `current` e `inherit` sao keywords e continuam disponiveis. */
+  --color-*: initial;
+
   --font-sans: Arial, Helvetica, sans-serif;
   --font-display: var(--font-courier-prime), "Roboto Slab", Rockwell, serif;
   --font-mono: var(--font-courier-prime), ui-monospace, "SF Mono", monospace;
@@ -47,6 +51,17 @@
   /* Status reads through contrast, not a second accent colour */
   --color-success: #080a0b;
 
+  /* Ilustracao: agua no esboco de mapa do dashboard */
+  --color-map-water: #e1e6ea;
+
+  /* Containers */
+  --container-page: 1200px;
+  --container-dashboard: 1400px;
+
+  /* Type sizes below the base scale */
+  --text-2xs: 0.5625rem;
+  --text-label-sm: 0.8125rem;
+
   /* Radius — restrained. Buttons 4px, cards 8px, panels 12–16px */
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -58,6 +73,11 @@
   /* Shadows — used sparingly */
   --shadow-soft: 0 8px 30px rgb(0 0 0 / 0.08);
   --shadow-card: 0 4px 16px rgb(0 0 0 / 0.08);
+  --shadow-nav: 0 8px 30px rgb(0 0 0 / 0.06);
+  --shadow-menu: 0 18px 50px rgb(0 0 0 / 0.08);
+  --shadow-drawer: 0 18px 50px rgb(0 0 0 / 0.1);
+  --shadow-panel: 0 24px 60px rgb(0 0 0 / 0.08);
+  --shadow-inset-hairline: inset 0 0 0 1px var(--color-hairline);
 
   /* Motion */
   --duration-fast: 120ms;

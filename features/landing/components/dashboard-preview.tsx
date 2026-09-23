@@ -157,7 +157,7 @@ function MapSketch() {
       role="img"
       aria-label="Sketch of the day's route across the map"
     >
-      <rect width="100" height="100" fill="#fff" />
+      <rect width="100" height="100" fill="var(--color-canvas)" />
       {Array.from({ length: 9 }, (_, i) => (
         <line
           key={`v${i}`}
@@ -165,7 +165,7 @@ function MapSketch() {
           y1="0"
           x2={10 + i * 10}
           y2="100"
-          stroke="#eeeeea"
+          stroke="var(--color-hairline)"
           strokeWidth="0.8"
         />
       ))}
@@ -176,20 +176,20 @@ function MapSketch() {
           y1={10 + i * 10}
           x2="100"
           y2={10 + i * 10}
-          stroke="#eeeeea"
+          stroke="var(--color-hairline)"
           strokeWidth="0.8"
         />
       ))}
       <path
         d="M0 82 Q 30 90 100 78"
         fill="none"
-        stroke="#e1e6ea"
+        stroke="var(--color-map-water)"
         strokeWidth="5"
       />
       <polyline
         points="38,74 52,58 61,44 70,30"
         fill="none"
-        stroke="#080a0b"
+        stroke="var(--color-ink)"
         strokeWidth="1.4"
         strokeDasharray="2.5 2"
         strokeLinecap="round"
@@ -200,8 +200,8 @@ function MapSketch() {
             cx={x}
             cy={y}
             r="4.2"
-            fill="#ffd800"
-            stroke="#080a0b"
+            fill="var(--color-brand)"
+            stroke="var(--color-ink)"
             strokeWidth="1.2"
           />
           <text
@@ -211,7 +211,7 @@ function MapSketch() {
             fontSize="4.2"
             fontFamily="var(--font-display)"
             fontWeight="700"
-            fill="#080a0b"
+            fill="var(--color-ink)"
           >
             {i + 1}
           </text>
@@ -249,9 +249,10 @@ export function DashboardPreview(): JSX.Element {
       {/* The app window sits inside the tinted section with breathing room on
           every side; the section itself still fills the viewport, so nothing
           reads as empty while it scrolls. */}
+      {/* arbitrary: painel ocupa a viewport menos o padding do palco; varia por breakpoint */}
       <div
         data-reveal
-        className="border-hairline bg-canvas mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-[1400px] flex-col overflow-hidden rounded-xl border shadow-[0_24px_60px_rgba(0,0,0,0.08)] sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-7rem)]"
+        className="border-hairline bg-canvas max-w-dashboard shadow-panel mx-auto flex min-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-7rem)]"
         aria-label="Preview of the traveller dashboard"
       >
         <div className="border-hairline bg-surface-1 flex items-center gap-2 border-b px-4 py-2.5">
@@ -268,6 +269,7 @@ export function DashboardPreview(): JSX.Element {
           </span>
         </div>
 
+        {/* arbitrary: sidebar fixa de 240px + conteudo fluido */}
         <div className="grid flex-1 md:grid-cols-[240px_1fr]">
           {/* Sidebar */}
           <aside className="border-hairline bg-surface-1 hidden flex-col border-r p-5 md:flex">
@@ -289,7 +291,7 @@ export function DashboardPreview(): JSX.Element {
                           className={cn(
                             "body-sm flex items-center gap-2.5 rounded-sm px-2 py-1.5",
                             item.active
-                              ? "bg-canvas text-ink font-semibold shadow-[inset_0_0_0_1px_var(--color-hairline)]"
+                              ? "bg-canvas text-ink shadow-inset-hairline font-semibold"
                               : "text-ink-subtle",
                           )}
                         >
@@ -363,6 +365,7 @@ export function DashboardPreview(): JSX.Element {
               ))}
             </dl>
 
+            {/* arbitrary: proporcao 1.3:1 entre plano do dia e mapa */}
             <div className="mt-6 grid gap-3 lg:grid-cols-[1.3fr_1fr]">
               {/* Today's plan */}
               <div className="border-hairline rounded-lg border p-4 sm:p-5">
@@ -379,6 +382,7 @@ export function DashboardPreview(): JSX.Element {
                 </div>
                 <ol className="border-hairline mt-4 border-t">
                   {TODAY.map(([time, what, howLong]) => (
+                    // arbitrary: coluna de horario fixa + texto + acao
                     <li
                       key={time}
                       className="border-hairline grid grid-cols-[3.5rem_1fr_auto] items-baseline gap-3 border-b py-2.5"
@@ -412,7 +416,7 @@ export function DashboardPreview(): JSX.Element {
                     Offline copy saved
                   </span>
                 </div>
-                <div className="aspect-[4/3]">
+                <div className="aspect-4/3">
                   <MapSketch />
                 </div>
               </div>

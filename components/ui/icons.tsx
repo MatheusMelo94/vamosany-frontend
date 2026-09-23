@@ -249,7 +249,7 @@ type CountryTagProps = { code: string };
 
 export function CountryTag({ code }: CountryTagProps): JSX.Element {
   return (
-    <span className="bg-surface-2 text-ink-subtle inline-grid h-4 min-w-6 shrink-0 place-items-center rounded-xs px-1 font-mono text-[0.5625rem] tracking-wide uppercase">
+    <span className="bg-surface-2 text-ink-subtle text-2xs inline-grid h-4 min-w-6 shrink-0 place-items-center rounded-xs px-1 font-mono tracking-wide uppercase">
       {code}
     </span>
   );

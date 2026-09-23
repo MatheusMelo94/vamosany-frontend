@@ -243,7 +243,7 @@ export function Navbar(): JSX.Element {
       className="site-nav pointer-events-none sticky top-4 z-50 mt-4 px-4 sm:px-6"
     >
       <div
-        className="nav-capsule border-ink/[0.08] pointer-events-auto relative mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-4 rounded-full border bg-white/55 pr-2 pl-5 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl backdrop-saturate-150 transition-shadow duration-(--duration-slow) sm:pr-2.5 sm:pl-7"
+        className="nav-capsule border-ink/[0.08] max-w-page bg-canvas/55 shadow-nav pointer-events-auto relative mx-auto flex h-14 w-full items-center justify-between gap-4 rounded-full border pr-2 pl-5 backdrop-blur-xl backdrop-saturate-150 transition-shadow duration-(--duration-slow) sm:pr-2.5 sm:pl-7"
         onMouseLeave={() => setOpen(null)}
       >
         <Link href="/" className="shrink-0" aria-label="Vamos a NY — home">
@@ -326,10 +326,11 @@ export function Navbar(): JSX.Element {
               </svg>
             </button>
             {langOpen ? (
+              // arbitrary: offset do dropdown = altura do trigger + 12px, nao e um step da escala
               <ul
                 role="listbox"
                 aria-label="Language"
-                className="border-ink/[0.08] bg-canvas absolute top-[calc(100%+0.75rem)] right-0 w-44 rounded-2xl border p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.08)]"
+                className="border-ink/[0.08] bg-canvas shadow-menu absolute top-[calc(100%+0.75rem)] right-0 w-44 rounded-2xl border p-1.5"
               >
                 {LANGUAGES.map((l) => (
                   <li key={l.code}>
@@ -406,8 +407,9 @@ export function Navbar(): JSX.Element {
 
         {/* Desktop mega menu — floats beneath the capsule at its width */}
         {active ? (
+          // arbitrary: offset do dropdown = altura do trigger + 8px
           <div
-            className="border-ink/[0.08] bg-canvas absolute inset-x-0 top-[calc(100%+0.5rem)] hidden rounded-3xl border shadow-[0_18px_50px_rgba(0,0,0,0.08)] lg:block"
+            className="border-ink/[0.08] bg-canvas shadow-menu absolute inset-x-0 top-[calc(100%+0.5rem)] hidden rounded-3xl border lg:block"
             onMouseEnter={() => setOpen(active.label)}
             onMouseLeave={() => setOpen(null)}
           >
@@ -474,7 +476,8 @@ export function Navbar(): JSX.Element {
         />
       ) : null}
       {mobileOpen ? (
-        <div className="border-ink/[0.08] bg-canvas pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto rounded-3xl border px-5 pt-4 pb-8 shadow-[0_18px_50px_rgba(0,0,0,0.1)] lg:hidden">
+        // arbitrary: drawer abaixo da capsula = margem + altura da capsula + folga
+        <div className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto rounded-3xl border px-5 pt-4 pb-8 lg:hidden">
           <ul className="divide-hairline divide-y">
             {NAV.map((group) => (
               <li key={group.label} className="py-5">
@@ -521,7 +524,7 @@ export function Navbar(): JSX.Element {
                   className={cn(
                     "label-button rounded-full border-2 px-3 py-1.5 transition-colors",
                     lang === l.code
-                      ? "border-ink bg-ink text-white"
+                      ? "border-ink bg-ink text-inverse-ink"
                       : "border-hairline text-ink",
                   )}
                 >

@@ -99,6 +99,7 @@ export function PlanningTimeline(): JSX.Element {
       </div>
 
       <div className="relative mt-16">
+        {/* arbitrary: a linha liga os centros do 1o e 3o de tres marcos (1/6 de cada lado) */}
         <div
           aria-hidden
           className="border-hairline-strong absolute inset-x-[16.666%] top-1 hidden border-t-2 border-dashed md:block"

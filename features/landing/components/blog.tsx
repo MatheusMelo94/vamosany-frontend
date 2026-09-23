@@ -59,13 +59,13 @@ export function Blog(): JSX.Element {
           data-reveal
           className="group border-ink mt-14 grid gap-8 border-b-2 pb-14 lg:grid-cols-2 lg:items-center lg:gap-12"
         >
-          <div className="relative aspect-[3/2] overflow-hidden rounded-lg">
+          <div className="relative aspect-3/2 overflow-hidden rounded-lg">
             <Image
               src={FEATURED.img}
               alt={FEATURED.alt}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover transition-transform duration-(--duration-slow) ease-(--ease-default) group-hover:scale-[1.04]"
+              className="object-cover transition-transform duration-(--duration-slow) ease-(--ease-default) group-hover:scale-104"
             />
           </div>
           <div>
@@ -92,13 +92,13 @@ export function Blog(): JSX.Element {
           {POSTS.map((post) => (
             <li key={post.title}>
               <article className="group flex h-full flex-col">
-                <div className="relative aspect-[3/2] overflow-hidden rounded-lg">
+                <div className="relative aspect-3/2 overflow-hidden rounded-lg">
                   <Image
                     src={post.img}
                     alt={post.alt}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-(--duration-slow) ease-(--ease-default) group-hover:scale-[1.04]"
+                    className="object-cover transition-transform duration-(--duration-slow) ease-(--ease-default) group-hover:scale-104"
                   />
                 </div>
                 <p className="eyebrow mt-5">{post.category}</p>

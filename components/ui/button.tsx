@@ -15,6 +15,7 @@ type ButtonProps = {
   className?: string;
 } & Omit<ComponentProps<"button">, "children" | "className">;
 
+// arbitrary: transition-[...] lista so as propriedades animadas (cor, transform, borda), nunca `all`
 const base =
   "label-button inline-flex items-center justify-center gap-2 border-2 transition-[background-color,transform,border-color] duration-(--duration-base) ease-(--ease-default) hover:-translate-y-px";
 
@@ -28,7 +29,7 @@ const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
 };
 
 const sizes: Record<NonNullable<ButtonProps["size"]>, string> = {
-  sm: "min-h-10 px-4 py-2 text-[0.8125rem]",
+  sm: "min-h-10 px-4 py-2 text-label-sm",
   md: "min-h-12 px-5 py-3",
   lg: "min-h-12 px-6 py-3",
 };

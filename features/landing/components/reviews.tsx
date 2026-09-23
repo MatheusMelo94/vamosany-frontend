@@ -80,7 +80,7 @@ export function Reviews(): JSX.Element {
           {REVIEWS.map((review) => (
             <figure
               key={review.person}
-              className="border-hairline bg-surface-1 flex w-[19rem] shrink-0 snap-start flex-col rounded-lg border p-8 sm:w-[24rem]"
+              className="border-hairline bg-surface-1 flex w-76 shrink-0 snap-start flex-col rounded-lg border p-8 sm:w-96"
             >
               <span className="text-brand" aria-label="Five out of five">
                 {"★".repeat(5)}

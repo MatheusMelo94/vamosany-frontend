@@ -44,7 +44,7 @@ export function HowItWorks(): JSX.Element {
 
         <figure
           data-reveal
-          className="relative aspect-[4/3] overflow-hidden rounded-lg"
+          className="relative aspect-4/3 overflow-hidden rounded-lg"
         >
           <Image
             src="/img/how-subway.webp"

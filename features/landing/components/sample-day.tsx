@@ -122,6 +122,7 @@ export function SampleDay(): JSX.Element {
           ))}
         </div>
 
+        {/* arbitrary: proporcao 1.1:1 entre lista e foto */}
         <div data-reveal className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
           <div className="flex flex-col justify-center">
             <h3 className="headline text-ink text-balance">{day.title}</h3>
@@ -129,6 +130,7 @@ export function SampleDay(): JSX.Element {
 
             <ol className="border-hairline mt-8 border-t">
               {day.stops.map(([time, what, howLong]) => (
+                // arbitrary: coluna de horario fixa + texto + acao
                 <li
                   key={time}
                   className="border-hairline grid grid-cols-[4.5rem_1fr_auto] items-baseline gap-4 border-b py-3.5"
@@ -147,7 +149,7 @@ export function SampleDay(): JSX.Element {
             </Button>
           </div>
 
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg lg:aspect-auto lg:min-h-[28rem]">
+          <div className="relative aspect-4/3 overflow-hidden rounded-lg lg:aspect-auto lg:min-h-112">
             <Image
               key={day.img}
               src={day.img}
