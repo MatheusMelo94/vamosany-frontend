@@ -1,5 +1,3 @@
-import { CustomEase } from "@/lib/gsap";
-
 /**
  * Fonte unica de duracoes, staggers, distancias e eases do GSAP (T-17, ADR-0006).
  * Os valores sao os que estavam espalhados pelos modulos, copiados 1:1 — o design e o
@@ -15,19 +13,6 @@ export const EASE = {
   arrive:
     "M0,0 C0.06,0.42 0.14,0.82 0.4,0.965 0.55,1.02 0.66,1.022 0.76,1.006 0.86,0.995 0.93,1 1,1",
 } as const;
-
-let eases: { ds: gsap.EaseFunction; arrive: gsap.EaseFunction } | undefined;
-/** Cria as CustomEases uma vez, no cliente, quando o primeiro modulo precisa delas. */
-export function getEases(): {
-  ds: gsap.EaseFunction;
-  arrive: gsap.EaseFunction;
-} {
-  eases ??= {
-    ds: CustomEase.create("ds", EASE.ds),
-    arrive: CustomEase.create("arrive", EASE.arrive),
-  };
-  return eases;
-}
 
 export const MOTION = {
   /** ScrollTrigger start positions */

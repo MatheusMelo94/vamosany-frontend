@@ -27,6 +27,6 @@ Decididas por Matheus Melo, ou delegadas ("decide voce") e resolvidas pela recom
 | 0 Governanca | ADRs e constituicao aceitos; DDRs de formalizacao (motion, tipografia, dark mode, copy) pendentes com o UX Strategist | `docs/adr/`, `docs/specs/` |
 | 1 Ferramental | concluida, PR #4 | `main` |
 | 2 Estrutura e estilo | concluida: T-15, T-06, T-08, T-09, T-11, T-23, T-14; T-12 cancelada (Q8) | PR da branch `refactor/phase-2-structure` |
-| 3 Motion | proxima | `conventions-audit.md` § 4 |
+| 3 Motion | concluida: T-05, T-16, T-17, T-18b, T-19 (parcial: priority opt-in; anel fica em `<picture>`), T-19b; spikes T-16b/T-17b nao executados | PR da branch `refactor/phase-3-motion`, `docs/tech-design/landing-motion.md` |
 | 4 Interacao, a11y e formularios | depois da 3 | idem |
 | 5 DevOps | parcial: CI, headers, health, Dependabot ja em `main`; Lighthouse CI e smoke pos-deploy pendentes | `docs/devops/setup-gap-report.md` |

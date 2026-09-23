@@ -247,7 +247,7 @@ export function Navbar(): JSX.Element {
         onMouseLeave={() => setOpen(null)}
       >
         <Link href="/" className="shrink-0" aria-label="Vamos a NY — home">
-          <BrandLogo className="h-6" />
+          <BrandLogo className="h-6" priority />
         </Link>
 
         <div className="hidden items-center gap-1 lg:flex">

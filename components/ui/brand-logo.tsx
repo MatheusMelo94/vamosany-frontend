@@ -7,11 +7,14 @@ import { cn } from "@/lib/utils";
 type Props = {
   className?: string;
   tone?: "dark" | "light";
+  /** Preload: only for the instance above the fold (the navbar). */
+  priority?: boolean;
 };
 
 export function BrandLogo({
   className = "",
   tone = "dark",
+  priority = false,
 }: Props): JSX.Element {
   return (
     <Image
@@ -19,7 +22,7 @@ export function BrandLogo({
       alt="Vamos a NY"
       width={1196}
       height={395}
-      priority
+      priority={priority}
       className={cn("h-7 w-auto", className)}
     />
   );

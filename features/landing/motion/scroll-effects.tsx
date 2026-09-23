@@ -1,7 +1,8 @@
 "use client";
 
-import { gsap, useGSAP, ScrollTrigger, SplitText } from "@/lib/gsap";
-import { getEases, MOTION } from "@/lib/motion";
+import { gsap, useGSAP, ScrollTrigger } from "@/lib/gsap";
+import { getEases, SplitText } from "@/lib/gsap-text";
+import { MOTION } from "@/lib/motion";
 import { motionEnabled, sel } from "./attributes";
 
 /**

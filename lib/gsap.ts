@@ -1,10 +1,12 @@
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { CustomEase } from "gsap/CustomEase";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
 
-/** Unico ponto de registro de plugins (frontend-architecture-conventions § Animation). */
-gsap.registerPlugin(useGSAP, ScrollTrigger, CustomEase, SplitText);
+/**
+ * Registro do nucleo (frontend-architecture-conventions § Animation). Todo modulo importa
+ * gsap daqui, nunca de "gsap" direto. Os plugins de texto (SplitText, CustomEase) ficam em
+ * lib/gsap-text.ts para nao entrar no First Load JS de quem so precisa do ScrollTrigger.
+ */
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-export { gsap, useGSAP, ScrollTrigger, CustomEase, SplitText };
+export { gsap, useGSAP, ScrollTrigger };
