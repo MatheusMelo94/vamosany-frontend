@@ -137,25 +137,3 @@ export function BrandLogo({
     />
   );
 }
-
-/** status-badge — surface-2, ink-muted, pill, 2px 8px */
-export function StatusBadge({
-  children,
-  tone = "neutral",
-}: {
-  children: ReactNode;
-  tone?: "neutral" | "success";
-}) {
-  return (
-    <span
-      className={`caption border-hairline bg-surface-1 inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 ${
-        tone === "success" ? "text-ink" : "text-ink-subtle"
-      }`}
-    >
-      {tone === "success" ? (
-        <span className="bg-success size-1.5 rounded-full" aria-hidden />
-      ) : null}
-      {children}
-    </span>
-  );
-}

@@ -15,7 +15,15 @@ export default defineConfig({
   // O baseline de screenshots so e comparado no CI (ubuntu-latest, Chromium do
   // Playwright). Fontes e metricas variam entre maquinas, entao localmente as
   // capturas sao ignoradas. Para regenerar o baseline: workflow "Update snapshots".
-  ignoreSnapshots: !process.env.CI,
+  // Oraculo local (dev): PW_LOCAL_BASELINE=1 grava/compara em .local-baseline/ (gitignored),
+  // gerado a partir da main antes de um refactor. O baseline versionado continua sendo o do CI.
+  ignoreSnapshots: !process.env.CI && !process.env.PW_LOCAL_BASELINE,
+  ...(process.env.PW_LOCAL_BASELINE
+    ? {
+        snapshotPathTemplate:
+          "{testDir}/../../.local-baseline/{projectName}/{arg}{ext}",
+      }
+    : {}),
   expect: {
     // Baseline protege o design congelado (ADR-0006). Tolerancia pequena para
     // antialiasing entre versoes do runner.

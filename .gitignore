@@ -24,3 +24,6 @@ coverage/
 # env (o .env.example e versionado)
 .env*
 !.env.example
+
+# oraculo local de screenshots (PW_LOCAL_BASELINE=1)
+.local-baseline/
