@@ -1,7 +1,8 @@
+import type { JSX } from "react";
 import { HeroRing } from "./hero-ring";
-import { Button } from "./ui";
+import { Button } from "@/components/ui/button";
 
-export function Hero() {
+export function Hero(): JSX.Element {
   return (
     <section className="relative isolate pt-12 pb-8 sm:pt-24 sm:pb-16">
       <div className="container-ds relative z-10">

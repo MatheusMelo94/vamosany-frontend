@@ -1,7 +1,8 @@
+import type { JSX } from "react";
 import Image from "next/image";
-import { Button } from "./ui";
+import { Button } from "@/components/ui/button";
 
-export function CTA() {
+export function CTA(): JSX.Element {
   return (
     <section id="newsletter" className="relative overflow-hidden">
       {/* Ultra-wide band — GSAP pans it horizontally as the section passes */}

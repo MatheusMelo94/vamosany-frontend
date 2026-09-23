@@ -1,5 +1,8 @@
+import type { JSX } from "react";
 import Image from "next/image";
-import { ArrowRight, Button, SectionHeading } from "./ui";
+import { ArrowRight } from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/section-heading";
 
 const FEATURED = {
   img: "/img/post-dumbo.webp",
@@ -36,7 +39,7 @@ const POSTS = [
   },
 ];
 
-export function Blog() {
+export function Blog(): JSX.Element {
   return (
     <section id="blog" className="border-ink border-y-2 py-16 sm:py-20">
       <div className="container-ds">

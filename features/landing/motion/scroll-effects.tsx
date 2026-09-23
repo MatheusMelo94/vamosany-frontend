@@ -15,7 +15,7 @@ import { SplitText } from "gsap/SplitText";
  * elements marked up with data attributes, so every section stays a server
  * component. Bails out entirely under `prefers-reduced-motion`.
  */
-export function ScrollEffects() {
+export function ScrollEffects(): null {
   useEffect(() => {
     if (!document.documentElement.classList.contains("gsap")) return;
 

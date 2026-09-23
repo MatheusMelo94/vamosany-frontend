@@ -1,7 +1,9 @@
 "use client";
 
+import type { JSX } from "react";
 import { useRef } from "react";
-import { ArrowRight, SectionHeading } from "./ui";
+import { ArrowRight } from "@/components/ui/icons";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { cn } from "@/lib/utils";
 
 const REVIEWS = [
@@ -35,7 +37,7 @@ const REVIEWS = [
   },
 ];
 
-export function Reviews() {
+export function Reviews(): JSX.Element {
   const scroller = useRef<HTMLDivElement>(null);
 
   const scrollBy = (dir: 1 | -1) => {

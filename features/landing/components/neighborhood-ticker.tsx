@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 const PLACES = [
   "Lower East Side",
   "Williamsburg",
@@ -13,7 +14,7 @@ const PLACES = [
   "Koreatown",
 ];
 
-export function NeighborhoodTicker() {
+export function NeighborhoodTicker(): JSX.Element {
   return (
     <section className="pt-16 pb-10">
       <div

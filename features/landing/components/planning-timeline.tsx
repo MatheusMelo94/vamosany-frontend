@@ -1,7 +1,13 @@
 "use client";
 
+import type { JSX } from "react";
 import { useState } from "react";
-import { CardIcon, CircleTargetIcon, GridIcon, LaptopIcon } from "./icons";
+import {
+  CardIcon,
+  CircleTargetIcon,
+  GridIcon,
+  LaptopIcon,
+} from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 const TRACKS = [
@@ -49,7 +55,7 @@ const TRACKS = [
   },
 ];
 
-export function PlanningTimeline() {
+export function PlanningTimeline(): JSX.Element {
   const [active, setActive] = useState(TRACKS[0].id);
   const track = TRACKS.find((t) => t.id === active)!;
 

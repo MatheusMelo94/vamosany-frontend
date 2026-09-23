@@ -1,5 +1,7 @@
+import type { JSX } from "react";
 import Link from "next/link";
-import { ArrowRight, BrandLogo } from "./ui";
+import { ArrowRight } from "@/components/ui/icons";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 const TOP_LINKS = [
   "Our story",
@@ -86,7 +88,7 @@ const PHOTO_CREDITS = [
 
 const LEGAL = ["Terms", "Privacy Policy", "Cookie Settings", "Photo credits"];
 
-export function Footer() {
+export function Footer(): JSX.Element {
   return (
     <footer className="bg-ink text-white">
       <div className="container-ds py-16">

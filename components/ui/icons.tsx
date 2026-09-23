@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 type IconProps = { className?: string };
 
 const svg = (className = "size-4") => ({
@@ -7,7 +8,7 @@ const svg = (className = "size-4") => ({
   className,
 });
 
-export function GlobeIcon({ className = "size-4" }: IconProps) {
+export function GlobeIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <circle
@@ -30,7 +31,7 @@ export function GlobeIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function BoltIcon({ className = "size-4" }: IconProps) {
+export function BoltIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <path
@@ -41,7 +42,7 @@ export function BoltIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function UsersIcon({ className = "size-4" }: IconProps) {
+export function UsersIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <circle cx="8" cy="7" r="2.75" stroke="currentColor" strokeWidth="1.4" />
@@ -61,7 +62,7 @@ export function UsersIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function CheckIcon({ className = "size-4" }: IconProps) {
+export function CheckIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <path
@@ -75,7 +76,7 @@ export function CheckIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function SparkleIcon({ className = "size-4" }: IconProps) {
+export function SparkleIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <path
@@ -86,7 +87,7 @@ export function SparkleIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function DocIcon({ className = "size-4" }: IconProps) {
+export function DocIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <path
@@ -105,7 +106,7 @@ export function DocIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function LinkIcon({ className = "size-4" }: IconProps) {
+export function LinkIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <path
@@ -118,7 +119,7 @@ export function LinkIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function CardIcon({ className = "size-4" }: IconProps) {
+export function CardIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <rect
@@ -135,7 +136,7 @@ export function CardIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function ShieldIcon({ className = "size-4" }: IconProps) {
+export function ShieldIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <path
@@ -148,7 +149,7 @@ export function ShieldIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function BuildingIcon({ className = "size-4" }: IconProps) {
+export function BuildingIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <path
@@ -167,7 +168,7 @@ export function BuildingIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function GridIcon({ className = "size-4" }: IconProps) {
+export function GridIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <rect
@@ -210,7 +211,7 @@ export function GridIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function LaptopIcon({ className = "size-4" }: IconProps) {
+export function LaptopIcon({ className = "size-4" }: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <rect
@@ -232,7 +233,9 @@ export function LaptopIcon({ className = "size-4" }: IconProps) {
   );
 }
 
-export function CircleTargetIcon({ className = "size-4" }: IconProps) {
+export function CircleTargetIcon({
+  className = "size-4",
+}: IconProps): JSX.Element {
   return (
     <svg {...svg(className)}>
       <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.4" />
@@ -242,10 +245,26 @@ export function CircleTargetIcon({ className = "size-4" }: IconProps) {
 }
 
 /** Country / entity code chip — rounded.xs, surface-2, ink-subtle. */
-export function CountryTag({ code }: { code: string }) {
+type CountryTagProps = { code: string };
+
+export function CountryTag({ code }: CountryTagProps): JSX.Element {
   return (
     <span className="bg-surface-2 text-ink-subtle inline-grid h-4 min-w-6 shrink-0 place-items-center rounded-xs px-1 font-mono text-[0.5625rem] tracking-wide uppercase">
       {code}
     </span>
+  );
+}
+
+export function ArrowRight({ className = "size-4" }: IconProps): JSX.Element {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden className={className}>
+      <path
+        d="M3 8h9.5M9 4.5 12.5 8 9 11.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

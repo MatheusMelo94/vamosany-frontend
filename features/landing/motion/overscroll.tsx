@@ -13,7 +13,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
  * Applies to every direct <section> of <main> except the last; header and
  * footer are untouched. Skipped entirely under reduced motion / no JS.
  */
-export function Overscroll() {
+export function Overscroll(): null {
   useEffect(() => {
     if (!document.documentElement.classList.contains("gsap")) return;
     gsap.registerPlugin(ScrollTrigger);

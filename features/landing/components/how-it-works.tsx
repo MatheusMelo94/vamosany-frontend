@@ -1,6 +1,13 @@
+import type { JSX } from "react";
 import Image from "next/image";
-import { BuildingIcon, DocIcon, GlobeIcon } from "./icons";
-import { ArrowRight, Button, SectionHeading } from "./ui";
+import {
+  BuildingIcon,
+  DocIcon,
+  GlobeIcon,
+  ArrowRight,
+} from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/section-heading";
 
 const STEPS = [
   {
@@ -20,7 +27,7 @@ const STEPS = [
   },
 ];
 
-export function HowItWorks() {
+export function HowItWorks(): JSX.Element {
   return (
     <section id="how" className="container-ds py-16 sm:py-20">
       <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">

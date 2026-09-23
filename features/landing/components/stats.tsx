@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 const STATS = [
   { count: 24000, suffix: "", label: "itineraries downloaded" },
   { count: 91, suffix: "", label: "neighbourhoods walked" },
@@ -10,7 +11,7 @@ const STATS = [
   { count: 14, suffix: "-day", label: "refund, no questions asked" },
 ];
 
-export function Stats() {
+export function Stats(): JSX.Element {
   return (
     <section className="border-ink border-y-2 py-16">
       <dl

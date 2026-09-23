@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import {
   BuildingIcon,
   CardIcon,
@@ -10,8 +11,10 @@ import {
   LaptopIcon,
   ShieldIcon,
   SparkleIcon,
-} from "./icons";
-import { BrandLogo, Button, SectionHeading } from "./ui";
+} from "@/components/ui/icons";
+import { BrandLogo } from "@/components/ui/brand-logo";
+import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { cn } from "@/lib/utils";
 
 /* Fictional account state for the preview — nothing here is live. */
@@ -101,7 +104,9 @@ const NAV = [
   },
 ];
 
-function Meter({ value }: { value: number }) {
+type MeterProps = { value: number };
+
+function Meter({ value }: MeterProps) {
   return (
     <div
       className="bg-surface-2 mt-3 h-1.5 w-full rounded-full"
@@ -115,7 +120,9 @@ function Meter({ value }: { value: number }) {
   );
 }
 
-function StatusPill({ done, label }: { done: boolean; label: string }) {
+type StatusPillProps = { done: boolean; label: string };
+
+function StatusPill({ done, label }: StatusPillProps) {
   return (
     <span className="caption border-hairline bg-canvas text-ink inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 whitespace-nowrap">
       <span
@@ -214,7 +221,7 @@ function MapSketch() {
   );
 }
 
-export function DashboardPreview() {
+export function DashboardPreview(): JSX.Element {
   return (
     <section
       id="dashboard"

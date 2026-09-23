@@ -1,5 +1,7 @@
-import { CheckIcon } from "./icons";
-import { Button, SectionHeading } from "./ui";
+import type { JSX } from "react";
+import { CheckIcon } from "@/components/ui/icons";
+import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { cn } from "@/lib/utils";
 
 const TIERS = [
@@ -58,7 +60,7 @@ const TIERS = [
   },
 ];
 
-export function Services() {
+export function Services(): JSX.Element {
   return (
     <section id="services" className="container-ds py-16 sm:py-20">
       <SectionHeading

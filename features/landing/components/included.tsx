@@ -1,5 +1,6 @@
-import { CheckIcon } from "./icons";
-import { ArrowRight, SectionHeading } from "./ui";
+import type { JSX } from "react";
+import { CheckIcon, ArrowRight } from "@/components/ui/icons";
+import { SectionHeading } from "@/components/ui/section-heading";
 
 const ITEMS = [
   {
@@ -28,7 +29,7 @@ const ITEMS = [
   },
 ];
 
-export function Included() {
+export function Included(): JSX.Element {
   return (
     <section className="container-ds py-16 sm:py-20">
       <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">

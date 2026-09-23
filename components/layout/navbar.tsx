@@ -1,9 +1,10 @@
 "use client";
 
+import type { JSX } from "react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { GlobeIcon } from "./icons";
-import { BrandLogo } from "./ui";
+import { GlobeIcon } from "@/components/ui/icons";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -197,7 +198,7 @@ const LANGUAGES = [
 ] as const;
 type Lang = (typeof LANGUAGES)[number]["code"];
 
-export function Navbar() {
+export function Navbar(): JSX.Element {
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [lang, setLang] = useState<Lang>("EN");

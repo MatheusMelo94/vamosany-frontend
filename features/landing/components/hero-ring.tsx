@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import { useEffect, useRef, type CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -59,7 +60,7 @@ export function HeroRing({
   count = 16,
   radius = 560,
   speed = 36,
-}: Props) {
+}: Props): JSX.Element {
   const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

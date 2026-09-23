@@ -1,8 +1,9 @@
 "use client";
 
+import type { JSX } from "react";
 import Image from "next/image";
 import { useState } from "react";
-import { Button } from "./ui";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const DAYS = [
@@ -78,7 +79,7 @@ const DAYS = [
   },
 ];
 
-export function SampleDay() {
+export function SampleDay(): JSX.Element {
   const [active, setActive] = useState(DAYS[1].id);
   const day = DAYS.find((d) => d.id === active)!;
 
