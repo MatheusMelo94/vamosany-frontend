@@ -8,7 +8,7 @@
 
 `design-conventions.md § Design Tokens` prescreve um dicionário de nomes semânticos declarado em `@theme`: `--color-surface`, `--color-surface-raised`, `--color-ink`, `--color-ink-muted`, `--color-line`, `--color-accent`, `--color-accent-ink`, `--color-focus`, `--color-success/warning/danger`; `--font-sans`/`--font-display` alimentados por `--font-body`/`--font-display` do `next/font`; `--text-xs..5xl`; `--spacing: 0.25rem`; `--radius-sm/md/lg/full`; `--shadow-1..3`; `--ease-out-quart`/`--ease-in-out-quart`; `--duration-fast/base/slow` (150/250/450 ms); `--container-prose/page`; `--z-dropdown..toast`; e `@custom-variant dark (…[data-theme="dark"]…)`. `frontend-architecture-conventions.md § Styling` exige que componentes consumam utilities semânticas geradas desses tokens.
 
-`app/globals.css:13-69` declara outro vocabulário, herdado do sistema anterior (comentário em `:8-10`; `README.md:69-74`) e re-valorado para a marca Vamos a NY (`vamosany-design-system.md`):
+`app/globals.css:13-69` declara outro vocabulário, herdado do sistema anterior (comentário em `:8-10`; `README.md:69-74`) e re-valorado para a marca Vamos a NY (`docs/design/vamosany-design-system.md`):
 
 | Convention | Projeto (`globals.css`) | Nota |
 |---|---|---|
@@ -66,6 +66,6 @@ A decisão precisa ser tomada agora porque T-14 (tokenização) e T-06/T-08 (ref
 - `docs/architecture/conventions-audit.md` — D-17, D-18, T-14, T-14b, T-14c, T-17, Q7
 - `design-conventions.md` — § Design Tokens, § Typography, § Color, § Anti-Patterns
 - `frontend-architecture-conventions.md` — § Styling (Tailwind CSS 4)
-- `vamosany-design-system.md` — §§ 2, 3, 8, 9, 16, 18
+- `docs/design/vamosany-design-system.md` — §§ 2, 3, 8, 9, 16, 18
 - `app/globals.css:13-69, 93-96, 100-211`
 - Relacionados: ADR-0001, ADR-0003 (z-index/background das seções no `Overscroll`), ADR-0006 (design congelado — critério render-preserving)

@@ -74,5 +74,5 @@ Toda task desta lista é **render-preserving** (ADR-0006): nenhuma altera o resu
 - `docs/architecture/conventions-audit.md` — D-01..D-09, T-02..T-07b, T-20..T-21, Q2
 - `frontend-architecture-conventions.md` — § Stack Baseline, § App Router Layout, § Data Fetching & Mutations, § Engineering Workflow
 - `design-conventions.md` — § Anti-Patterns
-- `vamosany-design-system.md` — § 19 Design Principles
+- `docs/design/vamosany-design-system.md` — § 19 Design Principles
 - Relacionados: ADR-0002, ADR-0003, ADR-0004, ADR-0005 (npm, Vercel-only), ADR-0006 (design congelado)

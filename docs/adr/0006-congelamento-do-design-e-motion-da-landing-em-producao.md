@@ -64,5 +64,5 @@ A decisão precisa ser registrada agora porque ela redefine o critério de aceit
 - `docs/architecture/conventions-audit.md` — D-13, D-16, D-17, D-18, D-23, D-24, D-26, D-27, D-30, X-1..X-4, T-04, T-10, T-11, T-13, T-14, T-16, T-17, T-17b, T-18, T-18b, T-19, T-19b, T-24, Q6 e Q7 (resolvidas)
 - `frontend-architecture-conventions.md` — § Animation, § Styling, § Performance Budgets, § Accessibility, § Engineering Workflow (labels), § Review Report Template (BLOCKING)
 - `design-conventions.md` — § Motion Principles, § Typography, § Color, § UX Writing, § Anti-Patterns, § DDR Template
-- `vamosany-design-system.md` — §§ 3, 16, 19
+- `docs/design/vamosany-design-system.md` — §§ 3, 16, 19
 - Relacionados: ADR-0002 (gate `.gsap`), ADR-0003 (controlador headless), ADR-0004 (tokens), ADR-0005 (npm/Vercel)

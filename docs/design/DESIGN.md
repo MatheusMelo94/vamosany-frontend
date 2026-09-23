@@ -1,3 +1,5 @@
+> **Arquivado (2026-09-23).** Sistema anterior (Linear) com que a pagina foi estilizada antes do design system Vamos a NY. Mantido so como referencia historica; o design de record e `vamosany-design-system.md` nesta pasta.
+
 ---
 version: alpha
 name: Linear-design-analysis
