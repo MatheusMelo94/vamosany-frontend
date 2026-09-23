@@ -35,7 +35,10 @@ export function HowItWorks() {
           </Button>
         </div>
 
-        <figure data-reveal className="relative aspect-[4/3] overflow-hidden rounded-lg">
+        <figure
+          data-reveal
+          className="relative aspect-[4/3] overflow-hidden rounded-lg"
+        >
           <Image
             src="/img/how-subway.webp"
             alt="A New York City subway platform"
@@ -48,18 +51,18 @@ export function HowItWorks() {
 
       <ul data-reveal-group className="mt-20 grid gap-6 md:grid-cols-3">
         {STEPS.map((step, i) => (
-          <li key={step.title} className="border-t-2 border-ink pt-6">
+          <li key={step.title} className="border-ink border-t-2 pt-6">
             <div className="flex items-center justify-between">
-              <span className="grid size-10 place-items-center rounded-sm bg-brand text-ink">
+              <span className="bg-brand text-ink grid size-10 place-items-center rounded-sm">
                 <step.Icon className="size-5" />
               </span>
               <span className="display-md text-ink-tertiary">0{i + 1}</span>
             </div>
-            <h3 className="card-title mt-5 text-ink">{step.title}</h3>
-            <p className="body-sm mt-3 text-ink-subtle">{step.body}</p>
+            <h3 className="card-title text-ink mt-5">{step.title}</h3>
+            <p className="body-sm text-ink-subtle mt-3">{step.body}</p>
             <a
               href="#services"
-              className="body-sm mt-4 inline-flex items-center gap-1.5 font-semibold text-ink underline-offset-4 hover:underline"
+              className="body-sm text-ink mt-4 inline-flex items-center gap-1.5 font-semibold underline-offset-4 hover:underline"
             >
               Learn more <ArrowRight className="size-3.5" />
             </a>

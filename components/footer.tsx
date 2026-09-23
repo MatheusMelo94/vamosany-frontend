@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { ArrowRight, BrandLogo } from "./ui";
 
-const TOP_LINKS = ["Our story", "How we research", "Press", "Work with us", "Contact"];
+const TOP_LINKS = [
+  "Our story",
+  "How we research",
+  "Press",
+  "Work with us",
+  "Contact",
+];
 
 const COLUMNS = [
   {
@@ -61,7 +67,11 @@ const SOCIALS = ["X", "in", "f", "IG"];
 
 /* CC BY / CC BY-SA photography requires visible attribution. */
 const PHOTO_CREDITS = [
-  ["Brooklyn, Manhattan & Williamsburg Bridges", "Axel Tschentscher", "CC BY-SA 4.0"],
+  [
+    "Brooklyn, Manhattan & Williamsburg Bridges",
+    "Axel Tschentscher",
+    "CC BY-SA 4.0",
+  ],
   ["Central Park in autumn", "Ed Yourdon", "CC BY-SA 2.0"],
   ["451 Broome Street, SoHo", "Axel Tschentscher", "CC BY-SA 4.0"],
   ["Chinatown, Manhattan", "Derek Jensen", "Public domain"],
@@ -73,7 +83,6 @@ const PHOTO_CREDITS = [
   ["Central Park & Midtown", "Gzzz", "CC BY-SA 3.0"],
   ["Yellow cab after the snow", "Corentin Villemeur", "CC BY-SA 4.0"],
 ];
-
 
 const LEGAL = ["Terms", "Privacy Policy", "Cookie Settings", "Photo credits"];
 
@@ -109,7 +118,7 @@ export function Footer() {
                       {link === "Live Updates" ? (
                         <span
                           aria-hidden
-                          className="size-1.5 rounded-full bg-brand"
+                          className="bg-brand size-1.5 rounded-full"
                         />
                       ) : null}
                     </Link>
@@ -163,14 +172,17 @@ export function Footer() {
               <button
                 type="submit"
                 aria-label="Subscribe"
-                className="grid size-10 shrink-0 place-items-center rounded-sm bg-brand text-ink transition-colors hover:bg-brand-hover"
+                className="bg-brand text-ink hover:bg-brand-hover grid size-10 shrink-0 place-items-center rounded-sm transition-colors"
               >
                 <ArrowRight className="size-4" />
               </button>
             </div>
             <p className="caption mt-3 text-white/45">
               I confirm that I have read the{" "}
-              <Link href="#" className="text-white/70 underline underline-offset-2 hover:text-white">
+              <Link
+                href="#"
+                className="text-white/70 underline underline-offset-2 hover:text-white"
+              >
                 Privacy Policy
               </Link>{" "}
               and agree with it.

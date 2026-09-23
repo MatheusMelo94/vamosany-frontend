@@ -15,7 +15,7 @@ export function CTA() {
             className="object-cover"
           />
         </div>
-        <div className="absolute inset-0 bg-ink/65" />
+        <div className="bg-ink/65 absolute inset-0" />
       </div>
 
       <div className="container-ds relative py-24 text-center sm:py-32">
@@ -23,12 +23,18 @@ export function CTA() {
           <h2 data-split-lines className="display-lg text-balance text-white">
             Your week in New York, already figured out
           </h2>
-          <p data-heading-lede className="body-lg mt-5 text-pretty text-white/75">
+          <p
+            data-heading-lede
+            className="body-lg mt-5 text-pretty text-white/75"
+          >
             Buy an itinerary, or take the free version first — one email a month
             with a route, a place to eat and something worth walking to.
           </p>
 
-          <div data-heading-actions className="mt-9 flex flex-wrap justify-center gap-3">
+          <div
+            data-heading-actions
+            className="mt-9 flex flex-wrap justify-center gap-3"
+          >
             <Button href="#services" size="lg">
               Browse itineraries
             </Button>

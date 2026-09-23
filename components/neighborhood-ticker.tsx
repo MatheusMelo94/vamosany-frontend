@@ -15,7 +15,7 @@ const PLACES = [
 
 export function NeighborhoodTicker() {
   return (
-    <section className="pb-10 pt-16">
+    <section className="pt-16 pb-10">
       <div
         className="relative overflow-hidden"
         style={{
@@ -25,15 +25,25 @@ export function NeighborhoodTicker() {
             "linear-gradient(to right, transparent, black 10%, black 90%, transparent)",
         }}
       >
-        <div data-marquee className="marquee-track flex w-max animate-marquee items-center">
+        <div
+          data-marquee
+          className="marquee-track animate-marquee flex w-max items-center"
+        >
           {[0, 1].map((copy) => (
-            <div key={copy} className="flex shrink-0 items-center" aria-hidden={copy === 1}>
+            <div
+              key={copy}
+              className="flex shrink-0 items-center"
+              aria-hidden={copy === 1}
+            >
               {PLACES.map((place) => (
                 <span key={place} className="flex items-center">
-                  <span className="headline whitespace-nowrap px-7 text-ink">
+                  <span className="headline text-ink px-7 whitespace-nowrap">
                     {place}
                   </span>
-                  <span className="size-2 shrink-0 rounded-full bg-brand" aria-hidden />
+                  <span
+                    className="bg-brand size-2 shrink-0 rounded-full"
+                    aria-hidden
+                  />
                 </span>
               ))}
             </div>

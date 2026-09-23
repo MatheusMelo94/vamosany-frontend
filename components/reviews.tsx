@@ -58,9 +58,11 @@ export function Reviews() {
               type="button"
               onClick={() => scrollBy(dir)}
               aria-label={dir === -1 ? "Previous reviews" : "Next reviews"}
-              className="grid size-10 place-items-center rounded-sm border-2 border-ink text-ink transition-colors hover:bg-brand"
+              className="border-ink text-ink hover:bg-brand grid size-10 place-items-center rounded-sm border-2 transition-colors"
             >
-              <ArrowRight className={`size-4 ${dir === -1 ? "rotate-180" : ""}`} />
+              <ArrowRight
+                className={`size-4 ${dir === -1 ? "rotate-180" : ""}`}
+              />
             </button>
           ))}
         </div>
@@ -70,25 +72,27 @@ export function Reviews() {
         <div
           ref={scroller}
           data-reveal-group
-          className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory [scrollbar-width:none] gap-5 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden"
         >
           {REVIEWS.map((review) => (
             <figure
               key={review.person}
-              className="flex w-[19rem] shrink-0 snap-start flex-col rounded-lg border border-hairline bg-surface-1 p-8 sm:w-[24rem]"
+              className="border-hairline bg-surface-1 flex w-[19rem] shrink-0 snap-start flex-col rounded-lg border p-8 sm:w-[24rem]"
             >
               <span className="text-brand" aria-label="Five out of five">
                 {"★".repeat(5)}
               </span>
-              <blockquote className="body-lg mt-5 flex-1 text-pretty text-ink">
+              <blockquote className="body-lg text-ink mt-5 flex-1 text-pretty">
                 “{review.quote}”
               </blockquote>
-              <figcaption className="mt-8 border-t border-hairline pt-5">
-                <span className="body-sm block font-semibold text-ink">
+              <figcaption className="border-hairline mt-8 border-t pt-5">
+                <span className="body-sm text-ink block font-semibold">
                   {review.person}
                 </span>
-                <span className="caption block text-ink-tertiary">{review.role}</span>
-                <span className="caption mt-2 inline-block rounded-xs bg-surface-2 px-2 py-0.5 text-ink-subtle">
+                <span className="caption text-ink-tertiary block">
+                  {review.role}
+                </span>
+                <span className="caption bg-surface-2 text-ink-subtle mt-2 inline-block rounded-xs px-2 py-0.5">
                   {review.trip}
                 </span>
               </figcaption>

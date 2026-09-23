@@ -61,9 +61,21 @@ export function HeroRibbon() {
       const right = el.querySelector(".ribbon-wall-right .ribbon-track");
       /* Left wall's far end is on the right, so cards travel to -x;
          the right wall mirrors it. Same speed, opposite directions. */
-      gsap.fromTo(left, { xPercent: 0 }, { xPercent: -50, duration: 46, ease: "none", repeat: -1 });
-      gsap.fromTo(right, { xPercent: -50 }, { xPercent: 0, duration: 46, ease: "none", repeat: -1 });
-      gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 1.4, ease: "power2.out", delay: 0.2 });
+      gsap.fromTo(
+        left,
+        { xPercent: 0 },
+        { xPercent: -50, duration: 46, ease: "none", repeat: -1 },
+      );
+      gsap.fromTo(
+        right,
+        { xPercent: -50 },
+        { xPercent: 0, duration: 46, ease: "none", repeat: -1 },
+      );
+      gsap.fromTo(
+        el,
+        { opacity: 0 },
+        { opacity: 1, duration: 1.4, ease: "power2.out", delay: 0.2 },
+      );
     }, el);
 
     return () => ctx.revert();

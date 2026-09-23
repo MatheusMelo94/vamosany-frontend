@@ -5,3 +5,22 @@ out
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# Fotos de referencia soltas na raiz (nao sao assets do site; os assets ficam em public/img)
+/*.jpg
+/*.jpeg
+/*.png
+!/logo-pretzel.png
+!/logo-pretzel-dark.png
+!/logos-01.png
+
+# testes / relatorios
+playwright-report/
+test-results/
+coverage/
+.lighthouseci/
+.vercel
+
+# env (o .env.example e versionado)
+.env*
+!.env.example

@@ -135,15 +135,14 @@ export function ScrollEffects() {
         ScrollTrigger.create({
           start: "top -80",
           end: 99999,
-          onToggle: (self) => nav.classList.toggle("is-scrolled", self.isActive),
+          onToggle: (self) =>
+            nav.classList.toggle("is-scrolled", self.isActive),
         });
       }
       /* --- 7. The marker highlight draws in ---------------------------- */
       gsap.utils
         .toArray<HTMLElement>("[data-sweep]")
-        .filter(
-          (el) => !el.closest("[data-hero-copy], [data-heading-block]"),
-        )
+        .filter((el) => !el.closest("[data-hero-copy], [data-heading-block]"))
         .forEach((el) => {
           gsap.to(el, {
             "--train": "0%",
@@ -201,7 +200,12 @@ export function ScrollEffects() {
                   heading?.querySelectorAll("[data-sweep]") ?? [],
                   { "--train": "100%" },
                   /* one train per line; the second pulls in just behind the first */
-                  { "--train": "0%", duration: 1.15, ease: arrive, stagger: 0.16 },
+                  {
+                    "--train": "0%",
+                    duration: 1.15,
+                    ease: arrive,
+                    stagger: 0.16,
+                  },
                   "-=0.25",
                 )
                 .fromTo(
@@ -230,7 +234,8 @@ export function ScrollEffects() {
       gsap.utils
         .toArray<HTMLElement>("[data-heading-block]")
         .forEach((block) => {
-          const heading = block.querySelector<HTMLElement>("[data-split-lines]");
+          const heading =
+            block.querySelector<HTMLElement>("[data-split-lines]");
           const show = () => gsap.set(block, { opacity: 1 });
 
           if (!heading) {
@@ -246,7 +251,11 @@ export function ScrollEffects() {
               onSplit: (self) => {
                 const tl = gsap.timeline({
                   defaults: { ease },
-                  scrollTrigger: { trigger: block, start: "top 85%", once: true },
+                  scrollTrigger: {
+                    trigger: block,
+                    start: "top 85%",
+                    once: true,
+                  },
                 });
 
                 show();
@@ -267,7 +276,12 @@ export function ScrollEffects() {
                   tl.fromTo(
                     sweep,
                     { "--train": "100%" },
-                    { "--train": "0%", duration: 1.0, ease: arrive, stagger: 0.14 },
+                    {
+                      "--train": "0%",
+                      duration: 1.0,
+                      ease: arrive,
+                      stagger: 0.14,
+                    },
                     "-=0.3",
                   );
                 }
@@ -282,7 +296,9 @@ export function ScrollEffects() {
                   );
                 }
 
-                const actions = block.querySelectorAll("[data-heading-actions]");
+                const actions = block.querySelectorAll(
+                  "[data-heading-actions]",
+                );
                 if (actions.length) {
                   tl.fromTo(
                     actions,

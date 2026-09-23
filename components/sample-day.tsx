@@ -82,7 +82,7 @@ export function SampleDay() {
   const day = DAYS.find((d) => d.id === active)!;
 
   return (
-    <section className="border-y-2 border-ink py-16 sm:py-20">
+    <section className="border-ink border-y-2 py-16 sm:py-20">
       <div className="container-ds">
         <div
           data-heading-block
@@ -91,7 +91,7 @@ export function SampleDay() {
           <span data-heading-eyebrow className="eyebrow">
             A look inside
           </span>
-          <h2 data-split-lines className="display-lg text-balance text-ink">
+          <h2 data-split-lines className="display-lg text-ink text-balance">
             This is what a day looks like
           </h2>
         </div>
@@ -99,7 +99,7 @@ export function SampleDay() {
         <div
           role="tablist"
           aria-label="Sample days"
-          className="mx-auto mt-10 flex w-fit max-w-full gap-1 overflow-x-auto rounded-sm border-2 border-ink p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="border-ink mx-auto mt-10 flex w-fit max-w-full [scrollbar-width:none] gap-1 overflow-x-auto rounded-sm border-2 p-1 [&::-webkit-scrollbar]:hidden"
         >
           {DAYS.map((d) => (
             <button
@@ -121,16 +121,18 @@ export function SampleDay() {
 
         <div data-reveal className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
           <div className="flex flex-col justify-center">
-            <h3 className="headline text-balance text-ink">{day.title}</h3>
-            <p className="body-base mt-4 text-ink-subtle">{day.blurb}</p>
+            <h3 className="headline text-ink text-balance">{day.title}</h3>
+            <p className="body-base text-ink-subtle mt-4">{day.blurb}</p>
 
-            <ol className="mt-8 border-t border-hairline">
+            <ol className="border-hairline mt-8 border-t">
               {day.stops.map(([time, what, howLong]) => (
                 <li
                   key={time}
-                  className="grid grid-cols-[4.5rem_1fr_auto] items-baseline gap-4 border-b border-hairline py-3.5"
+                  className="border-hairline grid grid-cols-[4.5rem_1fr_auto] items-baseline gap-4 border-b py-3.5"
                 >
-                  <span className="caption font-mono text-ink-tertiary">{time}</span>
+                  <span className="caption text-ink-tertiary font-mono">
+                    {time}
+                  </span>
                   <span className="body-sm text-ink">{what}</span>
                   <span className="caption text-ink-tertiary">{howLong}</span>
                 </li>

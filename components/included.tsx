@@ -40,7 +40,7 @@ export function Included() {
           />
           <a
             href="#services"
-            className="body-sm mt-8 inline-flex items-center gap-2 font-semibold text-ink underline-offset-4 transition-colors hover:underline hover:decoration-2"
+            className="body-sm text-ink mt-8 inline-flex items-center gap-2 font-semibold underline-offset-4 transition-colors hover:underline hover:decoration-2"
           >
             See the itineraries <ArrowRight className="size-4" />
           </a>
@@ -48,14 +48,17 @@ export function Included() {
 
         <ul data-reveal-group className="grid gap-4 sm:grid-cols-2">
           {ITEMS.map((item) => (
-            <li key={item.title} className="rounded-lg border border-hairline bg-surface-1 p-6">
-              <p className="body-sm flex items-center gap-2 font-semibold text-ink">
-                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-brand text-ink">
+            <li
+              key={item.title}
+              className="border-hairline bg-surface-1 rounded-lg border p-6"
+            >
+              <p className="body-sm text-ink flex items-center gap-2 font-semibold">
+                <span className="bg-brand text-ink grid size-5 shrink-0 place-items-center rounded-full">
                   <CheckIcon className="size-3" />
                 </span>
                 {item.title}
               </p>
-              <p className="body-sm mt-3 text-ink-subtle">{item.body}</p>
+              <p className="body-sm text-ink-subtle mt-3">{item.body}</p>
             </li>
           ))}
         </ul>

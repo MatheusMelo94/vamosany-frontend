@@ -3,13 +3,13 @@ import { Button } from "./ui";
 
 export function Hero() {
   return (
-    <section className="relative isolate pb-8 pt-12 sm:pb-16 sm:pt-24">
+    <section className="relative isolate pt-12 pb-8 sm:pt-24 sm:pb-16">
       <div className="container-ds relative z-10">
         <div
           data-hero-copy
           className="mx-auto flex w-full max-w-6xl flex-col items-center text-center"
         >
-          <h1 className="display-xl text-balance text-ink">
+          <h1 className="display-xl text-ink text-balance">
             {/* One span across the whole headline: with box-decoration-break
                 every line gets its own marker band, and after SplitText each
                 line owns a clone of the span, so GSAP can sweep them in turn. */}
@@ -20,7 +20,7 @@ export function Hero() {
 
           <p
             data-hero-quote
-            className="body-lg mt-5 max-w-2xl text-pretty text-ink-subtle sm:mt-8 sm:text-xl"
+            className="body-lg text-ink-subtle mt-5 max-w-2xl text-pretty sm:mt-8 sm:text-xl"
           >
             If you can make it here, you can make it anywhere.
           </p>
@@ -47,11 +47,8 @@ export function Hero() {
               ]}
             />
           </div>
-
-
         </div>
       </div>
-
     </section>
   );
 }
