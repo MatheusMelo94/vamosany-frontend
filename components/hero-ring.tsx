@@ -32,8 +32,17 @@ function dealSlots(count: number, n: number): number[] {
   const stride = [1, 2, 3, 4, 5].find((k) => k < n && gcd(k, n) === 1) ?? 1;
   const slots = Array.from({ length: count }, (_, i) => (i * stride) % n);
   if (count > 2 && slots[count - 1] === slots[0]) {
-    const alt = slots.findIndex((v, i) => i > 0 && i < count - 2 && v !== slots[0] && v !== slots[count - 2] && slots[i - 1] !== slots[count - 1] && slots[i + 1] !== slots[count - 1]);
-    if (alt > 0) [slots[count - 1], slots[alt]] = [slots[alt], slots[count - 1]];
+    const alt = slots.findIndex(
+      (v, i) =>
+        i > 0 &&
+        i < count - 2 &&
+        v !== slots[0] &&
+        v !== slots[count - 2] &&
+        slots[i - 1] !== slots[count - 1] &&
+        slots[i + 1] !== slots[count - 1],
+    );
+    if (alt > 0)
+      [slots[count - 1], slots[alt]] = [slots[alt], slots[count - 1]];
   }
   return slots;
 }
@@ -45,7 +54,12 @@ const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
  * cards hide via backface-visibility. GSAP spins the ring, slows it on hover,
  * pauses it off-screen and nudges it with scroll velocity. Decorative only.
  */
-export function HeroRing({ images, count = 16, radius = 560, speed = 36 }: Props) {
+export function HeroRing({
+  images,
+  count = 16,
+  radius = 560,
+  speed = 36,
+}: Props) {
   const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,7 +72,10 @@ export function HeroRing({ images, count = 16, radius = 560, speed = 36 }: Props
       const n = ring.children.length;
       Array.from(ring.children).forEach((card, i) => {
         const facing = Math.cos(((i * 360) / n) * (Math.PI / 180));
-        (card as HTMLElement).style.setProperty("--vis", facing <= 0 ? "0" : String(Math.min(1, facing / 0.26)));
+        (card as HTMLElement).style.setProperty(
+          "--vis",
+          facing <= 0 ? "0" : String(Math.min(1, facing / 0.26)),
+        );
       });
       return;
     }
@@ -82,11 +99,19 @@ export function HeroRing({ images, count = 16, radius = 560, speed = 36 }: Props
     cull();
 
     /* 1. spin — one full turn every `speed` seconds, linear, forever */
-    const spin = gsap.to(ring, { rotateY: -360, duration: speed, ease: "none", repeat: -1, onUpdate: cull });
+    const spin = gsap.to(ring, {
+      rotateY: -360,
+      duration: speed,
+      ease: "none",
+      repeat: -1,
+      onUpdate: cull,
+    });
 
     /* 2. hover — ease down to quarter speed, back up on leave */
-    const slow = () => gsap.to(spin, { timeScale: 0.25, duration: 0.6, overwrite: true });
-    const normal = () => gsap.to(spin, { timeScale: 1, duration: 0.6, overwrite: true });
+    const slow = () =>
+      gsap.to(spin, { timeScale: 0.25, duration: 0.6, overwrite: true });
+    const normal = () =>
+      gsap.to(spin, { timeScale: 1, duration: 0.6, overwrite: true });
     stage.addEventListener("mouseenter", slow);
     stage.addEventListener("mouseleave", normal);
 
@@ -132,7 +157,10 @@ export function HeroRing({ images, count = 16, radius = 560, speed = 36 }: Props
     seen.set(idx, lap + 1);
     return {
       src: img.src,
-      position: lap === 0 ? (img.position ?? "50% 50%") : LAP_POSITIONS[(lap - 1) % LAP_POSITIONS.length],
+      position:
+        lap === 0
+          ? (img.position ?? "50% 50%")
+          : LAP_POSITIONS[(lap - 1) % LAP_POSITIONS.length],
     };
   });
 
@@ -143,7 +171,12 @@ export function HeroRing({ images, count = 16, radius = 560, speed = 36 }: Props
       data-speed={speed}
       style={{ "--radius-desktop": `${radius}px` } as CSSProperties}
     >
-      <div className="ring" data-ring ref={ringRef} style={{ "--count": count } as CSSProperties}>
+      <div
+        className="ring"
+        data-ring
+        ref={ringRef}
+        style={{ "--count": count } as CSSProperties}
+      >
         {cards.map((c, i) => (
           <div
             key={i}

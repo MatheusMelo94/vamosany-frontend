@@ -10,8 +10,21 @@ const svg = (className = "size-4") => ({
 export function GlobeIcon({ className = "size-4" }: IconProps) {
   return (
     <svg {...svg(className)}>
-      <circle cx="10" cy="10" r="7.25" stroke="currentColor" strokeWidth="1.4" />
-      <ellipse cx="10" cy="10" rx="3.25" ry="7.25" stroke="currentColor" strokeWidth="1.4" />
+      <circle
+        cx="10"
+        cy="10"
+        r="7.25"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <ellipse
+        cx="10"
+        cy="10"
+        rx="3.25"
+        ry="7.25"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
       <path d="M3 10h14" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   );
@@ -82,7 +95,12 @@ export function DocIcon({ className = "size-4" }: IconProps) {
         strokeWidth="1.4"
         strokeLinejoin="round"
       />
-      <path d="M7.5 10.5h5M7.5 13h3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M7.5 10.5h5M7.5 13h3.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -103,7 +121,15 @@ export function LinkIcon({ className = "size-4" }: IconProps) {
 export function CardIcon({ className = "size-4" }: IconProps) {
   return (
     <svg {...svg(className)}>
-      <rect x="2.75" y="5" width="14.5" height="10" rx="2" stroke="currentColor" strokeWidth="1.4" />
+      <rect
+        x="2.75"
+        y="5"
+        width="14.5"
+        height="10"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
       <path d="M2.75 8.5h14.5" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   );
@@ -125,8 +151,18 @@ export function ShieldIcon({ className = "size-4" }: IconProps) {
 export function BuildingIcon({ className = "size-4" }: IconProps) {
   return (
     <svg {...svg(className)}>
-      <path d="M4 17V4.5h7V17M11 17V8.5h5V17M2.75 17h14.5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M6.5 7.5h2M6.5 10.5h2M6.5 13.5h2M13 11.5h1M13 14h1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path
+        d="M4 17V4.5h7V17M11 17V8.5h5V17M2.75 17h14.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.5 7.5h2M6.5 10.5h2M6.5 13.5h2M13 11.5h1M13 14h1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -134,10 +170,42 @@ export function BuildingIcon({ className = "size-4" }: IconProps) {
 export function GridIcon({ className = "size-4" }: IconProps) {
   return (
     <svg {...svg(className)}>
-      <rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+      <rect
+        x="3"
+        y="3"
+        width="6"
+        height="6"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <rect
+        x="11"
+        y="3"
+        width="6"
+        height="6"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <rect
+        x="3"
+        y="11"
+        width="6"
+        height="6"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <rect
+        x="11"
+        y="11"
+        width="6"
+        height="6"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
     </svg>
   );
 }
@@ -145,8 +213,21 @@ export function GridIcon({ className = "size-4" }: IconProps) {
 export function LaptopIcon({ className = "size-4" }: IconProps) {
   return (
     <svg {...svg(className)}>
-      <rect x="4" y="4.5" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M2.5 15.5h15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <rect
+        x="4"
+        y="4.5"
+        width="12"
+        height="8"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M2.5 15.5h15"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -163,7 +244,7 @@ export function CircleTargetIcon({ className = "size-4" }: IconProps) {
 /** Country / entity code chip — rounded.xs, surface-2, ink-subtle. */
 export function CountryTag({ code }: { code: string }) {
   return (
-    <span className="inline-grid h-4 min-w-6 shrink-0 place-items-center rounded-xs bg-surface-2 px-1 font-mono text-[0.5625rem] uppercase tracking-wide text-ink-subtle">
+    <span className="bg-surface-2 text-ink-subtle inline-grid h-4 min-w-6 shrink-0 place-items-center rounded-xs px-1 font-mono text-[0.5625rem] tracking-wide uppercase">
       {code}
     </span>
   );

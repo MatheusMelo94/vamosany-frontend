@@ -69,8 +69,12 @@
 }
 
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @layer base {
@@ -224,8 +228,8 @@
   --train: 0%;
   background-image: linear-gradient(
     to right,
-    var(--color-brand) 0.00% 5.20%,
-    transparent 5.20% 5.68%,
+    var(--color-brand) 0% 5.2%,
+    transparent 5.2% 5.68%,
     var(--color-brand) 5.68% 10.88%,
     transparent 10.88% 11.36%,
     var(--color-brand) 11.36% 16.56%,
@@ -233,9 +237,9 @@
     var(--color-brand) 17.04% 22.24%,
     transparent 22.24% 22.72%,
     var(--color-brand) 22.72% 27.92%,
-    transparent 27.92% 28.40%,
-    var(--color-brand) 28.40% 33.60%,
-    transparent 33.60% 100%
+    transparent 27.92% 28.4%,
+    var(--color-brand) 28.4% 33.6%,
+    transparent 33.6% 100%
   );
   background-repeat: no-repeat;
   background-size: 300% 0.4em;
@@ -364,22 +368,52 @@
   backface-visibility: hidden;
 }
 @media (max-width: 1024px) {
-  .hero-ribbon { perspective: 1000px; }
-  .ribbon-wall { width: 1150px; height: 212px; }
-  .ribbon-wall-left { transform: translateY(-50%) translateZ(-560px) rotateY(70deg); }
-  .ribbon-wall-right { transform: translateY(-50%) translateZ(-560px) rotateY(-70deg); }
-  .ribbon-card { width: 170px; height: 212px; }
+  .hero-ribbon {
+    perspective: 1000px;
+  }
+  .ribbon-wall {
+    width: 1150px;
+    height: 212px;
+  }
+  .ribbon-wall-left {
+    transform: translateY(-50%) translateZ(-560px) rotateY(70deg);
+  }
+  .ribbon-wall-right {
+    transform: translateY(-50%) translateZ(-560px) rotateY(-70deg);
+  }
+  .ribbon-card {
+    width: 170px;
+    height: 212px;
+  }
 }
 @media (max-width: 640px) {
   /* simpler perspective: shorter walls, gentler angle; cards sized so the
      corridor fills the phone width and the outer cards run to the edges */
-  .hero-ribbon { perspective: 820px; }
-  .ribbon-wall { width: 900px; height: 190px; }
-  .ribbon-wall-left { transform: translateY(-50%) translateZ(-340px) rotateY(64deg); }
-  .ribbon-wall-right { transform: translateY(-50%) translateZ(-340px) rotateY(-64deg); }
-  .ribbon-set { gap: 10px; padding-right: 10px; }
-  .ribbon-wall-right .ribbon-set { padding-left: 10px; }
-  .ribbon-card { width: 152px; height: 190px; border-radius: 6px; }
+  .hero-ribbon {
+    perspective: 820px;
+  }
+  .ribbon-wall {
+    width: 900px;
+    height: 190px;
+  }
+  .ribbon-wall-left {
+    transform: translateY(-50%) translateZ(-340px) rotateY(64deg);
+  }
+  .ribbon-wall-right {
+    transform: translateY(-50%) translateZ(-340px) rotateY(-64deg);
+  }
+  .ribbon-set {
+    gap: 10px;
+    padding-right: 10px;
+  }
+  .ribbon-wall-right .ribbon-set {
+    padding-left: 10px;
+  }
+  .ribbon-card {
+    width: 152px;
+    height: 190px;
+    border-radius: 6px;
+  }
 }
 
 /* Overscroll: the pin spacer that stands in for a pinned section keeps
@@ -413,7 +447,13 @@ main > .pin-spacer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(90deg, #fff 0%, transparent 4%, transparent 96%, #fff 100%);
+  background: linear-gradient(
+    90deg,
+    #fff 0%,
+    transparent 4%,
+    transparent 96%,
+    #fff 100%
+  );
 }
 .ring {
   --radius: var(--radius-desktop, 780px);
@@ -443,7 +483,8 @@ main > .pin-spacer {
   background: var(--color-surface-2);
   box-shadow: 0 14px 34px rgba(20, 20, 19, 0.16);
   backface-visibility: hidden; /* cards facing away disappear */
-  transform: rotateY(calc(var(--i) * 360deg / var(--count))) translateZ(var(--radius));
+  transform: rotateY(calc(var(--i) * 360deg / var(--count)))
+    translateZ(var(--radius));
   /* the far hemisphere is faded out per frame by the spin (see hero-ring.tsx):
      a card past ±90° still faces the camera but sits behind the axis and
      would paint over the curved front. */
@@ -460,23 +501,50 @@ main > .pin-spacer {
   border-radius: inherit;
 }
 @media (min-width: 1700px) {
-  .ringStage { height: 400px; }
+  .ringStage {
+    height: 400px;
+  }
 }
 @media (max-width: 768px) {
   /* stage height = card height + shadow room, so no white band under the ring;
      it bleeds to the screen edges so the outer cards are cut by the viewport,
      not by the column gutter */
-  .ringStage { height: 270px; perspective: 1400px; perspective-origin: 50% 120%; }
-  .ring { top: 74%; }
-  .ring { --radius: 500px; } /* 24 cards: step 131px for 120px cards, ~10px of air */
-  .ringCard { width: 120px; height: 170px; margin: -85px 0 0 -60px; border-radius: 12px; box-shadow: 0 8px 20px rgba(20, 20, 19, 0.14); }
+  .ringStage {
+    height: 270px;
+    perspective: 1400px;
+    perspective-origin: 50% 120%;
+  }
+  .ring {
+    top: 74%;
+  }
+  .ring {
+    --radius: 500px;
+  } /* 24 cards: step 131px for 120px cards, ~10px of air */
+  .ringCard {
+    width: 120px;
+    height: 170px;
+    margin: -85px 0 0 -60px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(20, 20, 19, 0.14);
+  }
 }
 @media (max-width: 480px) {
   /* 24 cards at r=300 overlapped each other by ~55px on a phone. r=440
      with 110px cards opens ~8px of air between neighbours; the longer
      perspective keeps the front card small enough that three fit on a
      390px screen with nothing clipped. */
-  .ringStage { height: 270px; perspective: 1800px; perspective-origin: 50% 125%; }
-  .ring { --radius: 440px; top: 66%; }
-  .ringCard { width: 110px; height: 156px; margin: -78px 0 0 -55px; }
+  .ringStage {
+    height: 270px;
+    perspective: 1800px;
+    perspective-origin: 50% 125%;
+  }
+  .ring {
+    --radius: 440px;
+    top: 66%;
+  }
+  .ringCard {
+    width: 110px;
+    height: 156px;
+    margin: -78px 0 0 -55px;
+  }
 }

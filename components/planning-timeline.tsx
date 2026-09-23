@@ -17,7 +17,10 @@ const TRACKS = [
     id: "Landing day",
     Icon: GridIcon,
     steps: [
-      { when: "On arrival", what: "Follow the airport route we picked for your terminal" },
+      {
+        when: "On arrival",
+        what: "Follow the airport route we picked for your terminal",
+      },
       { when: "An hour later", what: "Bags down, first walk already mapped" },
       { when: "That evening", what: "Eat somewhere ten minutes from your bed" },
     ],
@@ -28,7 +31,10 @@ const TRACKS = [
     steps: [
       { when: "Each morning", what: "One route, timed to opening hours" },
       { when: "If it rains", what: "Swap to the indoor version of the day" },
-      { when: "Each evening", what: "Three dinner options near where you end up" },
+      {
+        when: "Each evening",
+        what: "Three dinner options near where you end up",
+      },
     ],
   },
   {
@@ -55,7 +61,7 @@ export function PlanningTimeline() {
         <span data-heading-eyebrow className="eyebrow">
           The easy part
         </span>
-        <h2 data-split-lines className="display-lg text-balance text-ink">
+        <h2 data-split-lines className="display-lg text-ink text-balance">
           Planning takes one evening
         </h2>
       </div>
@@ -63,7 +69,7 @@ export function PlanningTimeline() {
       <div
         role="tablist"
         aria-label="Trip stages"
-        className="mx-auto mt-10 flex w-fit max-w-full gap-1 overflow-x-auto rounded-sm border-2 border-ink p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="border-ink mx-auto mt-10 flex w-fit max-w-full [scrollbar-width:none] gap-1 overflow-x-auto rounded-sm border-2 p-1 [&::-webkit-scrollbar]:hidden"
       >
         {TRACKS.map((t) => (
           <button
@@ -73,7 +79,9 @@ export function PlanningTimeline() {
             aria-selected={t.id === active}
             onClick={() => setActive(t.id)}
             className={`label-button inline-flex shrink-0 items-center gap-2 rounded-xs px-3.5 py-2 transition-colors ${
-              t.id === active ? "bg-brand text-ink" : "text-ink-subtle hover:text-ink"
+              t.id === active
+                ? "bg-brand text-ink"
+                : "text-ink-subtle hover:text-ink"
             }`}
           >
             <t.Icon className="size-4" />
@@ -85,19 +93,19 @@ export function PlanningTimeline() {
       <div className="relative mt-16">
         <div
           aria-hidden
-          className="absolute inset-x-[16.666%] top-1 hidden border-t-2 border-dashed border-hairline-strong md:block"
+          className="border-hairline-strong absolute inset-x-[16.666%] top-1 hidden border-t-2 border-dashed md:block"
         />
         <ol data-reveal-group className="grid gap-4 md:grid-cols-3">
           {track.steps.map((step, i) => (
             <li key={step.when} className="flex flex-col items-center">
               <span
                 aria-hidden
-                className={`relative z-10 size-3 rounded-full ring-4 ring-canvas ${
+                className={`ring-canvas relative z-10 size-3 rounded-full ring-4 ${
                   i === 0 ? "bg-brand" : "bg-hairline-strong"
                 }`}
               />
-              <p className="body-sm mt-5 font-semibold text-ink">{step.when}</p>
-              <p className="body-sm mt-3 w-full rounded-lg border border-hairline bg-surface-1 px-5 py-4 text-center text-ink-subtle">
+              <p className="body-sm text-ink mt-5 font-semibold">{step.when}</p>
+              <p className="body-sm border-hairline bg-surface-1 text-ink-subtle mt-3 w-full rounded-lg border px-5 py-4 text-center">
                 {step.what}
               </p>
             </li>

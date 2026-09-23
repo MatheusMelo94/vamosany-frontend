@@ -30,14 +30,15 @@ const POSTS = [
     img: "/img/quote-street.webp",
     alt: "Looking up at Manhattan office towers in black and white",
     category: "Photo spots",
-    title: "Eleven places to point a camera up, ranked by how little you'll be in the way",
+    title:
+      "Eleven places to point a camera up, ranked by how little you'll be in the way",
     meta: "9 min read",
   },
 ];
 
 export function Blog() {
   return (
-    <section id="blog" className="border-y-2 border-ink py-16 sm:py-20">
+    <section id="blog" className="border-ink border-y-2 py-16 sm:py-20">
       <div className="container-ds">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <SectionHeading
@@ -53,7 +54,7 @@ export function Blog() {
         {/* Featured */}
         <article
           data-reveal
-          className="group mt-14 grid gap-8 border-b-2 border-ink pb-14 lg:grid-cols-2 lg:items-center lg:gap-12"
+          className="group border-ink mt-14 grid gap-8 border-b-2 pb-14 lg:grid-cols-2 lg:items-center lg:gap-12"
         >
           <div className="relative aspect-[3/2] overflow-hidden rounded-lg">
             <Image
@@ -66,14 +67,14 @@ export function Blog() {
           </div>
           <div>
             <p className="eyebrow">{FEATURED.category}</p>
-            <h3 className="headline mt-4 text-balance text-ink">
+            <h3 className="headline text-ink mt-4 text-balance">
               {FEATURED.title}
             </h3>
-            <p className="body-base mt-4 text-ink-subtle">{FEATURED.excerpt}</p>
+            <p className="body-base text-ink-subtle mt-4">{FEATURED.excerpt}</p>
             <div className="mt-6 flex items-center gap-4">
               <a
                 href="#blog"
-                className="label-button inline-flex items-center gap-2 text-ink underline-offset-4 hover:underline"
+                className="label-button text-ink inline-flex items-center gap-2 underline-offset-4 hover:underline"
               >
                 Read the post
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
@@ -98,12 +99,15 @@ export function Blog() {
                   />
                 </div>
                 <p className="eyebrow mt-5">{post.category}</p>
-                <h3 className="card-title mt-3 flex-1 text-balance text-ink">
-                  <a href="#blog" className="underline-offset-4 hover:underline">
+                <h3 className="card-title text-ink mt-3 flex-1 text-balance">
+                  <a
+                    href="#blog"
+                    className="underline-offset-4 hover:underline"
+                  >
                     {post.title}
                   </a>
                 </h3>
-                <p className="caption mt-4 text-ink-tertiary">{post.meta}</p>
+                <p className="caption text-ink-tertiary mt-4">{post.meta}</p>
               </article>
             </li>
           ))}

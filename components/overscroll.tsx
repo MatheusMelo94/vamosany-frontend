@@ -78,10 +78,21 @@ export function Overscroll() {
           });
 
           if (overflow) {
-            tl.to(panel, { y: -overflow, duration: overflow / windowHeight, ease: "none" });
+            tl.to(panel, {
+              y: -overflow,
+              duration: overflow / windowHeight,
+              ease: "none",
+            });
           }
-          tl.to(panel, { duration: 0.6 }) /* hold: the successor covers 60% of the viewport */
-            .to(panel, { scale: 0.96, opacity: 0, duration: 0.4, ease: "none" });
+          tl.to(panel, {
+            duration: 0.6,
+          }) /* hold: the successor covers 60% of the viewport */
+            .to(panel, {
+              scale: 0.96,
+              opacity: 0,
+              duration: 0.4,
+              ease: "none",
+            });
         });
       });
     };

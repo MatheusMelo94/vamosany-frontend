@@ -71,29 +71,32 @@ export function Services() {
         {TIERS.map((tier) => (
           <li key={tier.title}>
             <article
-              className={`flex h-full flex-col rounded-lg border bg-canvas p-7 ${
-                tier.featured ? "border-2 border-ink" : "border-hairline"
+              className={`bg-canvas flex h-full flex-col rounded-lg border p-7 ${
+                tier.featured ? "border-ink border-2" : "border-hairline"
               }`}
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="eyebrow">{tier.kicker}</p>
                 {tier.tag ? (
-                  <span className="caption rounded-sm bg-brand px-2 py-1 font-semibold text-ink">
+                  <span className="caption bg-brand text-ink rounded-sm px-2 py-1 font-semibold">
                     {tier.tag}
                   </span>
                 ) : null}
               </div>
-              <h3 className="card-title mt-3 text-ink">{tier.title}</h3>
+              <h3 className="card-title text-ink mt-3">{tier.title}</h3>
               <p className="mt-5 flex items-baseline gap-2">
                 <span className="display-md text-ink">{tier.price}</span>
                 <span className="caption text-ink-tertiary">{tier.per}</span>
               </p>
-              <p className="body-sm mt-4 text-ink-subtle">{tier.blurb}</p>
+              <p className="body-sm text-ink-subtle mt-4">{tier.blurb}</p>
 
-              <ul className="mt-6 space-y-2.5 border-t border-hairline pt-6">
+              <ul className="border-hairline mt-6 space-y-2.5 border-t pt-6">
                 {tier.features.map((f) => (
-                  <li key={f} className="body-sm flex items-start gap-2.5 text-ink">
-                    <span className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-brand text-ink">
+                  <li
+                    key={f}
+                    className="body-sm text-ink flex items-start gap-2.5"
+                  >
+                    <span className="bg-brand text-ink mt-0.5 grid size-4 shrink-0 place-items-center rounded-full">
                       <CheckIcon className="size-2.5" />
                     </span>
                     {f}

@@ -85,7 +85,7 @@ export function SectionHeading({
           {eyebrow}
         </span>
       ) : null}
-      <h2 data-split-lines className="display-lg text-balance text-ink">
+      <h2 data-split-lines className="display-lg text-ink text-balance">
         {highlight ? (
           <span data-sweep className="highlight-heading">
             {title}
@@ -95,7 +95,7 @@ export function SectionHeading({
         )}
       </h2>
       {description ? (
-        <p data-heading-lede className="body-lg text-pretty text-ink-subtle">
+        <p data-heading-lede className="body-lg text-ink-subtle text-pretty">
           {description}
         </p>
       ) : null}
@@ -148,12 +148,12 @@ export function StatusBadge({
 }) {
   return (
     <span
-      className={`caption inline-flex items-center gap-1.5 rounded-sm border border-hairline bg-surface-1 px-2 py-0.5 ${
+      className={`caption border-hairline bg-surface-1 inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 ${
         tone === "success" ? "text-ink" : "text-ink-subtle"
       }`}
     >
       {tone === "success" ? (
-        <span className="size-1.5 rounded-full bg-success" aria-hidden />
+        <span className="bg-success size-1.5 rounded-full" aria-hidden />
       ) : null}
       {children}
     </span>
