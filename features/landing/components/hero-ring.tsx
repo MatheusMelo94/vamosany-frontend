@@ -1,9 +1,10 @@
 "use client";
 
 import type { JSX } from "react";
-import { useEffect, useRef, type CSSProperties } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRef, type CSSProperties } from "react";
+import { gsap, useGSAP, ScrollTrigger } from "@/lib/gsap";
+import { MOTION } from "@/lib/motion";
+import { motionEnabled } from "@/features/landing/motion/attributes";
 
 export type RingImage = { src: string; alt?: string; position?: string };
 
@@ -59,96 +60,118 @@ export function HeroRing({
   images,
   count = 16,
   radius = 560,
-  speed = 36,
+  speed = MOTION.ring.speed,
 }: Props): JSX.Element {
   const ringRef = useRef<HTMLDivElement>(null);
+  const R = MOTION.ring;
 
-  useEffect(() => {
-    const ring = ringRef.current;
-    const stage = ring?.parentElement;
-    if (!ring || !stage) return;
-    /* Reduced motion: no tween, no handlers — the ring simply stands still,
-       but the far hemisphere still has to be hidden once. */
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const n = ring.children.length;
-      Array.from(ring.children).forEach((card, i) => {
-        const facing = Math.cos(((i * 360) / n) * (Math.PI / 180));
-        (card as HTMLElement).style.setProperty(
-          "--vis",
-          facing <= 0 ? "0" : String(Math.min(1, facing / 0.26)),
-        );
-      });
-      return;
-    }
+  useGSAP(
+    () => {
+      const ring = ringRef.current;
+      const stage = ring?.parentElement;
+      if (!ring || !stage) return;
+      /* Reduced motion / no JS gate (ADR-0002): no tween, no handlers — the ring
+       simply stands still, but the far hemisphere still has to be hidden once. */
+      if (!motionEnabled()) {
+        const n = ring.children.length;
+        Array.from(ring.children).forEach((card, i) => {
+          const facing = Math.cos(((i * 360) / n) * (Math.PI / 180));
+          (card as HTMLElement).style.setProperty(
+            "--vis",
+            facing <= 0 ? "0" : String(Math.min(1, facing / R.cullFade)),
+          );
+        });
+        return;
+      }
 
-    gsap.registerPlugin(ScrollTrigger);
-
-    /* Cards on the far hemisphere are hidden per frame: a card is "near" when
+      /* Cards on the far hemisphere are hidden per frame: a card is "near" when
        its angle plus the ring's rotation faces the camera (cos > 0). */
-    const cards = Array.from(ring.querySelectorAll<HTMLElement>(".ringCard"));
-    const n = cards.length;
-    const cull = () => {
-      const ringDeg = Number(gsap.getProperty(ring, "rotateY")) || 0;
-      cards.forEach((card, i) => {
-        const deg = ((i * 360) / n + ringDeg) * (Math.PI / 180);
-        const facing = Math.cos(deg);
-        /* fade over the last 15° before the edge so cards do not pop */
-        const vis = facing <= 0 ? 0 : Math.min(1, facing / 0.26);
-        card.style.setProperty("--vis", vis.toFixed(3));
+      const cards = Array.from(ring.querySelectorAll<HTMLElement>(".ringCard"));
+      const n = cards.length;
+      const cull = () => {
+        const ringDeg = Number(gsap.getProperty(ring, "rotateY")) || 0;
+        cards.forEach((card, i) => {
+          const deg = ((i * 360) / n + ringDeg) * (Math.PI / 180);
+          const facing = Math.cos(deg);
+          /* fade over the last 15° before the edge so cards do not pop */
+          const vis = facing <= 0 ? 0 : Math.min(1, facing / R.cullFade);
+          card.style.setProperty("--vis", vis.toFixed(3));
+        });
+      };
+      cull();
+
+      /* 1. spin — one full turn every `speed` seconds, linear, forever */
+      const spin = gsap.to(ring, {
+        rotateY: -360,
+        duration: speed,
+        ease: "none",
+        repeat: -1,
+        onUpdate: cull,
       });
-    };
-    cull();
 
-    /* 1. spin — one full turn every `speed` seconds, linear, forever */
-    const spin = gsap.to(ring, {
-      rotateY: -360,
-      duration: speed,
-      ease: "none",
-      repeat: -1,
-      onUpdate: cull,
-    });
+      /* 2. hover — ease down to quarter speed, back up on leave */
+      const slow = () =>
+        gsap.to(spin, {
+          timeScale: R.hover.timeScale,
+          duration: R.hover.duration,
+          overwrite: true,
+        });
+      const normal = () =>
+        gsap.to(spin, {
+          timeScale: 1,
+          duration: R.hover.duration,
+          overwrite: true,
+        });
+      stage.addEventListener("mouseenter", slow);
+      stage.addEventListener("mouseleave", normal);
 
-    /* 2. hover — ease down to quarter speed, back up on leave */
-    const slow = () =>
-      gsap.to(spin, { timeScale: 0.25, duration: 0.6, overwrite: true });
-    const normal = () =>
-      gsap.to(spin, { timeScale: 1, duration: 0.6, overwrite: true });
-    stage.addEventListener("mouseenter", slow);
-    stage.addEventListener("mouseleave", normal);
+      /* 3. off-screen — pause the tween so nothing composites unseen */
+      const io = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) spin.play();
+        else spin.pause();
+      });
+      io.observe(stage);
 
-    /* 3. off-screen — pause the tween so nothing composites unseen */
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) spin.play();
-      else spin.pause();
-    });
-    io.observe(stage);
+      /* 4. scroll nudge — faster with scroll velocity, settle back once it stops */
+      let hovering = false;
+      stage.addEventListener("mouseenter", () => (hovering = true));
+      stage.addEventListener("mouseleave", () => (hovering = false));
+      let settle: number | undefined;
+      const trigger = ScrollTrigger.create({
+        onUpdate: (self) => {
+          if (hovering) return;
+          const scale = gsap.utils.clamp(
+            R.nudge.min,
+            R.nudge.max,
+            1 + self.getVelocity() / R.nudge.divisor,
+          );
+          gsap.to(spin, {
+            timeScale: scale,
+            duration: R.nudge.duration,
+            overwrite: true,
+          });
+          window.clearTimeout(settle);
+          settle = window.setTimeout(() => {
+            gsap.to(spin, {
+              timeScale: 1,
+              duration: R.nudge.settleDuration,
+              overwrite: true,
+            });
+          }, R.nudge.settleDelayMs);
+        },
+      });
 
-    /* 4. scroll nudge — faster with scroll velocity, settle back once it stops */
-    let hovering = false;
-    stage.addEventListener("mouseenter", () => (hovering = true));
-    stage.addEventListener("mouseleave", () => (hovering = false));
-    let settle: number | undefined;
-    const trigger = ScrollTrigger.create({
-      onUpdate: (self) => {
-        if (hovering) return;
-        const scale = gsap.utils.clamp(0.5, 3, 1 + self.getVelocity() / 2000);
-        gsap.to(spin, { timeScale: scale, duration: 0.3, overwrite: true });
+      return () => {
         window.clearTimeout(settle);
-        settle = window.setTimeout(() => {
-          gsap.to(spin, { timeScale: 1, duration: 0.8, overwrite: true });
-        }, 150);
-      },
-    });
-
-    return () => {
-      window.clearTimeout(settle);
-      trigger.kill();
-      io.disconnect();
-      stage.removeEventListener("mouseenter", slow);
-      stage.removeEventListener("mouseleave", normal);
-      spin.kill();
-    };
-  }, [speed]);
+        trigger.kill();
+        io.disconnect();
+        stage.removeEventListener("mouseenter", slow);
+        stage.removeEventListener("mouseleave", normal);
+        spin.kill();
+      };
+    },
+    { dependencies: [speed] },
+  );
 
   const slots = dealSlots(count, images.length);
   const seen = new Map<number, number>();
