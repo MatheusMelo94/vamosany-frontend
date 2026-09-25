@@ -15,20 +15,28 @@ export function Hero(): JSX.Element {
                 every line gets its own marker band, and after SplitText each
                 line owns a clone of the span, so GSAP can sweep them in turn. */}
             <span data-sweep className="highlight-heading">
-              Seven days in New York, planned to the block.
+              {/* Each phrase is a nowrap unit of two or more words, so no line
+                  ever holds a single word at any viewport width. SplitText
+                  collapses &nbsp; into plain spaces, hence spans, not &nbsp;. */}
+              <span className="whitespace-nowrap">Tu viaje</span>{" "}
+              <span className="whitespace-nowrap">a New York,</span>{" "}
+              <span className="whitespace-nowrap">resuelto antes</span>{" "}
+              <span className="whitespace-nowrap">de subirte</span>{" "}
+              <span className="whitespace-nowrap">al avión.</span>
             </span>
           </h1>
 
           <p
             data-hero-quote
-            className="body-lg text-ink-subtle mt-5 max-w-2xl text-pretty sm:mt-8 sm:text-xl"
+            className="body-lg text-ink-subtle mt-5 max-w-2xl text-balance sm:mt-8 sm:text-xl"
           >
-            If you can make it here, you can make it anywhere.
+            Todo lo que aprendí en más de 20 visitas, para que la disfrutes{" "}
+            <span className="whitespace-nowrap">a tu manera.</span>
           </p>
 
           <div data-hero-actions className="mt-6 flex justify-center sm:mt-8">
             <Button href="#services" size="lg">
-              Embark on this journey
+              Armá tu viaje
             </Button>
           </div>
 
