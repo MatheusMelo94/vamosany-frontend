@@ -7,6 +7,7 @@ import {
   checkFirstLoad,
   firstLoadBytes,
   firstLoadFiles,
+  readLimits,
 } from "../check-first-load.mjs";
 
 /** A minimal `.next` with the three manifests the script reads. */
@@ -93,25 +94,87 @@ describe("firstLoadBytes", () => {
   });
 });
 
-describe("checkFirstLoad", () => {
+describe("checkFirstLoad (plan § 0.3 item 6: runtime allowance)", () => {
   it("uses Next's decimal kB: the 180 kB budget is 180,000 bytes", () => {
     expect(BUDGET_BYTES).toBe(180_000);
   });
 
-  it("passes at or below the baseline", () => {
-    expect(checkFirstLoad({ bytes: 1000, baseline: 1000 }).ok).toBe(true);
-    expect(checkFirstLoad({ bytes: 999, baseline: 1000 }).ok).toBe(true);
+  it("passes at the baseline and reports the growth against the allowance", () => {
+    const result = checkFirstLoad({
+      bytes: 1000,
+      baseline: 1000,
+      allowance: 100,
+    });
+    expect(result.ok).toBe(true);
+    expect(result.message).toMatch(/\+0 B of the 100 B runtime allowance/);
   });
 
-  it("fails on a single byte of growth, and says by how much", () => {
+  it("passes growth within the allowance, and says how much of it is used", () => {
+    const result = checkFirstLoad({
+      bytes: 1100,
+      baseline: 1000,
+      allowance: 100,
+    });
+    expect(result.ok).toBe(true);
+    expect(result.message).toMatch(/\+100 B of the 100 B runtime allowance/);
+  });
+
+  it("fails one byte past the allowance", () => {
+    const result = checkFirstLoad({
+      bytes: 1101,
+      baseline: 1000,
+      allowance: 100,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/\+101 B.*over the 100 B runtime allowance/);
+  });
+
+  it("with no allowance, fails on a single byte of growth", () => {
     const result = checkFirstLoad({ bytes: 1001, baseline: 1000 });
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/\+1 B/);
   });
 
-  it("fails above the 180 kB budget even without a baseline change", () => {
-    const result = checkFirstLoad({ bytes: 180_001, baseline: 190_000 });
+  it("fails above the 180 kB budget even within the allowance", () => {
+    const result = checkFirstLoad({
+      bytes: 180_001,
+      baseline: 179_900,
+      allowance: 1000,
+    });
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/180/);
+  });
+});
+
+describe("readLimits (perf/first-load.json)", () => {
+  it("reads a route's baseline and its named runtime allowance", () => {
+    expect(
+      readLimits(
+        { "/": { baseline: 178123, runtimeAllowanceBytes: 1000 } },
+        "/",
+      ),
+    ).toEqual({ baseline: 178123, allowance: 1000 });
+  });
+
+  it("defaults the allowance to 0 and rejects a route without a baseline", () => {
+    expect(readLimits({ "/x": { baseline: 5 } }, "/x")).toEqual({
+      baseline: 5,
+      allowance: 0,
+    });
+    expect(() => readLimits({}, "/")).toThrow(/No baseline for \//);
+  });
+
+  it("matches the committed file: baseline 178123, allowance 1000", async () => {
+    const { readFileSync } = await import("node:fs");
+    const file = JSON.parse(
+      readFileSync(
+        path.resolve(__dirname, "../../perf/first-load.json"),
+        "utf8",
+      ),
+    );
+    expect(readLimits(file, "/")).toEqual({
+      baseline: 178123,
+      allowance: 1000,
+    });
   });
 });

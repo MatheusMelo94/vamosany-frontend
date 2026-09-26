@@ -5,9 +5,15 @@
  * After `next build`, computes the gzip First Load JS of a route from the
  * build manifests — the root main files, every enclosing layout and the
  * page, JS only, each file once, gzip level 9 — and compares it with the
- * committed baseline in perf/first-load.json and the 180 kB budget
+ * committed limits in perf/first-load.json and the 180 kB budget
  * (frontend-architecture-conventions § Performance Budgets). Next reports kB
  * as 1000 bytes, so the budget is 180,000 bytes.
+ *
+ * perf/first-load.json: { "<route>": { "baseline": <bytes>,
+ * "runtimeAllowanceBytes": <bytes> } }. The allowance (plan § 0.3 item 6) is
+ * the most `/` may grow over the pre-M4 baseline from webpack's shared
+ * runtime (its chunk map) when lazy chunks are added elsewhere; it is not
+ * room for application code.
  *
  * Usage: node scripts/check-first-load.mjs [route]   (default "/")
  * Exit 0 = within baseline and budget; 1 = growth or over budget.
@@ -82,28 +88,50 @@ export function firstLoadBytes(nextDir, route) {
 }
 
 /**
- * @param {{ bytes: number, baseline: number, budget?: number }} input
+ * @param {Record<string, { baseline?: number, runtimeAllowanceBytes?: number }>} limits
+ * @param {string} route
+ * @returns {{ baseline: number, allowance: number }}
+ */
+export function readLimits(limits, route) {
+  const entry = limits[route];
+  if (!entry || typeof entry.baseline !== "number") {
+    throw new Error(`No baseline for ${route} in perf/first-load.json`);
+  }
+  return {
+    baseline: entry.baseline,
+    allowance: entry.runtimeAllowanceBytes ?? 0,
+  };
+}
+
+/**
+ * @param {{ bytes: number, baseline: number, allowance?: number, budget?: number }} input
  * @returns {{ ok: boolean, message: string }}
  */
-export function checkFirstLoad({ bytes, baseline, budget = BUDGET_BYTES }) {
+export function checkFirstLoad({
+  bytes,
+  baseline,
+  allowance = 0,
+  budget = BUDGET_BYTES,
+}) {
   const kB = (/** @type {number} */ b) => `${(b / 1000).toFixed(2)} kB`;
-  const delta = bytes - baseline;
-  const deltaText = `${delta >= 0 ? "+" : ""}${delta} B`;
+  const growth = bytes - baseline;
+  const growthText = `${growth >= 0 ? "+" : ""}${growth} B`;
+  const vs = `vs baseline ${baseline} B`;
   if (bytes > budget) {
     return {
       ok: false,
-      message: `FAIL: ${bytes} B (${kB(bytes)}) is over the ${kB(budget)} budget (${deltaText} vs baseline ${baseline} B)`,
+      message: `FAIL: ${bytes} B (${kB(bytes)}) is over the ${kB(budget)} budget (${growthText} ${vs})`,
     };
   }
-  if (delta > 0) {
+  if (growth > allowance) {
     return {
       ok: false,
-      message: `FAIL: ${bytes} B (${kB(bytes)}) grew ${deltaText} over the baseline ${baseline} B`,
+      message: `FAIL: ${bytes} B (${kB(bytes)}) grew ${growthText} ${vs}, over the ${allowance} B runtime allowance`,
     };
   }
   return {
     ok: true,
-    message: `OK: ${bytes} B (${kB(bytes)}), ${deltaText} vs baseline ${baseline} B, budget ${kB(budget)}`,
+    message: `OK: ${bytes} B (${kB(bytes)}), ${growthText} ${vs}: ${growthText} of the ${allowance} B runtime allowance, budget ${kB(budget)}`,
   };
 }
 
@@ -114,14 +142,18 @@ const isMain =
 if (isMain) {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const route = process.argv[2] ?? "/";
-  const baselines = readJson(path.join(root, "perf/first-load.json"));
-  const baseline = baselines[route];
-  if (typeof baseline !== "number") {
-    console.error(`No baseline for ${route} in perf/first-load.json`);
+  let limits;
+  try {
+    limits = readLimits(
+      readJson(path.join(root, "perf/first-load.json")),
+      route,
+    );
+  } catch (error) {
+    console.error(String(error instanceof Error ? error.message : error));
     process.exit(1);
   }
   const bytes = firstLoadBytes(path.join(root, ".next"), route);
-  const result = checkFirstLoad({ bytes, baseline });
+  const result = checkFirstLoad({ bytes, ...limits });
   console.log(`First Load JS ${route}: ${result.message}`);
   process.exit(result.ok ? 0 : 1);
 }

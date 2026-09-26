@@ -1,3 +1,6 @@
 {
-  "/": 178123
+  "/": {
+    "baseline": 178123,
+    "runtimeAllowanceBytes": 1000
+  }
 }
