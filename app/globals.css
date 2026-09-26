@@ -487,7 +487,8 @@ main > .pin-spacer {
 .gsap [data-sm-scene] [data-sm-partner],
 .gsap [data-sm-scene] [data-sm-row-body] > *,
 .gsap [data-sm-scene] [data-sm-channels] li,
-.gsap [data-sm-scene] [data-sm-faq-group] details {
+.gsap [data-sm-scene] [data-sm-faq-group] details,
+.gsap [data-sm-scene] [data-sm-audience] > li > :not([data-sm-rule]) {
   opacity: 0;
 }
 

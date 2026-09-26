@@ -87,3 +87,16 @@ describe("initial-state rules for [data-sm-*] (ADR-0002 condition 3)", () => {
     );
   });
 });
+
+describe("audience rows (T037, M5)", () => {
+  it("hides each row's H2 and text under a mounted scene, so they can rise after the rule", () => {
+    const hidden = rules(css).find(
+      ([sel, body]) =>
+        sel.includes("[data-sm-audience] > li > :not([data-sm-rule])") &&
+        /opacity:\s*0/.test(body),
+    );
+    expect(hidden?.[0]).toContain(
+      ".gsap [data-sm-scene] [data-sm-audience] > li > :not([data-sm-rule])",
+    );
+  });
+});

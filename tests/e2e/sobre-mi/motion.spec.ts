@@ -26,6 +26,7 @@ const OPACITY_TARGETS = [
   "[data-sm-row-body] > *",
   "[data-sm-channels] li",
   "[data-sm-faq-group] details",
+  "[data-sm-audience] > li > :not([data-sm-rule])",
 ].map((s) => `main ${s}`);
 
 type FinalState = {
@@ -830,5 +831,83 @@ test.describe("M4 Colaboraciones (T036) @feature-sobre-mi", () => {
     expect(await trainOf(page, quote)).not.toBe("0%");
     await scrollToEl(page, quote);
     await expect.poll(() => trainOf(page, quote)).toBe("0%");
+  });
+});
+
+/* ---- M5 audience rules, M6 contact channels (T037) ------------------ */
+
+test.describe("M5 audience rules and M6 channels (T037) @feature-sobre-mi", () => {
+  test("each audience rule draws first, then its H2 and text rise, when reached (AC 32)", async ({
+    page,
+  }) => {
+    await page.goto("/trabaja-conmigo");
+    await expect(page.locator("main [data-sm-heading]")).toHaveCSS(
+      "opacity",
+      "1",
+    );
+    const row = page.locator("main [data-sm-audience] > li").nth(4);
+    const read = () =>
+      row.evaluate((li) => {
+        const rule = li.querySelector("[data-sm-rule]") as Element;
+        const t = getComputedStyle(rule).transform;
+        const text = [...li.children].filter((c) => c !== rule);
+        return {
+          rule: t === "none" ? 1 : new DOMMatrixReadOnly(t).a,
+          text: text.map((c) => Number(getComputedStyle(c).opacity)),
+        };
+      });
+    expect(await read()).toEqual({ rule: 0, text: [0, 0] });
+    await row.evaluate((el) => {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: top - window.innerHeight / 2,
+        behavior: "instant",
+      });
+    });
+    const samples = [];
+    for (let i = 0; i < 40; i++) {
+      samples.push(await read());
+      await page.waitForTimeout(25);
+    }
+    // The rule is drawing while the text hasn't started.
+    expect(
+      samples.some((x) => x.rule > 0 && x.rule < 1 && x.text[0] === 0),
+    ).toBe(true);
+    await expect.poll(read).toEqual({ rule: 1, text: [1, 1] });
+  });
+
+  test("the contact channels slide in after the title, without scrolling (AC 35)", async ({
+    page,
+  }) => {
+    await page.goto("/contacto");
+    const items = page.locator("main [data-sm-channels] li");
+    const read = () =>
+      items.evaluateAll((els) =>
+        els.map((el) => {
+          const t = getComputedStyle(el).transform;
+          return {
+            opacity: Number(getComputedStyle(el).opacity),
+            x: t === "none" ? 0 : Math.round(new DOMMatrixReadOnly(t).m41),
+          };
+        }),
+      );
+    await expect(page.locator("main [data-sm-heading]")).toHaveCSS(
+      "opacity",
+      "1",
+    );
+    const early = await read();
+    expect(early.every((x) => x.opacity < 1)).toBe(true);
+    const moving: boolean[] = [];
+    for (let i = 0; i < 60; i++) {
+      moving.push((await read()).some((x) => x.x < 0 && x.opacity > 0));
+      await page.waitForTimeout(25);
+    }
+    expect(moving.some(Boolean)).toBe(true);
+    await expect.poll(read, { timeout: 4000 }).toEqual([
+      { opacity: 1, x: 0 },
+      { opacity: 1, x: 0 },
+      { opacity: 1, x: 0 },
+    ]);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
 });

@@ -4,12 +4,14 @@ import { motionEnabled, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { getEases } from "@/lib/gsap-ease";
 import { smSel } from "@/features/sobre-mi/motion/attributes";
 import { colaboraciones } from "@/features/sobre-mi/motion/scenes/colaboraciones";
+import { contacto } from "@/features/sobre-mi/motion/scenes/contacto";
 import { entrance } from "@/features/sobre-mi/motion/scenes/entrance";
 import { navScrolled } from "@/features/sobre-mi/motion/scenes/nav-scrolled";
 import { reveals } from "@/features/sobre-mi/motion/scenes/reveals";
 import { settle } from "@/features/sobre-mi/motion/scenes/settle";
 import { sobreMi } from "@/features/sobre-mi/motion/scenes/sobre-mi";
 import { sweeps } from "@/features/sobre-mi/motion/scenes/sweeps";
+import { trabajaConmigo } from "@/features/sobre-mi/motion/scenes/trabaja-conmigo";
 import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
 
 /** Scenes, in order. Page-specific scenes read `data-sm-scene` themselves. */
@@ -20,6 +22,8 @@ const SCENES: readonly Scene[] = [
   sweeps,
   sobreMi,
   colaboraciones,
+  trabajaConmigo,
+  contacto,
   settle,
 ];
 

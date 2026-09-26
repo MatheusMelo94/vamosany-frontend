@@ -7,9 +7,9 @@ import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
  * fully visible while the M4 scenes land one by one; each scene task removes
  * its selectors from here.
  */
-const OPACITY = ["[data-sm-channels] li", "[data-sm-faq-group] details"];
+const OPACITY = ["[data-sm-faq-group] details"];
 const TRAINS: string[] = [];
-const SCALED = ["[data-sm-rule]"];
+const SCALED: string[] = [];
 const CLIPPED: string[] = [];
 
 export const settle: Scene = ({ root }) => {
