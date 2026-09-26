@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { CuadernoMotion } from "@/features/sobre-mi/components/cuaderno-motion";
+import { sm } from "@/features/sobre-mi/motion/attributes";
 import { ClosingRow } from "@/features/sobre-mi/components/closing-row";
 import { PageHeader } from "@/features/sobre-mi/components/page-header";
 import { ProductLedger } from "@/features/sobre-mi/components/product-ledger";
@@ -9,7 +11,8 @@ import { COLABORACIONES } from "@/features/sobre-mi/content/colaboraciones";
 export function ColaboracionesPage(): JSX.Element {
   const { header, rows, closing } = COLABORACIONES;
   return (
-    <div className="container-ds pb-16">
+    <div {...sm("scene", "colaboraciones")} className="container-ds pb-16">
+      <CuadernoMotion />
       <PageHeader {...header} />
       <ProductLedger rows={rows} />
       <ClosingRow

@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { CuadernoMotion } from "@/features/sobre-mi/components/cuaderno-motion";
+import { sm } from "@/features/sobre-mi/motion/attributes";
 import { ClosingRow } from "@/features/sobre-mi/components/closing-row";
 import { FaqDeepLink } from "@/features/sobre-mi/components/faq-deep-link";
 import { FaqGroup } from "@/features/sobre-mi/components/faq-group";
@@ -8,7 +10,8 @@ import { FAQ } from "@/features/sobre-mi/content/faq";
 /** /preguntas-frecuentes (spec § Page 5): three groups of native disclosures. */
 export function FaqPage(): JSX.Element {
   return (
-    <div className="container-ds pb-16">
+    <div {...sm("scene", "faq")} className="container-ds pb-16">
+      <CuadernoMotion />
       <FaqDeepLink />
       <PageHeader {...FAQ.header} />
       <div className="grid gap-11">

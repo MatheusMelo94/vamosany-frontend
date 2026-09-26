@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { CuadernoMotion } from "@/features/sobre-mi/components/cuaderno-motion";
+import { sm } from "@/features/sobre-mi/motion/attributes";
 import { ClosingRow } from "@/features/sobre-mi/components/closing-row";
 import { NotesLayout } from "@/features/sobre-mi/components/notes-layout";
 import { PageHeader } from "@/features/sobre-mi/components/page-header";
@@ -9,7 +11,8 @@ import { SOBRE_MI } from "@/features/sobre-mi/content/sobre-mi";
 /** /sobre-mi (spec § Page 1): Belén's story, the timeline and the closing row. */
 export function SobreMiPage(): JSX.Element {
   return (
-    <div className="container-ds pb-16">
+    <div {...sm("scene", "sobre-mi")} className="container-ds pb-16">
+      <CuadernoMotion />
       <PageHeader {...SOBRE_MI.header} />
       <NotesLayout notes={SOBRE_MI.notes}>
         <Prose blocks={SOBRE_MI.body} />

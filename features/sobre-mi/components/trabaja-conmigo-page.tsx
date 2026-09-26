@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { CuadernoMotion } from "@/features/sobre-mi/components/cuaderno-motion";
 import { AudienceRows } from "@/features/sobre-mi/components/audience-rows";
 import { CollaborationForm } from "@/features/sobre-mi/components/forms/collaboration-form";
 import { NotesLayout } from "@/features/sobre-mi/components/notes-layout";
@@ -13,7 +14,8 @@ import { sm } from "@/features/sobre-mi/motion/attributes";
 export function TrabajaConmigoPage(): JSX.Element {
   const { header, notes, intro, audiences, cafecito } = TRABAJA_CONMIGO;
   return (
-    <div className="container-ds pb-16">
+    <div {...sm("scene", "trabaja-conmigo")} className="container-ds pb-16">
+      <CuadernoMotion />
       <PageHeader {...header} />
       <NotesLayout notes={notes}>
         <p {...sm("reveal")} className="body-prose text-ink max-w-190">

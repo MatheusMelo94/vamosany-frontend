@@ -1,0 +1,53 @@
+"use client";
+
+import { motionEnabled, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { getEases } from "@/lib/gsap-ease";
+import { smSel } from "@/features/sobre-mi/motion/attributes";
+import { navScrolled } from "@/features/sobre-mi/motion/scenes/nav-scrolled";
+import { settle } from "@/features/sobre-mi/motion/scenes/settle";
+import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
+
+/** Scenes, in order. Page-specific scenes read `data-sm-scene` themselves. */
+const SCENES: readonly Scene[] = [navScrolled, settle];
+
+/**
+ * Headless motion controller of the Sobre mí pages (ADR-0003 pattern; TDD
+ * § 4.1). Mounted per page by CuadernoMotion (next/dynamic, ssr: false), so
+ * a client navigation between these pages reverts it and mounts a fresh one.
+ * Reads only the attribute contract; renders nothing. Under reduced motion
+ * or without JS there is no `.gsap` and it returns at once (ADR-0002), which
+ * leaves every target in its static CSS state.
+ */
+export function CuadernoScrollEffects(): null {
+  useGSAP(
+    (_context, contextSafe) => {
+      if (!motionEnabled() || !contextSafe) return;
+      const root = document.querySelector<HTMLElement>(smSel("scene"));
+      if (!root) return;
+
+      const context = {
+        root,
+        eases: getEases(),
+        contextSafe: contextSafe as <T extends (...args: never[]) => unknown>(
+          fn: T,
+        ) => T,
+      };
+      const cleanups = SCENES.map((scene) => scene(context)).filter(
+        (c): c is () => void => typeof c === "function",
+      );
+
+      // Fonts change metrics, which moves every trigger.
+      let active = true;
+      void document.fonts?.ready.then(() => {
+        if (active) ScrollTrigger.refresh();
+      });
+
+      return () => {
+        active = false;
+        cleanups.forEach((cleanup) => cleanup());
+      };
+    },
+    { dependencies: [] },
+  );
+  return null;
+}

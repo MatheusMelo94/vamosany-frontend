@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { CuadernoMotion } from "@/features/sobre-mi/components/cuaderno-motion";
+import { sm } from "@/features/sobre-mi/motion/attributes";
 import { ChannelList } from "@/features/sobre-mi/components/channel-list";
 import { ContactForm } from "@/features/sobre-mi/components/forms/contact-form";
 import { NotesLayout } from "@/features/sobre-mi/components/notes-layout";
@@ -12,7 +14,8 @@ import { CONTACTO } from "@/features/sobre-mi/content/contacto";
 export function ContactoPage(): JSX.Element {
   const { header, channels } = CONTACTO;
   return (
-    <div className="container-ds pb-16">
+    <div {...sm("scene", "contacto")} className="container-ds pb-16">
+      <CuadernoMotion />
       <PageHeader {...header} />
       <NotesLayout
         heading
