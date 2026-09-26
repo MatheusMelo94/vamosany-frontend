@@ -1,0 +1,939 @@
+<title>Vamos a NY About Pages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Tokens copied from app/globals.css — light only, as the product is (dark mode not in the system yet). */
+:root{
+  --brand:#ffd800; --brand-hover:#f1cc00; --on-brand:#080a0b;
+  --canvas:#ffffff; --surface-1:#f7f7f5; --surface-2:#eeeeea;
+  --hairline:#eeeeea; --hairline-strong:#a8a8a4;
+  --ink:#080a0b; --ink-muted:#484846; --ink-tertiary:#a8a8a4;
+  --inverse-canvas:#080a0b; --inverse-ink:#ffffff;
+  --font-display:"Courier Prime","Roboto Slab",Rockwell,serif;
+  --font-sans:Arial,Helvetica,sans-serif;
+  --r-xs:2px; --r-sm:4px; --r-lg:8px; --r-xl:12px; --r-3xl:24px;
+  --shadow-nav:0 8px 30px rgb(0 0 0/.06);
+  --shadow-menu:0 18px 50px rgb(0 0 0/.08);
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --arrive:cubic-bezier(.16,.92,.3,1.03);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--canvas);color:var(--ink);font-family:var(--font-sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+::selection{background:var(--brand);color:var(--ink)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+h1,h2,h3,h4,p,ul,ol,figure{margin:0}
+ul,ol{padding:0;list-style:none}
+img{display:block;max-width:100%}
+
+.wrap{max-width:1200px;margin-inline:auto;padding-inline:20px}
+@media (min-width:768px){.wrap{padding-inline:32px}}
+
+/* type utilities — same values as the @utility classes */
+.dxl,.dlg,.dmd,.hl,.ct,.lb,.eb{font-family:var(--font-display);font-weight:700;text-transform:uppercase;text-wrap:balance}
+.dxl{font-size:clamp(1.75rem,4.6vw,3.75rem);line-height:1.1;letter-spacing:.04em}
+.dlg{font-size:clamp(1.75rem,3.2vw,2.75rem);line-height:1;letter-spacing:.04em}
+.dmd{font-size:clamp(1.75rem,2.4vw,2.25rem);line-height:1.05;letter-spacing:.03em}
+.hl{font-size:clamp(1.375rem,1.7vw,1.625rem);line-height:1.1;letter-spacing:.03em}
+.ct{font-size:1.1875rem;line-height:1.2;letter-spacing:.03em}
+.lb{font-size:.875rem;line-height:1.2;letter-spacing:.06em}
+.eb{font-size:.75rem;line-height:1.3;letter-spacing:.14em;color:var(--ink-muted)}
+.mono{font-family:var(--font-display);font-weight:400}
+.sub{font-size:1.25rem;line-height:1.6}
+.blg{font-size:1.125rem;line-height:1.6}
+.bsm{font-size:.875rem;line-height:1.6}
+.cap{font-size:.75rem;line-height:1.5}
+.muted{color:var(--ink-muted)}
+.pretty{text-wrap:pretty}
+
+/* signature: the six-car train marker */
+.hi{
+  --train:0%;
+  background-image:linear-gradient(to right,var(--brand) 0 5.2%,transparent 5.2% 5.68%,var(--brand) 5.68% 10.88%,transparent 10.88% 11.36%,var(--brand) 11.36% 16.56%,transparent 16.56% 17.04%,var(--brand) 17.04% 22.24%,transparent 22.24% 22.72%,var(--brand) 22.72% 27.92%,transparent 27.92% 28.4%,var(--brand) 28.4% 33.6%,transparent 33.6% 100%);
+  background-repeat:no-repeat;background-size:300% .4em;background-position:var(--train) .4em;
+  -webkit-box-decoration-break:clone;box-decoration-break:clone;
+}
+.hi.tunnel{background-position:100% .4em}
+.hi.arriving{transition:background-position 1s var(--arrive)}
+@media (prefers-reduced-motion:reduce){.hi.arriving{transition:none}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 20px;border:2px solid var(--ink);border-radius:var(--r-sm);font-family:var(--font-display);font-weight:700;font-size:.875rem;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;background:transparent;transition:background var(--dur,180ms) var(--ease),transform 120ms var(--ease)}
+.btn:hover{transform:translateY(-1px);background:var(--surface-1)}
+.btn-p{background:var(--brand);color:var(--on-brand)}
+.btn-p:hover{background:var(--brand-hover)}
+.btn-sm{min-height:40px;padding:8px 14px;font-size:.8125rem}
+.btn[disabled]{opacity:.75;cursor:progress;transform:none}
+.link{font-size:.875rem;font-weight:600;text-decoration:none}
+.link:hover{text-decoration:underline;text-underline-offset:4px}
+
+/* bordered tablist (Sample Day device) */
+.tabs{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;border:2px solid var(--ink);border-radius:var(--r-sm)}
+.tabs button{border:0;background:transparent;padding:8px 14px;border-radius:var(--r-xs);font-family:var(--font-display);font-weight:700;font-size:.8125rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted)}
+.tabs button[aria-pressed="true"]{background:var(--brand);color:var(--ink)}
+.tabs button:hover:not([aria-pressed="true"]){background:rgb(8 10 11/.05);color:var(--ink)}
+
+.tag{display:inline-block;background:var(--brand);color:var(--ink);font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:var(--r-sm)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none}
+
+/* ================= PAGE CHROME ================= */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;padding-top:16px}
+.capsule{display:flex;align-items:center;justify-content:space-between;gap:16px;height:56px;padding-inline:20px;border-radius:999px;background:rgb(255 255 255/.55);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border:1px solid rgb(8 10 11/.08);box-shadow:var(--shadow-nav)}
+.capsule img{height:24px;width:auto}
+.capsule nav{display:flex;gap:2px;font-size:.875rem;font-weight:600}
+.capsule nav span{padding:6px 12px;border-radius:999px}
+.capsule nav span.on{background:rgb(8 10 11/.05)}
+@media (max-width:760px){.capsule nav span:not(.on){display:none}}
+
+.intro{padding-block:56px 40px}
+.intro .meta{font-size:.8125rem;color:var(--ink-muted);margin-bottom:16px}
+.intro h1{max-width:18ch}
+.intro .dek{margin-top:20px;max-width:62ch}
+
+section.band{padding-block:56px;border-top:2px solid var(--ink)}
+.sec-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:28px}
+.sec-h p{max-width:60ch}
+
+/* direction cards */
+.dirs{display:grid;gap:16px}
+@media (min-width:900px){.dirs{grid-template-columns:repeat(3,1fr)}}
+.dir{display:flex;flex-direction:column;gap:14px;text-align:left;padding:24px;border:1px solid var(--hairline);border-radius:var(--r-lg);background:var(--canvas);transition:border-color 180ms var(--ease)}
+.dir:hover{border-color:var(--hairline-strong)}
+.dir[aria-pressed="true"]{border:2px solid var(--ink);padding:23px}
+.dir .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dir .letter{font-family:var(--font-display);font-weight:700;font-size:2.25rem;line-height:1;color:var(--ink-tertiary)}
+.dir[aria-pressed="true"] .letter{color:var(--ink)}
+.dir dl{display:grid;gap:10px;margin:0;font-size:.875rem}
+.dir dt{font-family:var(--font-display);font-weight:700;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase}
+.dir dd{margin:2px 0 0;color:var(--ink-muted)}
+.risk{display:flex;gap:6px;align-items:center;font-size:.8125rem}
+.pips{display:inline-flex;gap:3px}
+.pips i{width:14px;height:8px;border-radius:1px;background:var(--surface-2)}
+.pips i.f{background:var(--ink)}
+
+/* viewer */
+.controls{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:end;margin-bottom:20px}
+.controls .grp{display:grid;gap:8px}
+.mega{display:grid;gap:8px;padding:24px;border-radius:var(--r-3xl);background:var(--canvas);border:1px solid rgb(8 10 11/.08);box-shadow:var(--shadow-menu);margin-bottom:28px}
+@media (min-width:760px){.mega{grid-template-columns:4fr 3fr;gap:24px}}
+.mega .col{display:grid;gap:4px;align-content:start}
+.mega .col .eb{padding:0 12px 6px}
+.mega .items{display:grid;gap:4px}
+@media (min-width:1000px){.mega .col:first-child .items{grid-template-columns:1fr 1fr}}
+.mi{display:grid;gap:2px;text-align:left;border:0;background:transparent;padding:10px 12px;border-radius:var(--r-xl);position:relative}
+.mi:hover{background:var(--surface-1)}
+.mi[aria-pressed="true"]{background:var(--surface-1)}
+.mi[aria-pressed="true"]::after{content:"";position:absolute;right:12px;top:16px;width:8px;height:8px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 2px var(--ink)}
+.mi b{font-size:.9375rem}
+.mi span{font-size:.8125rem;color:var(--ink-muted)}
+
+/* mock browser */
+.browser{border:2px solid var(--ink);border-radius:var(--r-lg);overflow:hidden;background:var(--canvas);margin-inline:auto;transition:max-width 300ms var(--ease)}
+.browser.phone{max-width:390px}
+.browser .bar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:2px solid var(--ink);background:var(--surface-1);font-family:var(--font-display);font-size:.8125rem}
+.browser .bar .lights{display:flex;gap:5px}
+.browser .bar .lights i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink)}
+.browser .bar .url{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--canvas);border:1px solid var(--hairline);border-radius:999px;padding:3px 12px;color:var(--ink-muted)}
+.screen{height:760px;overflow-y:auto;overscroll-behavior:contain;container-type:inline-size;container-name:screen;position:relative}
+.statebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 auto 12px;font-size:.8125rem}
+.statebar[hidden]{display:none}
+
+/* notes */
+.notes{display:grid;gap:24px;margin-top:28px}
+@media (min-width:900px){.notes{grid-template-columns:1.2fr 1fr 1fr}}
+.notes h3{margin-bottom:10px}
+.notes ol{counter-reset:s;display:grid;gap:0}
+.notes ol li{counter-increment:s;display:grid;grid-template-columns:2rem 1fr;padding:8px 0;border-bottom:1px solid var(--hairline);font-size:.875rem}
+.notes ol li::before{content:counter(s,decimal-leading-zero);font-family:var(--font-display);color:var(--ink-muted)}
+.notes ul.st li{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--hairline);font-size:.875rem}
+.notes ul.st li .dot{transform:translateY(-1px)}
+.refs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.refs a{font-size:.8125rem;border:1px solid var(--hairline-strong);border-radius:var(--r-sm);padding:3px 8px;text-decoration:none}
+.refs a:hover{border-color:var(--ink);background:var(--surface-1)}
+.flag{margin-top:12px;padding:12px 14px;background:var(--surface-1);border-left:0;border-radius:var(--r-sm);font-size:.875rem}
+.flag b{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.06em;font-size:.75rem;display:block;margin-bottom:2px}
+
+/* templates */
+.tpls{display:grid;gap:24px}
+@media (min-width:900px){.tpls{grid-template-columns:1fr 1fr}}
+.tpl{display:grid;gap:14px}
+.wire{border:2px solid var(--ink);border-radius:var(--r-lg);padding:16px;display:grid;gap:8px;background:var(--canvas)}
+.wire div{border-radius:var(--r-sm);background:var(--surface-2);font-family:var(--font-display);font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted);padding:8px 10px}
+.wire .ph{background:var(--canvas);border:1px dashed var(--hairline-strong)}
+.wire .yl{background:var(--brand);color:var(--ink)}
+.wire .ink{background:var(--ink);color:var(--inverse-ink)}
+.wire .split{display:grid;grid-template-columns:1fr 2.4fr;gap:8px;background:none;padding:0}
+.wire .split2{display:grid;grid-template-columns:2fr 1fr;gap:8px;background:none;padding:0}
+.wire .stack{display:grid;gap:6px;background:none;padding:0}
+
+/* decisions */
+.dec{display:grid;gap:0;counter-reset:d}
+.dec li{counter-increment:d;display:grid;grid-template-columns:3rem 1fr;gap:4px 12px;padding:16px 0;border-bottom:1px solid var(--hairline)}
+.dec li::before{content:counter(d,decimal-leading-zero);font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1.1;color:var(--ink-muted);grid-row:span 2}
+.dec li b{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.03em}
+.dec li p{color:var(--ink-muted);font-size:.9375rem;max-width:70ch}
+.order{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:24px;font-size:.875rem}
+.order span.s{border:2px solid var(--ink);border-radius:var(--r-sm);padding:4px 10px;font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:.75rem;letter-spacing:.06em}
+.order span.s:first-of-type{background:var(--brand)}
+
+/* tokens strip */
+.tokens{display:grid;gap:24px}
+@media (min-width:900px){.tokens{grid-template-columns:1fr 1fr}}
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.sw div{display:grid;gap:6px;font-size:.75rem}
+.sw div i{display:block;height:44px;border-radius:var(--r-sm);border:1px solid var(--hairline)}
+.sw code{font-family:var(--font-display)}
+.scale{display:grid;gap:10px}
+.scale div{display:grid;grid-template-columns:7rem 1fr;align-items:baseline;gap:12px;border-bottom:1px solid var(--hairline);padding-bottom:8px}
+.scale code{font-family:var(--font-display);font-size:.75rem;color:var(--ink-muted)}
+
+.foot{background:var(--inverse-canvas);color:var(--inverse-ink);padding-block:40px;margin-top:56px}
+.foot p{color:rgb(255 255 255/.7);font-size:.875rem;max-width:70ch}
+.foot a{color:var(--inverse-ink)}
+
+/* ================= MOCK PAGE (inside .screen) ================= */
+.m{font-size:16px}
+.m .c{padding-inline:20px;max-width:1200px;margin-inline:auto}
+@container screen (min-width:700px){.m .c{padding-inline:32px}}
+.m-nav{position:sticky;top:0;z-index:5;padding:12px 12px 0}
+.m-nav .cap{display:flex;align-items:center;justify-content:space-between;height:44px;padding-inline:16px;border-radius:999px;background:rgb(255 255 255/.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgb(8 10 11/.08);box-shadow:var(--shadow-nav)}
+.m-nav img{height:18px;width:auto}
+.m-nav .lk{display:flex;gap:14px;font-size:.75rem;font-weight:600}
+.m-nav .lk span:last-child{background:rgb(8 10 11/.05);padding:3px 10px;border-radius:999px}
+.m-nav .burger{display:none;width:30px;height:30px;border-radius:50%;background:rgb(8 10 11/.05);place-items:center;font-size:.875rem}
+@container screen (max-width:699px){.m-nav .lk{display:none}.m-nav .burger{display:grid}}
+.m-foot{background:var(--inverse-canvas);color:var(--inverse-ink);padding-block:32px;margin-top:64px}
+.m-foot .c{display:grid;gap:14px}
+.m-foot .row{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8125rem;color:rgb(255 255 255/.8)}
+.m-foot small{font-size:.75rem;color:rgb(255 255 255/.45)}
+
+.m-sec{padding-block:48px}
+@container screen (min-width:700px){.m-sec{padding-block:64px}}
+.r2{border-top:2px solid var(--ink)}
+.r2b{border-bottom:2px solid var(--ink)}
+.prose{max-width:760px;display:grid;gap:18px}
+.prose p{font-size:1.0625rem;line-height:1.7}
+
+/* A — Cuaderno header */
+.aH{padding-block:48px 32px}
+.aH .meta{font-size:.8125rem;color:var(--ink-muted);margin-bottom:14px;display:flex;flex-wrap:wrap;gap:6px 14px}
+.aH .dek{margin-top:18px;max-width:52ch;color:var(--ink-muted)}
+@container screen (min-width:700px){.aH{padding-block:72px 40px}}
+
+/* A — gutter layout */
+.gut{display:grid;gap:12px}
+@container screen (min-width:860px){.gut{grid-template-columns:200px 1fr;gap:40px}}
+.gut .side{font-family:var(--font-display);font-size:.8125rem;color:var(--ink-muted);display:grid;gap:4px;align-content:start}
+.gut .side b{color:var(--ink)}
+
+/* timetable rows */
+.tt{display:grid}
+.tt li{display:grid;grid-template-columns:4.5rem 1fr auto;gap:12px;padding:14px 0;border-bottom:1px solid var(--hairline);align-items:baseline}
+.tt li:first-child{border-top:1px solid var(--hairline)}
+.tt .t{font-family:var(--font-display);color:var(--ink-muted);font-size:.9375rem}
+.tt .x{font-size:.9375rem}
+.tt .x b{display:block;font-weight:600}
+.tt .d{font-size:.75rem;color:var(--ink-muted);text-align:right}
+@container screen (max-width:520px){.tt li{grid-template-columns:3.6rem 1fr}.tt .d{grid-column:2;text-align:left}}
+.tt.wide li{grid-template-columns:6rem 1fr auto}
+@container screen (max-width:520px){.tt.wide li{grid-template-columns:4.5rem 1fr}}
+
+/* numbered steps */
+.steps{display:grid}
+.steps li{display:grid;gap:8px 24px;padding:24px 0;border-top:2px solid var(--ink)}
+.steps li:last-child{border-bottom:1px solid var(--hairline)}
+@container screen (min-width:760px){.steps li{grid-template-columns:5rem 1fr 1.4fr;align-items:baseline}}
+.steps .n{font-family:var(--font-display);font-weight:700;font-size:clamp(1.75rem,4cqi,2.25rem);color:var(--ink-tertiary);line-height:1}
+.steps p{color:var(--ink-muted)}
+
+.fig{display:grid;gap:8px}
+.fig img,.fig .ph{border-radius:var(--r-lg);aspect-ratio:3/2;width:100%;object-fit:cover;background:var(--surface-2)}
+.fig figcaption{font-family:var(--font-display);font-size:.8125rem;color:var(--ink-muted);border-top:1px solid var(--hairline);padding-top:8px}
+.ph{display:grid;place-items:center;text-align:center;padding:16px;font-family:var(--font-display);font-size:.8125rem;color:var(--ink-muted);background:repeating-linear-gradient(135deg,var(--surface-2) 0 10px,var(--surface-1) 10px 20px)}
+.sig{font-family:var(--font-display);font-style:italic;font-size:1.75rem;line-height:1;margin-top:6px}
+
+.twocol{display:grid;gap:24px}
+@container screen (min-width:700px){.twocol{grid-template-columns:1fr 1fr;gap:40px}}
+.then{display:grid;gap:10px;padding-top:16px;border-top:2px solid var(--ink)}
+.then .yr{font-family:var(--font-display);font-weight:700;font-size:1.5rem}
+
+.ctarow{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between;padding-block:28px;border-block:2px solid var(--ink)}
+
+/* Mostrador layout */
+.most{display:grid;gap:32px}
+@container screen (min-width:860px){.most{grid-template-columns:1fr 300px;gap:48px;align-items:start}}
+.aside{display:grid;gap:14px;padding:20px;background:var(--surface-1);border-radius:var(--r-lg)}
+@container screen (min-width:860px){.aside{position:sticky;top:72px}}
+.aside .inb li{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid var(--hairline-strong);font-size:.875rem}
+.aside .inb li span:last-child{font-family:var(--font-display)}
+.before{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:14px 0;border-block:1px solid var(--hairline);font-size:.875rem;margin-bottom:28px}
+
+/* form */
+.form{display:grid;gap:18px}
+.fld{display:grid;gap:6px}
+.fld label{font-family:var(--font-display);font-weight:700;font-size:.8125rem;letter-spacing:.06em;text-transform:uppercase}
+.fld label small{font-family:var(--font-sans);font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-muted)}
+.fld input,.fld select,.fld textarea{font:inherit;font-size:1rem;width:100%;border:2px solid var(--ink);border-radius:var(--r-sm);padding:10px 12px;background:var(--canvas);color:var(--ink)}
+.fld textarea{min-height:120px;resize:vertical}
+.fld[data-err] input{border-color:var(--ink);box-shadow:inset 0 -3px 0 var(--brand)}
+.fld .err{font-size:.875rem;font-weight:600;display:flex;gap:6px;align-items:center}
+.fld .err::before{content:"!";display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--canvas);font-size:.75rem;font-weight:700}
+.form[aria-busy="true"] input,.form[aria-busy="true"] select,.form[aria-busy="true"] textarea{background:var(--surface-1);color:var(--ink-muted)}
+.frow{display:grid;gap:18px}
+@container screen (min-width:560px){.frow{grid-template-columns:1fr 1fr}}
+.banner{padding:14px 16px;border:2px solid var(--ink);border-radius:var(--r-sm);font-size:.9375rem;display:grid;gap:10px}
+.done{display:grid;gap:14px;padding:28px 0;border-block:2px solid var(--ink)}
+.u-fields .fld input,.u-fields .fld select,.u-fields .fld textarea{border:0;border-bottom:2px solid var(--ink);border-radius:0;padding-inline:0}
+
+/* FAQ */
+.faq{display:grid;gap:36px}
+.faqcat{display:grid;gap:10px}
+@container screen (min-width:860px){.faq.cols .faqcat{grid-template-columns:200px 1fr;gap:32px}}
+.faqcat h2{font-size:1.125rem}
+details.q{border-bottom:1px solid var(--hairline)}
+details.q:first-of-type{border-top:1px solid var(--hairline)}
+details.q summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:16px;padding:14px 0;font-weight:600}
+details.q summary::-webkit-details-marker{display:none}
+details.q summary::after{content:"+";font-family:var(--font-display);font-weight:700;font-size:1.25rem;line-height:1}
+details.q[open] summary::after{content:"×"}
+details.q p{padding:0 0 16px;color:var(--ink-muted);max-width:62ch}
+.search{display:flex;gap:8px;align-items:center;border-bottom:2px solid var(--ink);padding:8px 0;margin-bottom:24px;max-width:520px}
+.search input{border:0;font:inherit;font-size:1.0625rem;flex:1;min-width:0;background:transparent;color:var(--ink)}
+.search input:focus{outline:none}
+.search:focus-within{box-shadow:0 3px 0 var(--brand)}
+.empty{padding:20px 0;display:grid;gap:10px;justify-items:start}
+
+/* press ledger */
+.ledger li{display:grid;gap:4px 24px;padding:18px 0;border-bottom:1px solid var(--hairline)}
+@container screen (min-width:700px){.ledger li{grid-template-columns:6rem 1fr auto;align-items:baseline}}
+.ledger .yr{font-family:var(--font-display);font-weight:700;font-size:1.5rem;color:var(--ink-muted)}
+.ledger .o{font-family:var(--font-display);font-weight:700;font-size:.8125rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted)}
+.ledger .h{font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:1.125rem;letter-spacing:.02em;line-height:1.2}
+
+.person{display:flex;gap:14px;align-items:center}
+.person .av{width:56px;height:56px;border-radius:var(--r-lg);flex:none}
+
+/* promise band */
+.promise{display:grid;gap:10px;padding-block:28px;border-block:2px solid var(--ink);margin-bottom:40px}
+
+/* B — Revista */
+.bHero{position:relative}
+.bHero img,.bHero .ph{width:100%;aspect-ratio:16/8;object-fit:cover}
+@container screen (max-width:699px){.bHero img,.bHero .ph{aspect-ratio:4/5}}
+.bCard{position:relative;margin:-96px 20px 0;background:var(--canvas);border-radius:var(--r-lg);padding:24px 20px;max-width:760px;display:grid;gap:14px}
+@container screen (min-width:700px){.bCard{margin:-140px 32px 0;padding:36px 40px}}
+.byline{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8125rem;color:var(--ink-muted);align-items:center}
+.byline .av{width:28px;height:28px;border-radius:50%;background:var(--surface-2)}
+.pull{padding-block:32px;max-width:880px}
+.pull p{font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:clamp(1.5rem,4cqi,2.25rem);line-height:1.15;letter-spacing:.02em}
+.pull cite{display:block;margin-top:12px;font-style:normal;font-size:.875rem;color:var(--ink-muted)}
+.bleed img{width:100%;aspect-ratio:21/9;object-fit:cover}
+@container screen (max-width:699px){.bleed img{aspect-ratio:4/3}}
+.bleed figcaption{font-family:var(--font-display);font-size:.8125rem;color:var(--ink-muted);padding:8px 20px 0}
+.scrim{position:relative;color:var(--inverse-ink)}
+.scrim img{width:100%;height:340px;object-fit:cover}
+.scrim .in{position:absolute;inset:0;background:rgb(8 10 11/.65);display:grid;align-content:center;justify-items:start;gap:16px;padding:24px 32px}
+.scrim .btn{border-color:var(--ink)}
+.cards{display:grid;gap:20px}
+@container screen (min-width:700px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{display:grid;gap:10px;align-content:start}
+.card img,.card .ph{aspect-ratio:4/3;width:100%;object-fit:cover;border-radius:var(--r-lg)}
+.card .k{font-family:var(--font-display);font-weight:700;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted)}
+
+/* C — Taquilla */
+.cH{padding-block:36px 24px;display:grid;gap:10px;border-bottom:1px solid var(--hairline)}
+.cLay{display:grid;gap:28px;padding-top:28px}
+@container screen (min-width:860px){.cLay{grid-template-columns:220px 1fr;gap:40px;align-items:start}}
+.toc{background:var(--surface-1);border-radius:var(--r-lg);padding:16px;display:grid;gap:2px;font-size:.875rem}
+@container screen (min-width:860px){.toc{position:sticky;top:72px}}
+@container screen (max-width:859px){.toc{display:flex;overflow-x:auto;gap:6px;padding:8px;border-radius:var(--r-sm)}.toc .eb{display:none}.toc a{white-space:nowrap}}
+.toc a{text-decoration:none;padding:6px 10px;border-radius:var(--r-sm)}
+.toc a.on{background:var(--brand);font-weight:600}
+.boxes{display:grid;gap:12px}
+@container screen (min-width:620px){.boxes{grid-template-columns:repeat(3,1fr)}}
+.box{border:2px solid var(--ink);border-radius:var(--r-sm);padding:18px;display:grid;gap:6px;align-content:start}
+.box .big{font-family:var(--font-display);font-weight:700;font-size:1.75rem;line-height:1}
+.chk li{display:flex;gap:10px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--hairline)}
+.chk li::before{content:"✓";display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--brand);font-size:.7rem;font-weight:700;flex:none;transform:translateY(2px)}
+.logos{display:flex;flex-wrap:wrap;gap:10px}
+.logos span{border:1px solid var(--hairline-strong);border-radius:var(--r-sm);padding:10px 14px;font-family:var(--font-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.8125rem;color:var(--ink-muted)}
+table.t{width:100%;border-collapse:collapse;font-size:.875rem}
+table.t th{text-align:left;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.06em;font-size:.75rem;border-bottom:2px solid var(--ink);padding:8px 8px 8px 0}
+table.t td{border-bottom:1px solid var(--hairline);padding:10px 8px 10px 0;vertical-align:top}
+.tscroll{overflow-x:auto}
+.cTabs{margin-bottom:18px}
+.stack{display:grid;gap:28px}
+.gap-s{display:grid;gap:12px}
+</style>
+<style>
+.anat{display:grid;gap:24px}
+@media (min-width:980px){.anat{grid-template-columns:380px 1fr;gap:40px;align-items:start}}
+.slots{display:grid;gap:0;counter-reset:sl}
+.slots li{counter-increment:sl;display:grid;grid-template-columns:2.5rem 1fr;gap:2px 10px;padding:12px 0;border-bottom:1px solid var(--hairline)}
+.slots li::before{content:counter(sl,decimal-leading-zero);font-family:var(--font-display);font-weight:700;color:var(--ink-muted);grid-row:span 2}
+.slots li b{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.04em;font-size:.875rem}
+.slots li span{font-size:.875rem;color:var(--ink-muted)}
+table.map{width:100%;border-collapse:collapse;font-size:.8125rem;min-width:760px}
+table.map th{text-align:left;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.05em;font-size:.75rem;border-bottom:2px solid var(--ink);padding:8px 10px 8px 0;vertical-align:bottom}
+table.map td{border-bottom:1px solid var(--hairline);padding:10px 10px 10px 0;vertical-align:top;color:var(--ink-muted)}
+table.map td:first-child{font-family:var(--font-display);font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.chap{display:grid}
+.chap > li{display:grid;gap:10px;padding:28px 0;border-top:1px solid var(--hairline)}
+.chap > li:first-child{border-top:2px solid var(--ink)}
+@container screen (min-width:860px){.chap > li{grid-template-columns:200px 1fr;gap:40px}}
+.chap .yr{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1}
+.chap .who{font-family:var(--font-display);font-size:.8125rem;color:var(--ink-muted);margin-top:6px;display:block}
+.chap .who a{color:var(--ink);text-underline-offset:3px}
+.chap .body{display:grid;gap:10px;max-width:680px}
+.chap .body p{color:var(--ink-muted)}
+.aud{display:grid}
+.aud li{display:grid;gap:6px;padding:20px 0;border-top:1px solid var(--hairline)}
+.aud li:first-child{border-top:2px solid var(--ink)}
+@container screen (min-width:760px){.aud li{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:32px;align-items:baseline}}
+.aud p{color:var(--ink-muted)}
+.facts{display:grid;gap:0}
+.facts li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--hairline);font-size:.875rem}
+.facts li b{font-family:var(--font-display);font-size:1.125rem}
+.social li{display:grid;grid-template-columns:5.5rem 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--hairline);font-size:.9375rem}
+.social li span:first-child{font-family:var(--font-display);color:var(--ink-muted)}
+.social li span:last-child{font-family:var(--font-display);font-weight:700}
+.inc{display:grid;gap:4px;margin:4px 0 16px}
+.inc li{display:flex;gap:10px;align-items:baseline;color:var(--ink-muted)}
+.inc li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none;transform:translateY(-1px)}
+.bigq{font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:clamp(1.375rem,3.4cqi,2rem);line-height:1.2;letter-spacing:.02em;max-width:26ch;text-wrap:balance}
+.tbd{background:var(--brand);padding:0 4px;border-radius:2px;font-family:var(--font-display);font-size:.85em}
+.mega .col:first-child .items{grid-template-columns:1fr}
+
+/* ---- motion additions ---- */
+.w{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.06em;margin-bottom:-.06em}
+.wi{display:inline-block;will-change:transform}
+.m-nav .cap{position:relative;overflow:hidden}
+.prog{position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--brand);transform:scaleX(0);transform-origin:0 50%}
+.imgbox{border-radius:var(--r-lg);overflow:hidden;aspect-ratio:3/2;background:var(--surface-2)}
+.imgbox img{width:100%;height:100%;object-fit:cover;border-radius:0;aspect-ratio:auto}
+.railwrap{position:relative;padding-left:18px}
+.railwrap::before{content:"";position:absolute;left:3px;top:0;bottom:0;width:2px;background:var(--hairline)}
+.rail{position:absolute;left:2px;top:0;bottom:0;width:4px;border-radius:2px;background:var(--brand);transform:scaleY(1);transform-origin:50% 0}
+.aud li{position:relative;border-top:0 !important}
+.aud li .rule{position:absolute;left:0;right:0;top:0;height:1px;background:var(--hairline);transform-origin:0 50%}
+.aud li:first-child .rule{height:2px;background:var(--ink)}
+details.q summary::after{content:none}
+details.q summary .pm{font-family:var(--font-display);font-weight:700;font-size:1.375rem;line-height:1;transition:transform 300ms var(--ease);flex:none}
+details.q[open] summary .pm{transform:rotate(45deg)}
+details.q .ans{overflow:hidden}
+details.q .ans > *{padding-bottom:16px;margin:0}
+details.q .ans > p{color:var(--ink-muted);max-width:62ch}
+.mega{position:relative}
+.mega .mi{z-index:1;background:transparent !important}
+.mega .mi[aria-pressed="true"]::after{content:none}
+.mpill{position:absolute;left:0;top:0;border-radius:var(--r-xl);background:var(--surface-1);z-index:0;pointer-events:none}
+.mdot{position:absolute;left:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 2px var(--ink);z-index:2;pointer-events:none}
+.mega .mi:hover b{text-decoration:underline;text-underline-offset:3px}
+.url .typed::after{content:"";display:inline-block;width:.55em;height:1em;margin-left:1px;vertical-align:-2px;background:var(--ink);animation:caret 1s steps(1) infinite}
+@keyframes caret{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.url .typed::after{display:none}}
+</style>
+
+<header class="wrap nav">
+  <div class="capsule">
+    <img src="logo-pretzel-dark.png" alt="Vamos a NY">
+    <nav aria-label="Site sections (mock)"><span>Itineraries</span><span>Guides</span><span>Blog</span><span>Services</span><span class="on">Sobre mí</span></nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap intro">
+    <p class="mono meta">Direction A · Cuaderno de campo · real content · GSAP motion from lib/motion.ts · 26·09·2026</p>
+    <h1 class="dxl"><span class="hi" id="introHi">Sobre mí, cinco páginas</span></h1>
+    <p class="blg muted dek pretty">One page structure, applied to all five pages under the renamed <b style="color:var(--ink)">Sobre mí</b> menu. Every word inside the mockups comes from your file. Pick a page in the menu below to see it; the table under it shows how each page fills the same slots.</p>
+  </div>
+
+  <section class="band" aria-labelledby="viewH" id="viewer">
+    <div class="wrap">
+      <div class="sec-h">
+        <h2 class="dmd" id="viewH">The five pages</h2>
+        <p class="bsm muted">The menu below is how “Sobre mí” would open in the navbar. Blurbs under each title are my proposal.</p>
+      </div>
+
+      <div class="mega" id="mega" role="group" aria-label="Pick a page"></div>
+
+      <div class="controls">
+        <div class="grp"><span class="eb">Viewport</span><div class="tabs" id="vpTabs" role="group" aria-label="Viewport">
+          <button type="button" data-vp="desk" aria-pressed="true">Desktop</button>
+          <button type="button" data-vp="phone" aria-pressed="false">Phone 390</button>
+        </div></div>
+        <div class="grp" id="stateGrp" hidden><span class="eb">Form state</span><div class="tabs" id="stateTabs" role="group" aria-label="Form state"></div></div>
+      </div>
+
+      <div class="browser" id="browser">
+        <div class="bar"><span class="lights"><i></i><i></i><i></i></span><span class="url" id="url">vamosany.com/sobre-mi</span></div>
+        <div class="screen" id="screen" tabindex="0" aria-label="Page mockup"></div>
+      </div>
+
+      <div class="notes" id="notes"></div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="structH">
+    <div class="wrap">
+      <div class="sec-h">
+        <h2 class="dmd" id="structH">One structure</h2>
+        <p class="bsm muted">Five slots, always in this order. Only what goes inside changes.</p>
+      </div>
+      <div class="anat">
+        <ol class="slots">
+          <li><b>Page label</b><span>Mono line: page name and one fact. The only small text above the title.</span></li>
+          <li><b>Title + train marker</b><span>Your “Título” when the file has one, otherwise the page name. The yellow marker slides in once; with reduced motion it just sits there.</span></li>
+          <li><b>Dek</b><span>Your “Bajada” or first paragraph, 18px, grey.</span></li>
+          <li><b>Body: notes column + main column</b><span>Left 200px column for dates, facts, contacts. Main column up to 760px. Stacks on phone.</span></li>
+          <li><b>Closing row</b><span>One sentence and one yellow button, between two 2px black rules.</span></li>
+        </ol>
+        <div class="tscroll"><table class="map">
+          <thead><tr><th>Page</th><th>01 Label</th><th>02 Title</th><th>03 Dek</th><th>04 Body</th><th>05 Closing</th></tr></thead>
+          <tbody id="mapBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="decH">
+    <div class="wrap">
+      <div class="sec-h">
+        <h2 class="dmd" id="decH">Still open</h2>
+        <p class="bsm muted">Your file settled the voice (Belén, first person, voseo) and dropped Press, Refunds and How We Research. These remain.</p>
+      </div>
+      <ol class="dec">
+        <li><b>Reply time on Contacto</b><p>The text says “[un par de días]” in brackets. Is that the final wording, or do you want a number, like “2 días hábiles”?</p></li>
+        <li><b>Menu blurbs and columns</b><p>The navbar shows a short line under each page. I proposed them, and split the menu into “Vamos a New York” and “Ayuda”. Change freely.</p></li>
+        <li><b>Photos of you</b><p>Sobre mí needs at least one real photo of you. The mockup uses a landing photo of the subway as a stand-in, labelled as such.</p></li>
+        <li><b>Footer says “Made in Madrid”</b><p>Your text places you in Montevideo and Uruguay. The footer line and its top link row (Our story, How we research, Press…) both need updating. The footer is frozen by ADR-0006, so that needs a small DDR.</p></li>
+        <li><b>Where the forms send</b><p>Contacto and Trabajá conmigo both send data, and no backend or email route exists yet. The Architect and Security decide this before building.</p></li>
+        <li><b>FAQ groups</b><p>Your FAQ has no categories. I grouped the 13 questions into three (Itinerarios y consultorías, Viajes grupales, Productos) in your order. Say if you prefer one flat list.</p></li>
+        <li><b>Rest of the navbar is in English</b><p>“Sobre mí” sits next to Itineraries, Guides, Blog, Services. Translating the whole navbar is part of the language work, not this change.</p></li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap"><p>Photos are the landing's Wikimedia CC images, used only as stand-ins. Partner links (Estudio Ulbia, Mona Cases, Efe Hus) are the ones in your file. Earlier three-direction version kept in the session scratchpad.</p></div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+<script>
+(function(){
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+
+const PAGES = [
+  {id:'sobre-mi', group:'vany', title:'Sobre mí', blurb:'Quién soy y por qué New York.', slug:'sobre-mi',
+   map:['Sobre mí · +20 visitas','Sobre mí','“Soy Belén, comunicadora…”','Your story as prose; notes column with dates from the text; chapters ledger 2020 → hoy','“¿Armamos tu viaje?” → Ver itinerarios'],
+   states:['Static page','Photo box keeps its size while loading, so nothing jumps','Alt text on every photo'],
+   open:'Needs a real photo of you. The subway photo is a stand-in.'},
+  {id:'colaboraciones', group:'vany', title:'Colaboraciones', blurb:'Cuadernos, agendas, cases y totes.', slug:'colaboraciones',
+   map:['Colaboraciones · 7 productos','Colaboraciones','Intro paragraph','One ledger row per product: year and partner in the notes column, story in the main column','“¿Querés crear algo juntos?” → Escribime'],
+   states:['Static page','Partner links open the partner’s site','Optional product photo per row keeps its size while loading'],
+   open:'Product photos would help each row. The layout works without them.'},
+  {id:'trabaja-conmigo', group:'vany', title:'Trabajá conmigo', blurb:'Marcas, guías, empresas y agencias.', slug:'trabaja-conmigo',
+   map:['Trabajá conmigo','¿Nos tomamos un cafecito?','Bajada','Intro; five audience rows; closing paragraph; form in the main column, facts in the notes column','Agendemos un cafecito (form button)'],
+   states:['Idle','Field error, inline under the field','Sending: button keeps its width, fields read-only','Sent: form replaced in place, focus moves to the heading','Failed: inputs kept, retry, email shown as fallback'],
+   open:'The form sends data. Where it goes is still undecided.'},
+  {id:'contacto', group:'ayuda', title:'Contacto', blurb:'Te respondo yo.', slug:'contacto',
+   map:['Contacto','Escribime, te respondo yo.','“¿Estás planificando tu viaje…”','Form in the main column; other ways to reach you in the notes column','None: the form button is the closing action'],
+   states:['Idle','Field error, inline under the field','Sending: button keeps its width, fields read-only','Sent: form replaced in place, focus moves to the heading','Failed: inputs kept, retry, email shown as fallback'],
+   open:'“[un par de días]” is still in brackets in your text.'},
+  {id:'faq', group:'ayuda', title:'FAQ', blurb:'Antes de viajar.', slug:'preguntas-frecuentes',
+   map:['Preguntas frecuentes · 13','Lo que más me preguntan antes de viajar','One line (mine, short)','Group name in the notes column; questions as open/close rows in the main column','“¿No está tu pregunta?” → Escribime'],
+   states:['All closed; a #link opens and scrolls to one question','Several can be open at once','Works without JavaScript (native details)','No search: 13 questions don’t need one'],
+   open:'Grouping into three is my proposal. The dek line is also mine; your file has none for this page.'}
+];
+
+const IMG = {subway:'img/how-subway.webp', bridges:'img/band-bridges.webp', park:'img/trip-central-park.webp'};
+
+const FAQ = [
+  ['Itinerarios y consultorías',[
+    ['¿Qué es un itinerario personalizado?','<p>Es un plan de viaje armado especialmente para vos, según tus fechas, tus intereses y tu ritmo. Empezamos con una reunión virtual para conocernos y conversar sobre tus gustos y lo que querés vivir. A partir de ahí armo un itinerario para cada día con actividades, tips y recomendaciones.</p>'],
+    ['¿Qué incluye el itinerario personalizado?','<ul class="inc"><li>Reunión virtual para conocernos y hablar de tus gustos y objetivos de viaje</li><li>Itinerario para cada día con actividades, tips y recomendaciones</li><li>Recomendaciones para comer según cada día y zona</li><li>Guía virtual con el itinerario de cada día</li><li>Asistencia para comprar entradas y opciones para reservar hotel y traslados</li></ul>'],
+    ['¿Qué es la consultoría de viaje?','<p>Es una videollamada privada de una hora para resolver todas tus dudas sobre el viaje. Vemos juntas una idea de itinerario y te comparto una curaduría de restaurantes, tiendas y atracciones según tu perfil. Después de la reunión te envío un mail de seguimiento con los puntos principales que hablamos y links importantes para que termines de planificar, incluyendo cómo y dónde hacer reservas y comprar atracciones.</p>'],
+    ['¿Qué diferencia hay entre un itinerario y una consultoría?','<p>En el itinerario personalizado armo tu viaje completo, día a día. En la consultoría te asesoro para que organices tu propio viaje: vemos juntas una idea de itinerario y te doy recomendaciones personalizadas, pero no incluye un plan detallado por día ni contacto por WhatsApp.</p>'],
+    ['¿Cómo es el proceso después de comprar?','<p>Cuando se registra tu compra te llega un mail de confirmación. Después te envío otro mail con un cuestionario para empezar a armar tu itinerario o tu consultoría, y con opciones de fechas para agendar nuestra reunión.</p>'],
+    ['¿Con cuánta anticipación tengo que reservar?','<p>Para el itinerario personalizado te recomiendo reservar con 2 meses de anticipación, así hay tiempo para armarlo con calma y conseguir entradas para lo que se agota. Si preferís hacerlo con más tiempo también se puede, aunque no recomiendo más de 6 meses antes, para que las recomendaciones estén lo más actualizadas posible. La consultoría se puede hacer en los días previos al viaje, idealmente con un mínimo de 5 días de anticipación.</p>'],
+    ['¿Las entradas y reservas están incluidas?','<p>Te ayudo a elegir y te digo cómo y dónde comprar entradas, reservar hotel y traslados, pero las compras las hacés vos directamente.</p>'],
+    ['¿Cómo se pagan los itinerarios y las consultorías?','<p>El pago se hace online, con tarjeta de crédito internacional o por transferencia bancaria en Uruguay.</p>']]],
+  ['Viajes grupales',[
+    ['¿Cómo funcionan los viajes grupales?','<p>Son viajes temáticos a New York en los que viajamos en grupo, con todo organizado y conmigo acompañándolos durante la experiencia. Cada viaje tiene su propia temática y un itinerario pensado para vivir la ciudad de una forma distinta, y todos cuentan con la garantía de Jetmar Viajes Uruguay.</p>'],
+    ['¿Los viajes grupales son para todos?','<p>Sí. Pueden sumarse desde niños hasta adultos. Todos son bienvenidos.</p>'],
+    ['¿Puedo sumarme a un viaje grupal si viajo sin compañía?','<p>¡Sí, claro! Si querés compartir habitación, nosotros nos encargamos de buscarte compañero o compañera de cuarto. Y si preferís tener tu propio espacio, podés pagar el suplemento para habitación single.</p>'],
+    ['¿Cómo se pagan los viajes grupales?','<p>Para reservar tu lugar se abonan USD 300, y una vez confirmado el viaje empezás a pagar el resto. Podés hacerlo por transferencia o con tarjeta, y la cantidad de cuotas depende de la tarjeta. También se puede pagar con millas Itaú.</p>'],
+    ['¿Cómo me entero de los próximos viajes grupales?','<p>Los anuncio primero en Instagram y en la newsletter, así que suscribite para enterarte antes que nadie.</p>']]],
+  ['Productos',[
+    ['¿Dónde puedo comprar los productos de Vamos a New York?','<p>Los productos salen a la venta en momentos puntuales y los anuncio siempre en mis redes. Seguime en Instagram para enterarte cuando se lanza algo nuevo.</p>']]]
+];
+
+const PRODUCTS = [
+  ['2022','El cuaderno que empezó todo','Estudio Ulbia','https://estudioulbia.com/','A principios de 2022 le escribí a Lu, de Estudio Ulbia, con un pedido muy simple: quería un cuaderno de New York para mí. No había ninguna idea de venderlo. Un día lo mostré en una foto, casi por casualidad, y empezaron a llegar mensajes preguntando dónde se conseguía. Esos primeros pedidos me hicieron ver que había muchas personas que querían llevar un pedacito de New York en su día a día, y así nació la línea de productos de Vamos a New York.'],
+  ['2023','Agenda Vamos a New York 2023','Con Lu, Estudio Ulbia',null,'Después del cuaderno vino algo que yo misma necesitaba y no existía: una agenda pensada para quienes viven soñando con New York. La diseñamos con Lu cuidando cada detalle, con stickers, planner, un organizador personalizado y los eventos y actividades destacadas de cada mes en la ciudad, para que planificar el año también fuera una forma de estar un poco allá. La recepción de la comunidad me sorprendió muchísimo, y fue la confirmación de que este camino tenía sentido.'],
+  ['2023','Cápsula con Mona Cases','Mona Cases · mayo 2023','https://monacases.com.uy/','En mayo de 2023 llegó mi primera colaboración con otra marca: una cápsula junto a Mona Cases, referentes en accesorios para celular en Uruguay. Creamos cases, una taza, un mouse pad y stickers con diseños icónicos de New York, otra vez con Lu detrás del diseño. Fue muy especial ver esos diseños en manos de tanta gente, porque son objetos que se usan todos los días y que te recuerdan la ciudad cada vez que los mirás.'],
+  ['2023','Cuadernos 2023','Colección propia',null,'El cuaderno que empezó todo se merecía volver renovado. En 2023 lancé una nueva colección con diseños frescos, pensados para anotar ideas, planes de viaje o lo que cada una quiera. Es probablemente la colección que más me representa de punta a punta, porque cada diseño tiene algo de cómo veo y vivo New York.'],
+  ['2024','Agenda Vamos a New York 2024','Segunda edición',null,'Después de lo que fue la primera agenda, tenía muchas ganas de hacer una nueva edición. La 2024 volvió con la misma idea: acompañarte todo el año con un poco de New York, entre planes, fechas y ganas de volver.'],
+  ['2024–25','Tote bags con Efe Hus','Efe Hus · Flor','https://efehus.com/','La historia con Flor, de Efe Hus, empezó con un viaje. En junio de 2023 decidimos ir juntas a New York casi sin conocernos, y volvimos siendo amigas. Nos quedamos a pocas cuadras de Columbus Circle, y esa parada de subte se volvió nuestro punto de partida de cada día. Después de desearlo mucho tiempo, en octubre de 2024 lanzamos una tote bag en su homenaje.|||En 2025 volvimos con una segunda tote, con una frase que nos representa a las dos y a toda esta comunidad:|||QUOTE|||Si estás leyendo esto, probablemente sepas exactamente de qué hablamos.'],
+  ['2026','Agenda Vamos a New York 2026','Tercera edición',null,'Para la tercera edición quería que fuera más completa que nunca. Además de todo lo que ya tenía, sumé ilustraciones de New York para pintar, espacio para contar tu viaje y lugar para pegar fotos, para que no sea solo una agenda sino también un recuerdo de tu año y de tus viajes. Para mí es de los productos más especiales que hago, porque sé que va a estar con muchas personas todos los días, llevando un pedacito de New York a su rutina.']
+];
+
+const AUD = [
+  ['Marcas que quieran colaborar','Me encanta crear productos y contenidos con marcas que comparten este amor por New York o los viajes. Ya lo hice con cuadernos, agendas, cases y tote bags, siempre cuidando que cada colaboración tenga una historia real detrás. Si tenés una idea, desde una cápsula de productos hasta una campaña en redes, hablemos.'],
+  ['Empresas de servicios en New York','Hoteles, restaurantes, tiendas, experiencias, tours: si tu negocio está en New York y querés llegar a viajeros de habla hispana, puedo ayudarte a hacerlo de forma auténtica. Recomiendo solo lo que conozco y me gusta, y por eso mi comunidad confía en lo que comparto.'],
+  ['Guías turísticos','Si sos guía en New York y te gustaría trabajar con viajeros latinos, me encantaría conocerte. Siempre estoy buscando personas con quienes sumar experiencias a mis itinerarios y viajes grupales.'],
+  ['Empresas que quieran contratar mis itinerarios','Si tu empresa organiza viajes de incentivo, beneficios para colaboradores o experiencias para clientes, puedo diseñar itinerarios a medida de tu equipo o de tu propuesta.'],
+  ['Agencias de viaje','Si tenés una agencia y querés sumar itinerarios personalizados, consultorías o viajes temáticos a New York a lo que ofrecés, podemos armar una propuesta en conjunto.']
+];
+
+let state = {page:'sobre-mi', vp:'desk', form:'idle'};
+try{ const s = JSON.parse(localStorage.getItem('sobre-mi-pages')||'{}'); if (PAGES.some(p=>p.id===s.page)) state.page=s.page; if (s.vp) state.vp=s.vp; }catch(e){}
+function save(){ try{ localStorage.setItem('sobre-mi-pages', JSON.stringify({page:state.page,vp:state.vp})); }catch(e){} }
+
+/* ---------- the one structure ---------- */
+const shell = body => `<div class="m">
+  <div class="m-nav"><div class="cap"><img src="logo-pretzel-dark.png" alt="Vamos a NY"><div class="lk"><span>Itineraries</span><span>Guides</span><span>Blog</span><span>Services</span><span>Sobre mí</span></div><span class="burger" aria-hidden="true">≡</span><span class="prog" aria-hidden="true"></span></div></div>
+  ${body}
+  <footer class="m-foot"><div class="c"><div class="row"><span>Sobre mí</span><span>Colaboraciones</span><span>Trabajá conmigo</span><span>Contacto</span><span>Preguntas frecuentes</span></div><small>© 2026 Vamos a NY.</small></div></footer>
+</div>`;
+const head = (meta, title, dek) => `<header class="c aH"><p class="mono meta">${meta.map(m=>`<span>${m}</span>`).join('')}</p><h1 class="dxl"><span class="hi tunnel" data-train>${title}</span></h1><p class="blg dek pretty">${dek}</p></header>`;
+const body = (side, main) => `<div class="c"><div class="gut"><div class="side">${side}</div><div>${main}</div></div></div>`;
+const closing = (t, b, s) => `<div class="c" style="margin-top:56px"><div class="ctarow"><p class="hl" style="max-width:26ch">${t}</p><div style="display:flex;flex-wrap:wrap;gap:10px"><a class="btn btn-p" href="#viewer">${b} →</a>${s?`<a class="btn" href="#viewer">${s}</a>`:''}</div></div></div>`;
+
+function form(kind){
+  const s = state.form, err = s==='error', busy = s==='sending', failed = s==='failed';
+  const ro = busy ? 'readonly' : '';
+  if (s==='sent') return kind==='cafe'
+    ? `<div class="done" aria-live="polite"><h2 class="hl" tabindex="-1" id="doneH"><span class="hi">¡Recibido!</span></h2><p>Gracias por escribirme. Leo tu idea y te respondo a <b>flor@ejemplo.com</b> para agendar el cafecito.</p></div>`
+    : `<div class="done" aria-live="polite"><h2 class="hl" tabindex="-1" id="doneH"><span class="hi">¡Recibido!</span></h2><p>Gracias por escribirme. Te respondo a <b>lucia@ejemplo.com</b> en <span class="tbd">[un par de días]</span>. Mientras tanto, capaz tu duda ya está en las <a href="#viewer" data-page="faq">preguntas frecuentes</a>.</p></div>`;
+  const email = `<div class="fld" ${err?'data-err':''}><label for="f-email">Email</label><input id="f-email" type="email" value="${err?'':(kind==='cafe'?'flor@ejemplo.com':'lucia@ejemplo.com')}" ${err?'aria-invalid="true" aria-describedby="f-email-e"':''} ${ro}>${err?'<span class="err" id="f-email-e">Falta tu email para poder responderte.</span>':''}</div>`;
+  const banner = failed ? `<div class="banner" role="alert" style="margin-bottom:18px"><b>No se pudo enviar tu mensaje.</b><span class="bsm">Revisá tu conexión y probá de nuevo, o escribime a <b class="mono">hola@vamosany.com</b>. Lo que escribiste sigue acá.</span></div>` : '';
+  const btn = `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><button class="btn btn-p" type="submit" style="min-width:220px" ${busy?'disabled':''}>${busy?'Enviando…':(failed?'Probar de nuevo':(kind==='cafe'?'Agendemos un cafecito':'Enviar mensaje'))}</button><span class="cap muted">Uso tu email solo para responderte.</span></div>`;
+  if (kind==='cafe') return banner + `<form class="form" id="cform" novalidate aria-busy="${busy}">
+    <div class="frow"><div class="fld"><label for="f-name">Nombre</label><input id="f-name" value="Flor" ${ro}></div><div class="fld"><label for="f-brand">Empresa o marca</label><input id="f-brand" value="Estudio Ejemplo" ${ro}></div></div>
+    <div class="frow"><div class="fld"><label for="f-type">¿Qué tipo de colaboración te interesa?</label><select id="f-type" ${busy?'disabled':''}><option>Marca</option><option>Servicio en New York</option><option>Guía turístico</option><option>Empresa</option><option>Agencia de viajes</option><option>Otro</option></select></div>${email}</div>
+    <div class="fld"><label for="f-msg">Contame tu idea</label><textarea id="f-msg" ${ro}>Tenemos una marca de papelería en Montevideo y nos encantaría hacer una cápsula de New York para el verano.</textarea></div>${btn}</form>`;
+  return banner + `<form class="form" id="cform" novalidate aria-busy="${busy}">
+    <div class="frow"><div class="fld"><label for="f-name">Nombre</label><input id="f-name" value="Lucía" ${ro}></div>${email}</div>
+    <div class="frow"><div class="fld"><label for="f-about">¿Sobre qué me escribís?</label><select id="f-about" ${busy?'disabled':''}><option>Itinerario personalizado</option><option>Consultoría</option><option>Viajes grupales</option><option>Productos</option><option>Colaboraciones</option><option>Otro</option></select></div><div class="fld"><label for="f-when">¿Cuándo viajás? <small>(opcional)</small></label><input id="f-when" value="Diciembre 2026" ${ro}></div></div>
+    <div class="fld"><label for="f-msg">Mensaje</label><textarea id="f-msg" ${ro}>Viajo con mi mamá por primera vez y no sé si me conviene el itinerario o la consultoría.</textarea></div>${btn}</form>`;
+}
+
+const MOCK = {
+'sobre-mi': () =>
+  head(['Sobre mí','Montevideo → New York','+<b data-count="20">20</b> visitas'],'Sobre mí','Soy Belén, comunicadora, estratega digital y, sobre todo, una persona profundamente enamorada de New York.') +
+  body(`<b>Belén</b><span>Lic. en Comunicación</span><span>Máster en Marketing Digital</span><span style="margin-top:10px">Independiente desde 2020</span>`,
+   `<div class="prose">
+    <p>Soy Licenciada en Comunicación y tengo un Máster en Marketing Digital. Trabajo de forma independiente desde 2020 y, a fines de 2021, encontré la manera de unir mi profesión con uno de mis grandes amores: New York.</p>
+    <p class="bigq"><span class="hi">¿Se pueden amar lugares con locura?</span></p>
+    <p>Me lo pregunto seguido y creo que sí. Aunque, si soy sincera, no sé si amo solamente la ciudad. Amo cómo me siento cuando estoy ahí: lo que me transmite, lo que descubro cada vez que vuelvo y todo lo que soy cuando camino por sus calles.</p>
+    <p>La conocí a los 20 años y todavía me acuerdo de esa primera vez. Llegué sin grandes expectativas, porque había viajado para visitar a mi novio, que estaba en una ciudad cercana. Pero cuando subí las escaleras del subte y salí a la calle, empecé a escuchar sus ruidos, sentir sus olores y ver esa mezcla de personas, idiomas y energía. Y algo hizo clic.</p>
+    <figure class="fig"><div class="imgbox"><img src="${IMG.subway}" alt="Salida de una estación de subte en Union Square"></div><figcaption>Union Square · foto de referencia, a reemplazar por una tuya</figcaption></figure>
+    <p>Sentí que ese lugar tenía algo que ver conmigo.</p>
+    <p>Desde entonces volví más de 20 veces, y cada visita me confirma lo mismo: por más que la recorras, New York siempre guarda algo por descubrir.</p>
+    <p class="hl">Así nació Vamos a New York.</p>
+    <p>Lo que empezó como un espacio para contar mis experiencias se convirtió en una comunidad de personas que también sueñan con esta ciudad. Hoy comparto lugares, consejos y todo lo que aprendí en tantos viajes, pero también acompaño a quienes están por vivir el suyo.</p>
+    <p>Porque para mí no se trata solo de conocer New York. Se trata de vivirla.</p>
+    <p>Por eso, además de crear contenido, ayudo a organizar viajes con itinerarios personalizados y consultorías, pensados según tus intereses, tus tiempos y tu forma de viajar.</p>
+    <p>Y hay una parte de este proyecto que me hace especialmente feliz: los viajes grupales.</p>
+    <p>En 2024 acompañé mi primer grupo a New York y desde entonces ya van seis viajes. Cada uno tuvo su propia temática, su propia energía y una manera distinta de vivir la ciudad. Recorrerla juntos, descubrir lugares en grupo y ver a cada persona cumplir su sueño de conocer New York se convirtió en una de mis partes favoritas de Vamos a New York.</p>
+    <p>Después de tantos viajes, tengo algo cada vez más claro: New York siempre tiene algo nuevo para mostrar.</p>
+    <p>Y yo sigo feliz de volver, descubrirla y, sobre todo, compartirla con vos.</p>
+    <p class="sig">Belén</p>
+   </div>`) +
+  `<div class="c m-sec" style="padding-bottom:0">` + `<div class="gut"><div class="side"><b>En el camino</b><span>20 años → hoy</span></div><div class="railwrap"><span class="rail" aria-hidden="true"></span><ul class="tt wide">${[
+    ['20 años','<b>La primera vez</b>Subí las escaleras del subte y algo hizo clic.','New York'],
+    ['2020','<b>Independiente</b>Comunicación y estrategia digital, por mi cuenta.',''],
+    ['2021','<b>Nace Vamos a New York</b>Mi profesión y la ciudad, juntas.',''],
+    ['2024','<b>Primer viaje grupal</b>Desde entonces, seis viajes.','6 grupos'],
+    ['Hoy','<b>+20 visitas</b>Y sigo volviendo.','']].map(r=>`<li><span class="t">${r[0]}</span><span class="x">${r[1]}</span><span class="d">${r[2]}</span></li>`).join('')}</ul></div></div></div>` +
+  closing('¿Armamos tu viaje juntas?','Ver itinerarios','Viajes grupales'),
+
+'colaboraciones': () =>
+  head(['Colaboraciones','7 productos','2022 → 2026'],'Colaboraciones','Además de itinerarios y consultorías, con los años fui creando productos para quienes aman New York tanto como yo. Todos nacieron de algo que yo quería tener y no encontraba, y casi siempre de la mano de personas y marcas que admiro. Cada uno tiene su historia, y acá te las cuento.') +
+  `<div class="c"><ol class="chap">${PRODUCTS.map(p=>{
+     const paras = p[4].split('|||').map(x=> x==='QUOTE' ? `<p class="bigq" style="color:var(--ink)"><span class="hi">“I think about New York more than a normal person should.”</span></p>` : `<p>${x}</p>`).join('');
+     return `<li><div><span class="yr">${p[0]}</span><span class="who">${p[3]?`<a href="${p[3]}" target="_blank" rel="noopener">${p[2]} ↗</a>`:p[2]}</span></div><div class="body"><h2 class="hl">${p[1]}</h2>${paras}</div></li>`; }).join('')}</ol></div>` +
+  closing('¿Querés crear algo juntos? Escribime a hola@vamosany.com.','Escribime','Trabajá conmigo'),
+
+'trabaja-conmigo': () =>
+  head(['Trabajá conmigo','marcas · servicios · guías · empresas · agencias'],'¿Nos tomamos un cafecito?','Si tenés una marca, un proyecto o un servicio relacionado con New York, me encantaría conocerte.') +
+  body(`<b>Desde 2021</b><span>+20 visitas</span><span>6 viajes grupales</span><span>Muchísimos itinerarios</span>`,
+   `<div class="prose"><p>Desde 2021 construyo Vamos a New York con una comunidad de personas que sueñan con esta ciudad, la planifican y la viven. Después de más de 20 visitas, seis viajes grupales y muchísimos itinerarios, sé lo que buscan quienes viajan a New York y cómo hablarles. Si creés que podemos crear algo juntos, esta página es para vos.</p></div>
+    <ul class="aud" style="margin-top:36px">${AUD.map(a=>`<li><span class="rule" aria-hidden="true"></span><h2 class="ct">${a[0]}</h2><p>${a[1]}</p></li>`).join('')}</ul>`) +
+  `<div class="c m-sec"><div class="gut"><div class="side"><b>El cafecito</b><span>Virtual</span><span>En Montevideo</span><span>O en New York</span></div><div class="stack"><p class="blg pretty" style="max-width:62ch">Contame quién sos, qué hacés y qué te imaginás que podemos hacer juntos. El cafecito puede ser virtual, en Montevideo o, si coincidimos, en New York.</p>${form('cafe')}</div></div></div>`,
+
+'contacto': () =>
+  head(['Contacto','respondo yo'],'Escribime, te respondo yo.','¿Estás planificando tu viaje a New York, tenés una duda sobre algún servicio o querés proponerme una colaboración? Contame lo que necesites. Cada mensaje lo leo y lo respondo yo, así que puede que tarde <span class="tbd">[un par de días]</span> en contestarte, pero siempre respondo.') +
+  body(`<b>Otras formas de encontrarme</b><ul class="social" style="margin-top:8px"><li><span>Email</span><span>hola@vamosany.com</span></li><li><span>Instagram</span><span>@vamosany</span></li><li><span>TikTok</span><span>@vamosany</span></li></ul>`, form('contact')),
+
+'faq': () =>
+  head(['Preguntas frecuentes','13 preguntas'],'Lo que más me preguntan antes de viajar','Itinerarios, consultorías, viajes grupales y productos.') +
+  `<div class="c"><div class="stack" style="gap:44px">${FAQ.map(([cat,qs],ci)=>`<div class="gut"><div class="side"><b>${cat}</b><span>${qs.length} ${qs.length===1?'pregunta':'preguntas'}</span></div><div>${qs.map(([q,a],i)=>`<details class="q" ${ci===0&&i===0?'open':''}><summary><span>${q}</span><span class="pm" aria-hidden="true">+</span></summary><div class="ans">${a}</div></details>`).join('')}</div></div>`).join('')}</div></div>` +
+  closing('¿No está tu pregunta? Escribime y te respondo yo.','Escribime')
+};
+
+/* ---------- motion (values from lib/motion.ts) ---------- */
+const G = window.gsap;
+const motionOK = !!G && !reduce;
+let ARRIVE = 'power3.out', DS = 'power2.out';
+if (motionOK){
+  if (window.ScrollTrigger) G.registerPlugin(window.ScrollTrigger);
+  if (window.CustomEase){
+    G.registerPlugin(window.CustomEase);
+    ARRIVE = window.CustomEase.create('arrive','M0,0 C0.06,0.42 0.14,0.82 0.4,0.965 0.55,1.02 0.66,1.022 0.76,1.006 0.86,0.995 0.93,1 1,1');
+    DS = window.CustomEase.create('ds','0.2,0.8,0.2,1');
+  }
+}
+const SCROLLER = document.getElementById('screen');
+const hasST = motionOK && !!window.ScrollTrigger;
+const st = (trigger, start) => hasST ? {trigger, scroller:SCROLLER, start:start||'top 88%', once:true} : undefined;
+let ctx = null;
+
+function splitWords(h1){
+  const t = h1.querySelector('.hi') || h1;
+  t.innerHTML = t.textContent.trim().split(/\s+/).map(w=>`<span class="w"><span class="wi">${w}</span></span>`).join(' ');
+  return t.querySelectorAll('.wi');
+}
+function sweepOnScroll(el){
+  G.fromTo(el,{'--train':'100%'},{'--train':'0%',duration:1,delay:.12,ease:ARRIVE,scrollTrigger:st(el,'top 85%')});
+}
+
+/* heading timeline: label → words rise → train pulls in → dek (MOTION.heading) */
+function entrance(scr){
+  const h = scr.querySelector('.aH'); if (!h) return;
+  const meta = h.querySelector('.meta'), h1 = h.querySelector('h1'), dek = h.querySelector('.dek');
+  const text = (h1.querySelector('.hi')||h1).textContent;
+  const words = splitWords(h1), hi = h1.querySelector('.hi');
+  /* rejoin the words once they've landed so the marker runs as one band */
+  const tl = G.timeline({defaults:{ease:DS},onComplete:()=>{ (hi||h1).textContent = text; }});
+  tl.from(meta,{y:8,autoAlpha:0,duration:.35})
+    .from(words,{yPercent:115,duration:.7,stagger:.08},'-=0.15')
+    .fromTo(hi,{'--train':'100%'},{'--train':'0%',duration:1,ease:ARRIVE},'-=0.3')
+    .from(dek,{y:12,autoAlpha:0,duration:.45},'-=0.85');
+  scr.querySelectorAll('[data-count]').forEach(el=>{
+    const o = {v:0}, end = +el.dataset.count;
+    tl.to(o,{v:end,duration:1.2,ease:'power2.out',onUpdate:()=>{ el.textContent = Math.round(o.v); }},0.1);
+  });
+}
+
+/* shared reveals for the body slots */
+function reveals(scr){
+  scr.querySelectorAll('.gut > .side').forEach(el=>G.from(el.children,{y:12,autoAlpha:0,duration:.4,stagger:.06,ease:DS,scrollTrigger:st(el)}));
+  scr.querySelectorAll('.prose > p:not(.bigq):not(.sig), .prose > figure, .stack > p').forEach(el=>G.from(el,{y:18,autoAlpha:0,duration:.45,ease:DS,scrollTrigger:st(el)}));
+  scr.querySelectorAll('.ctarow').forEach(el=>G.from(el.querySelectorAll('.hl, .btn'),{y:14,autoAlpha:0,duration:.4,stagger:.08,ease:DS,scrollTrigger:st(el)}));
+  scr.querySelectorAll('form.form').forEach(f=>G.from(f.querySelectorAll('.fld, .form > div:last-child'),{y:16,autoAlpha:0,duration:.4,stagger:.07,ease:DS,scrollTrigger:st(f)}));
+}
+
+/* one signature scene per page */
+const SCENES = {
+  'sobre-mi'(scr){
+    scr.querySelectorAll('.bigq .hi').forEach(sweepOnScroll);
+    const box = scr.querySelector('.imgbox');
+    if (box && hasST) G.fromTo(box.querySelector('img'),{scale:1.18,yPercent:-6},{scale:1.04,yPercent:6,ease:'none',scrollTrigger:{trigger:box,scroller:SCROLLER,start:'top bottom',end:'bottom top',scrub:.4}});
+    const sig = scr.querySelector('.sig');
+    if (sig) G.from(sig,{clipPath:'inset(0 100% 0 0)',duration:1.2,ease:'power2.inOut',scrollTrigger:st(sig,'top 92%')});
+    const rw = scr.querySelector('.railwrap');
+    if (rw){
+      if (hasST) G.fromTo(rw.querySelector('.rail'),{scaleY:0},{scaleY:1,ease:'none',scrollTrigger:{trigger:rw,scroller:SCROLLER,start:'top 80%',end:'bottom 55%',scrub:.4}});
+      G.from(rw.querySelectorAll('li'),{x:-14,autoAlpha:0,duration:.4,stagger:.1,ease:DS,scrollTrigger:st(rw)});
+    }
+  },
+  'colaboraciones'(scr){
+    const chap = scr.querySelector('.chap');
+    if (hasST) G.fromTo(scr.querySelector('.prog'),{scaleX:0},{scaleX:1,ease:'none',scrollTrigger:{trigger:chap,scroller:SCROLLER,start:'top 70%',end:'bottom 60%',scrub:.3}});
+    let prev = 2021;
+    chap.querySelectorAll(':scope > li').forEach(li=>{
+      const yr = li.querySelector('.yr'), txt = yr.textContent.trim();
+      const tl = G.timeline({scrollTrigger:st(li,'top 82%')});
+      if (/^\d{4}$/.test(txt)){
+        const from = prev, to = +txt, o = {v:from};
+        if (from !== to){ yr.textContent = from; tl.to(o,{v:to,duration:.6,ease:ARRIVE,onUpdate:()=>{ yr.textContent = Math.round(o.v); }},0); }
+        prev = to;
+      } else tl.from(yr,{autoAlpha:0,duration:.3},0);
+      tl.from(li.querySelector('.who'),{x:-10,autoAlpha:0,duration:.4,ease:DS},0.1)
+        .from(li.querySelectorAll('.body > *'),{y:18,autoAlpha:0,duration:.45,stagger:.06,ease:DS},0.05);
+    });
+    scr.querySelectorAll('.bigq .hi').forEach(sweepOnScroll);
+  },
+  'trabaja-conmigo'(scr){
+    scr.querySelectorAll('.aud li').forEach(li=>{
+      G.timeline({scrollTrigger:st(li,'top 90%'),defaults:{ease:DS}})
+        .from(li.querySelector('.rule'),{scaleX:0,duration:.6})
+        .from(li.querySelectorAll('h2, p'),{y:14,autoAlpha:0,duration:.4,stagger:.08},'-=0.35');
+    });
+  },
+  'contacto'(scr){
+    G.from(scr.querySelectorAll('.social li'),{x:-14,autoAlpha:0,duration:.4,stagger:.09,ease:DS,delay:.9});
+  },
+  'faq'(scr){
+    scr.querySelectorAll('.stack > .gut').forEach(g=>G.from(g.querySelectorAll('details'),{y:12,autoAlpha:0,duration:.35,stagger:.05,ease:DS,scrollTrigger:st(g)}));
+  }
+};
+
+/* FAQ: animated open/close on native <details> */
+function toggleDetails(d){
+  const ans = d.querySelector('.ans');
+  if (d.open){
+    G.to(ans,{height:0,duration:.3,ease:'power2.inOut',onComplete:()=>{ d.open = false; G.set(ans,{clearProps:'height'}); }});
+    d.querySelector('.pm').style.transform = 'rotate(0deg)';
+  } else {
+    d.open = true;
+    d.querySelector('.pm').style.transform = '';
+    G.fromTo(ans,{height:0},{height:'auto',duration:.4,ease:DS,onComplete:()=>G.set(ans,{clearProps:'height'})});
+    G.from(ans.children,{y:8,autoAlpha:0,duration:.35,ease:DS,delay:.08});
+  }
+}
+
+/* ---------- chrome ---------- */
+let pillEl, dotEl;
+function renderMega(){
+  const col = (g,h) => `<div class="col"><span class="eb">${h}</span><div class="items">${PAGES.filter(p=>p.group===g).map(p=>`<button type="button" class="mi" data-page="${p.id}" aria-pressed="${state.page===p.id}"><b>${p.title}</b><span>${p.blurb}</span></button>`).join('')}</div></div>`;
+  const mega = $('#mega');
+  mega.innerHTML = col('vany','Vamos a New York') + col('ayuda','Ayuda') + '<span class="mpill" aria-hidden="true"></span><span class="mdot" aria-hidden="true"></span>';
+  pillEl = mega.querySelector('.mpill'); dotEl = mega.querySelector('.mdot');
+}
+/* the yellow dot rides between stations; the grey pill follows it */
+function moveMarker(animate){
+  const mega = $('#mega'), btn = mega.querySelector('.mi[aria-pressed="true"]');
+  if (!btn) return;
+  const mr = mega.getBoundingClientRect(), br = btn.getBoundingClientRect();
+  const x = br.left - mr.left - mega.clientLeft, y = br.top - mr.top - mega.clientTop;
+  const pill = {x, y, width:br.width, height:br.height};
+  const dot = {x: x + br.width - 24, y: y + 15};
+  if (animate && motionOK){
+    const dx = Math.abs(dot.x - (G.getProperty(dotEl,'x')||0)) + Math.abs(dot.y - (G.getProperty(dotEl,'y')||0));
+    G.to(pillEl,{...pill,duration:.55,ease:ARRIVE});
+    G.to(dotEl,{x:dot.x,y:dot.y,duration:.75,ease:ARRIVE});
+    G.fromTo(dotEl,{scaleX:1,scaleY:1},{keyframes:{scaleX:[1,Math.min(2.6,1+dx/160),1],scaleY:[1,.8,1]},duration:.75,ease:'power1.inOut'});
+  } else if (G){
+    G.set(pillEl,pill); G.set(dotEl,{x:dot.x,y:dot.y});
+  } else {
+    Object.assign(pillEl.style,{transform:`translate(${x}px,${y}px)`,width:br.width+'px',height:br.height+'px'});
+    dotEl.style.transform = `translate(${dot.x}px,${dot.y}px)`;
+  }
+}
+function typeUrl(slug){
+  const el = $('#url');
+  if (!motionOK){ el.textContent = 'vamosany.com/' + slug; return; }
+  el.innerHTML = 'vamosany.com/<span class="typed"></span>';
+  const t = el.querySelector('.typed'), o = {n:0};
+  G.to(o,{n:slug.length,duration:Math.min(.7,slug.length*.04),ease:'none',onUpdate:()=>{ t.textContent = slug.slice(0,Math.round(o.n)); },onComplete:()=>setTimeout(()=>t.classList.remove('typed'),900)});
+}
+function renderMap(){
+  $('#mapBody').innerHTML = PAGES.map(p=>`<tr><td>${p.title}</td>${p.map.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+}
+function renderNotes(){
+  const p = PAGES.find(x=>x.id===state.page);
+  const names = ['Label','Title','Dek','Body','Closing'];
+  $('#notes').innerHTML = `
+   <div><p class="eb">${p.title} · how it fills the structure</p><ol>${names.map((s,i)=>`<li><span><b>${s}:</b> ${p.map[i]}</span></li>`).join('')}</ol></div>
+   <div><h3 class="hl">States to design</h3><ul class="st">${p.states.map(s=>`<li><span class="dot"></span><span>${s}</span></li>`).join('')}</ul></div>
+   <div><h3 class="hl">Motion on this page</h3><div class="flag">${MOTION_NOTES[p.id]}</div><div class="flag">${p.open}</div></div>`;
+}
+const MOTION_NOTES = {
+  'sobre-mi':'Title words rise and the train pulls in; the visit count runs up to 20. On scroll: the question gets its own marker, the photo drifts slowly (parallax), a yellow rail draws down the timeline, and your signature writes itself.',
+  'colaboraciones':'A yellow reading bar fills inside the navbar as you scroll. Each product row ticks its year forward from the previous one, like a departure board, and the Efe Hus quote gets the marker.',
+  'trabaja-conmigo':'Each partner type draws its rule from left to right, then the title and text rise. Form fields come in one after another.',
+  'contacto':'Title sequence, then the contact lines slide in and the form fields stack up. Try sending: an error nudges the email field, success pulls a marker under “¡Recibido!”.',
+  'faq':'Questions rise group by group. Opening a question slides the answer open and turns + into ×.'
+};
+
+function syncStateTabs(){
+  const hasForm = state.page==='contacto' || state.page==='trabaja-conmigo';
+  $('#stateGrp').hidden = !hasForm;
+  $('#stateTabs').innerHTML = [['idle','Idle'],['error','Field error'],['sending','Sending'],['sent','Sent'],['failed','Failed']].map(([k,l])=>`<button type="button" data-state="${k}" aria-pressed="${state.form===k}">${l}</button>`).join('');
+}
+
+/* fresh = new page (full choreography); otherwise a form-state re-render */
+function renderMock(fresh){
+  const scr = $('#screen'), top = scr.scrollTop;
+  if (ctx) { ctx.revert(); ctx = null; }
+  scr.innerHTML = shell(MOCK[state.page]());
+  scr.querySelectorAll('.hi.tunnel').forEach(el=>el.classList.remove('tunnel'));
+  scr.scrollTop = fresh ? 0 : top;
+  if (motionOK){
+    ctx = G.context(()=>{
+      if (fresh){
+        entrance(scr); reveals(scr); SCENES[state.page] && SCENES[state.page](scr);
+      } else {
+        const done = scr.querySelector('.done');
+        if (done){
+          G.fromTo(done.querySelector('.hi'),{'--train':'100%'},{'--train':'0%',duration:1,ease:ARRIVE,delay:.1});
+          G.from(done.querySelectorAll(':scope > *:not(h2)'),{y:12,autoAlpha:0,duration:.4,stagger:.08,ease:DS,delay:.25});
+        }
+        const bad = scr.querySelector('.fld[data-err]');
+        if (bad) G.to(bad,{keyframes:{x:[0,-7,7,-4,4,0]},duration:.4,ease:'none'});
+        const ban = scr.querySelector('.banner');
+        if (ban) G.from(ban,{y:-8,autoAlpha:0,duration:.35,ease:DS});
+      }
+    }, scr);
+    if (fresh && hasST){
+      scr.querySelectorAll('img').forEach(i=>{ if (!i.complete) i.addEventListener('load',()=>window.ScrollTrigger.refresh(),{once:true}); });
+      window.ScrollTrigger.refresh();
+    }
+  }
+  syncStateTabs();
+}
+
+let busy = false;
+function goPage(id){
+  if (id===state.page || busy) return;
+  state.page = id; state.form = 'idle'; save();
+  $('#mega').querySelectorAll('.mi').forEach(b=>b.setAttribute('aria-pressed', b.dataset.page===id));
+  moveMarker(true);
+  typeUrl(PAGES.find(p=>p.id===id).slug);
+  renderNotes();
+  const m = $('#screen .m');
+  if (motionOK && m){
+    busy = true;
+    G.to(m,{autoAlpha:0,y:-12,duration:.22,ease:'power1.in',onComplete:()=>{ busy = false; renderMock(true); }});
+  } else renderMock(true);
+}
+function setVp(vp){
+  state.vp = vp; save();
+  document.querySelectorAll('#vpTabs button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.vp===vp));
+  $('#browser').classList.toggle('phone', vp==='phone');
+  if (hasST) setTimeout(()=>window.ScrollTrigger.refresh(), 320);
+}
+
+document.addEventListener('click', e=>{
+  const sum = e.target.closest('#screen details.q > summary');
+  if (sum && motionOK){ e.preventDefault(); toggleDetails(sum.parentElement); return; }
+  const t = e.target.closest('[data-page],[data-vp],[data-state]');
+  if (!t) return;
+  if (t.dataset.page){ e.preventDefault(); goPage(t.dataset.page); }
+  else if (t.dataset.vp){ setVp(t.dataset.vp); }
+  else if (t.dataset.state){ state.form = t.dataset.state; renderMock(false); if (state.form==='sent'){ const h=$('#doneH'); h && h.focus(); } }
+});
+document.addEventListener('submit', e=>{
+  if (e.target.id!=='cform') return;
+  e.preventDefault();
+  const em = $('#f-email');
+  if (!em.value.trim() || !em.value.includes('@')){ state.form='error'; renderMock(false); const i=$('#f-email'); i && i.focus(); return; }
+  state.form='sending'; renderMock(false);
+  setTimeout(()=>{ state.form='sent'; renderMock(false); const h=$('#doneH'); h && h.focus(); }, 1400);
+});
+let rz; window.addEventListener('resize',()=>{ clearTimeout(rz); rz = setTimeout(()=>moveMarker(false),120); });
+
+renderMap();
+renderMega();
+renderNotes();
+setVp(state.vp);
+$('#url').textContent = 'vamosany.com/' + PAGES.find(p=>p.id===state.page).slug;
+renderMock(true);
+moveMarker(false);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>moveMarker(false));
+
+const ih = $('#introHi');
+if (motionOK){ ih.classList.remove('tunnel'); G.fromTo(ih,{'--train':'100%'},{'--train':'0%',duration:1.15,ease:ARRIVE,delay:.2}); }
+})();
+
+</script>
