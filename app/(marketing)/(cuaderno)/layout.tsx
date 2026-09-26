@@ -13,7 +13,9 @@ export default function CuadernoLayout({ children }: Props): JSX.Element {
   return (
     <>
       <Navbar />
-      <main lang="es" id="contenido">
+      {/* Named "screen" container: page-width container queries, as in the
+          approved mockup (e.g. audience rows at 760px, spec § Responsive). */}
+      <main lang="es" id="contenido" className="@container/screen">
         {children}
       </main>
       <Footer />

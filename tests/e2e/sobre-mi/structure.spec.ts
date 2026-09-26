@@ -24,6 +24,13 @@ const ROUTES: Route[] = [
       "Además de itinerarios y consultorías, con los años fui creando productos para quienes aman New York tanto como yo.",
     h1: "Colaboraciones",
   },
+  {
+    path: "/trabaja-conmigo",
+    title: "Trabajá conmigo — Vamos a NY",
+    description:
+      "Si tenés una marca, un proyecto o un servicio relacionado con New York, me encantaría conocerte.",
+    h1: "¿Nos tomamos un cafecito?",
+  },
 ];
 
 test.describe("Sobre mí pages: route structure @feature-sobre-mi", () => {
