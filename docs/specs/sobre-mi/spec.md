@@ -451,7 +451,7 @@ WCAG 2.2 AA floor (constitution). Beyond the baseline:
 - **Targets:** menu items, FAQ summaries, buttons, contact links ≥44×44px on coarse pointers.
 - **Contrast:** `ink-muted` (#484846) on white and on `surface-1` ≥ 4.5:1; focus ring `ink` 2px offset 2px; the yellow error bar is paired with the error text and "!" badge.
 - **Reduced motion:** per § Motion Intent Global rules; checked in the reduced-motion screenshot run.
-- **Automated:** `@axe-core/playwright` on each page and on each form state; manual keyboard pass by QA.
+- **Automated:** `@axe-core/playwright` on each page and on each form state; manual keyboard pass by QA. There is one temporary exception, the frozen footer's `color-contrast` (AC 20); see § Out of Scope 1.
 
 ## Data Dependencies
 
@@ -484,7 +484,7 @@ Proposed additions (each with its reason; values come from the approved mockup):
 
 ## Out of Scope
 
-1. **Footer changes** (frozen by ADR-0006): the line "© 2026 Vamos a NY. Made in Madrid, walked in New York." (Belén is in Montevideo) and the footer's top link row ("Our story", "How we research", "Press"… pointing to `#`). Follow-up: a DDR to update both to the new IA.
+1. **Footer changes** (frozen by ADR-0006). **Follow-up: one footer DDR** covering three things: (a) the line "© 2026 Vamos a NY. Made in Madrid, walked in New York." (Belén is in Montevideo); (b) the footer's top link row ("Our story", "How we research", "Press"… pointing to `#`), updated to the new IA; (c) the footer `color-contrast` fix. The captions are `text-white/45` on `bg-ink` at 4.48:1, and `known-a11y` proposes `text-white/50` or equivalent. When (c) lands, the exception in AC 20/45 is removed. Also covers `components/cta.tsx`, which has the same captions, if the DDR chooses to.
 2. **pt and en translations** of the 5 pages and menu, and i18n routing (Architect ADR).
 3. Translating the rest of the navbar (Itineraries, Guides, Blog, Services, Log in, Sign up).
 4. **Any network delivery of the forms** (endpoint, Server Action, provider, anti-spam, storage) and the Submitting / Success / connection-Failed states. Kept, not deleted, in § When the Backend Is Connected.
@@ -521,7 +521,7 @@ Viewports: 360, 768, 1280 unless stated. "Reduced" = `reducedMotion: 'reduce'`.
 17. Scrolling to any notes column, paragraph, closing row or form reveals it once; scrolling back up does not replay it.
 18. At 360: body stacks with the notes column above the main column; no horizontal scroll at 360 or 320; at 1280: notes column 200px beside main column, prose no wider than 760px.
 19. No layout shift from any animation or image load (CLS 0 from these elements); images reserve a 3:2 box.
-20. axe reports no violations on each page in idle state, at 360 and 1280.
+20. axe reports no violations on each page in idle state, at 360 and 1280; the one exception is the known frozen-footer issue: axe rule `color-contrast` on nodes inside `<footer>` (the `.caption` captions with `text-white/45` on `bg-ink` in `components/layout/footer.tsx`, 4.48:1; `docs/qa/known-a11y-2026-09-23.md`, RV-0009). Nothing else is excluded, not even another rule in the footer or `color-contrast` anywhere outside it.
 
 **Sobre mí**
 21. The label shows "+20 visitas"; with motion on, "20" counts up from 0 during the entrance; assistive tech reads "20" only; reduced shows "20".
@@ -556,7 +556,7 @@ Viewports: 360, 768, 1280 unless stated. "Reduced" = `reducedMotion: 'reduce'`.
 42. Submitting valid data again keeps exactly one banner. A later submit with an invalid field removes the banner and shows Field error (AC 38).
 43. "Enviando…", "¡Recibido!", "No se pudo enviar tu mensaje." and "Uso tu email solo para responderte." appear nowhere in this release's build of the two pages.
 44. **R-01 (Security G1):** with JavaScript disabled, and with a click on the submit button before hydration, a form filled with synthetic values causes **no navigation, no URL change, and no request whose URL or body contains any field value** (Playwright asserts over every request). With JS disabled, the form area shows the no-JS block "Para escribirme, mandame un mail a hola@vamosany.com. Te respondo yo." with a working `mailto:` link, and no form fields.
-45. axe reports no violations in the Idle, Field error, Not configured and No-JS states, on both pages.
+45. axe reports no violations in the Idle, Field error, Not configured and No-JS states, on both pages, with the same single footer `color-contrast` exception as AC 20.
 
 **FAQ**
 46. Three groups (Itinerarios y consultorías 8, Viajes grupales 5, Productos 1) with the [md] questions and answers in [md] order; the second question's answer is a five-item bulleted list.
@@ -618,6 +618,10 @@ Motion: M8 connected items. Acceptance criteria for that release, to renumber th
 - Engineer finding d, confirmed: the Contacto main column is only empty while the form UI isn't built. Once it is, the form (JS) or the no-JS block always fills it.
 - Engineer finding e, confirmed: the middle dots in the partner lines "Mona Cases · mayo 2023" and "Efe Hus · Flor" are intended ([mock], accepted with the mockup). They join a partner name to a detail and are not a meta string.
 - DDR-0004 (Accepted, immutable) cites ACs "42–43" for the success and failed motion. Those now map to C2–C3 above; the not-configured banner motion is AC 41.
+
+**v1.2 (2026-09-26)**
+- AC 20 and AC 45 (and § Accessibility "Automated") exclude exactly one axe finding: `color-contrast` on nodes inside `<footer>`. These are the frozen `.caption text-white/45` captions on `bg-ink`, 4.48:1, 7 nodes per page; `docs/qa/known-a11y-2026-09-23.md`, RV-0009, the QA pass note on footer captions. User decision: an explicit, temporary exception. The fix moves to the footer DDR follow-up (§ Out of Scope 1c), bundled with the "Made in Madrid" line and the footer link row.
+- QA-0004 / RV-0006 (coordinator decision): phone navbar touch targets (drawer items, burger) reach 44 px through **invisible hit-area extensions only** (e.g. padding or pseudo-element hit areas that don't move or resize anything drawn). **No visual change**, so ADR-0006 pixels hold (the drawer snapshot is unchanged) and no DDR is needed. The § Accessibility target rule (≥44×44 px on coarse pointers) therefore applies to the navbar as written, measured on the hit area.
 
 ---
 
