@@ -92,11 +92,14 @@ describe("TrabajaConmigoPage", () => {
     ).toEqual([...AUDIENCES, "El cafecito"]);
   });
 
-  it("reserves the form slot right after the Cierre", () => {
-    render(<TrabajaConmigoPage form={<form aria-label="Cafecito" />} />);
+  it("places the cafecito form right after the Cierre (T030)", () => {
+    const { container } = render(<TrabajaConmigoPage />);
     const cierre = screen.getByText(TRABAJA_CONMIGO.cafecito.cierre);
-    expect(cierre.nextElementSibling).toBe(
-      screen.getByRole("form", { name: "Cafecito" }),
+    expect(cierre.nextElementSibling).toContainElement(
+      container.querySelector(smSel("form")) as HTMLElement,
     );
+    expect(
+      screen.getByRole("button", { name: "Agendemos un cafecito" }),
+    ).toBeInTheDocument();
   });
 });

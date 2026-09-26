@@ -1,20 +1,16 @@
-import type { JSX, ReactNode } from "react";
+import type { JSX } from "react";
 import { AudienceRows } from "@/features/sobre-mi/components/audience-rows";
+import { CollaborationForm } from "@/features/sobre-mi/components/forms/collaboration-form";
 import { NotesLayout } from "@/features/sobre-mi/components/notes-layout";
 import { PageHeader } from "@/features/sobre-mi/components/page-header";
 import { TRABAJA_CONMIGO } from "@/features/sobre-mi/content/trabaja-conmigo";
 import { sm } from "@/features/sobre-mi/motion/attributes";
 
-type Props = {
-  /** The cafecito form, placed right after the Cierre (T030). */
-  form?: ReactNode;
-};
-
 /**
  * /trabaja-conmigo (spec § Page 3): intro, five audience rows and the
  * cafecito section. No closing row: the form is the closing action.
  */
-export function TrabajaConmigoPage({ form }: Props): JSX.Element {
+export function TrabajaConmigoPage(): JSX.Element {
   const { header, notes, intro, audiences, cafecito } = TRABAJA_CONMIGO;
   return (
     <div className="container-ds pb-16">
@@ -35,7 +31,7 @@ export function TrabajaConmigoPage({ form }: Props): JSX.Element {
             >
               {cafecito.cierre}
             </p>
-            {form}
+            <CollaborationForm />
           </div>
         </NotesLayout>
       </section>
