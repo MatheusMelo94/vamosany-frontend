@@ -38,6 +38,13 @@ const ROUTES: Route[] = [
       "Itinerarios, consultorías, viajes grupales y productos: lo que más me preguntan antes de viajar a New York.",
     h1: "Lo que más me preguntan antes de viajar",
   },
+  {
+    path: "/contacto",
+    title: "Contacto — Vamos a NY",
+    description:
+      "¿Estás planificando tu viaje a New York, tenés una duda sobre algún servicio o querés proponerme una colaboración? Contame lo que necesites.",
+    h1: "Escribime, te respondo yo.",
+  },
 ];
 
 test.describe("Sobre mí pages: route structure @feature-sobre-mi", () => {
