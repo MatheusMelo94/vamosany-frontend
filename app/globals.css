@@ -57,6 +57,12 @@
   /* Containers */
   --container-page: 1200px;
   --container-dashboard: 1400px;
+  /* Container-query breakpoints for the Sobre mí pages (plan § 7, approved
+     2026-09-26). Used as @gutter:, @rows:, @fields:, @timeline-sm: variants. */
+  --container-gutter: 53.75rem; /* 860px: notes column beside main column */
+  --container-rows: 47.5rem; /* 760px: audience rows side by side */
+  --container-fields: 35rem; /* 560px: two form fields per row */
+  --container-timeline-sm: 32.5rem; /* 520px: timeline tag beside the line */
 
   /* Type sizes below the base scale */
   --text-2xs: 0.5625rem;
@@ -443,4 +449,77 @@ main > .pin-spacer {
     height: 156px;
     margin: -78px 0 0 -55px;
   }
+}
+
+/* ---------------------------------------------------------------
+   Sobre mí pages ("Cuaderno de campo"): type utilities and the
+   initial state of their motion targets (plan § 7; ADR-0002).
+   New selectors only; nothing above this line changes.
+   --------------------------------------------------------------- */
+
+/* Prose paragraphs: 17px / 1.7 (spec § Shared Page Structure) */
+@utility body-prose {
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+/* Pull lines (Sobre mí question, Efe Hus quote); sized by their container */
+@utility display-pull {
+  font-family: var(--font-display);
+  font-size: clamp(1.375rem, 3.4cqi, 2rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Hidden only while a motion scene is mounted: `.gsap` (ADR-0002) AND the
+   page root's [data-sm-scene], which the page gets together with its motion
+   controller. Without both, every target renders in its final state. */
+.gsap [data-sm-scene] [data-sm-heading],
+.gsap [data-sm-scene] [data-sm-reveal],
+.gsap [data-sm-scene] [data-sm-notes] > *,
+.gsap [data-sm-scene] [data-sm-closing] [data-sm-closing-item],
+.gsap [data-sm-scene] [data-sm-form] [data-sm-field],
+.gsap [data-sm-scene] [data-sm-timeline] li,
+.gsap [data-sm-scene] [data-sm-partner],
+.gsap [data-sm-scene] [data-sm-row-body] > *,
+.gsap [data-sm-scene] [data-sm-channels] li,
+.gsap [data-sm-scene] [data-sm-faq-group] details {
+  opacity: 0;
+}
+
+/* Heading and pull-line trains start in the tunnel. */
+.gsap [data-sm-scene] [data-sm-train],
+.gsap [data-sm-scene] [data-sm-sweep] {
+  --train: 100%;
+}
+
+.gsap [data-sm-scene] [data-sm-signature] {
+  clip-path: inset(0 100% 0 0);
+}
+
+.gsap [data-sm-scene] [data-sm-rail] {
+  transform: scaleY(0);
+}
+
+.gsap [data-sm-scene] [data-sm-rule] {
+  transform: scaleX(0);
+}
+
+/* Colaboraciones reading bar in the navbar capsule: never rendered without motion. */
+[data-reading-bar] {
+  display: none;
+}
+
+.gsap [data-reading-bar] {
+  display: block;
+  transform: scaleX(0);
+}
+
+/* Anchors (FAQ groups and questions) scroll clear of the sticky navbar. */
+[data-sm-anchor] {
+  scroll-margin-top: calc(var(--spacing) * 24);
 }
