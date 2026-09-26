@@ -7,6 +7,7 @@ import { colaboraciones } from "@/features/sobre-mi/motion/scenes/colaboraciones
 import { contacto } from "@/features/sobre-mi/motion/scenes/contacto";
 import { entrance } from "@/features/sobre-mi/motion/scenes/entrance";
 import { faq } from "@/features/sobre-mi/motion/scenes/faq";
+import { formFeedback } from "@/features/sobre-mi/motion/scenes/form-feedback";
 import { navScrolled } from "@/features/sobre-mi/motion/scenes/nav-scrolled";
 import { reveals } from "@/features/sobre-mi/motion/scenes/reveals";
 import { sobreMi } from "@/features/sobre-mi/motion/scenes/sobre-mi";
@@ -25,6 +26,7 @@ const SCENES: readonly Scene[] = [
   trabajaConmigo,
   contacto,
   faq,
+  formFeedback,
 ];
 
 /**

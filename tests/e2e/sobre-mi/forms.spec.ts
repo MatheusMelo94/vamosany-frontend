@@ -329,3 +329,190 @@ for (const form of PAGES) {
     });
   });
 }
+
+/* ---- M8 form feedback (T039) ---------------------------------------- */
+
+/** Records, every frame, each field wrapper's x and the banner's y/opacity. */
+async function recordFeedback(page: Page) {
+  await page.evaluate(() => {
+    const w = window as unknown as {
+      __fb: Array<{
+        x: number[];
+        banner: { y: number; opacity: number } | null;
+      }>;
+    };
+    w.__fb = [];
+    const tx = (el: Element) => {
+      const t = getComputedStyle(el).transform;
+      return t === "none" ? 0 : new DOMMatrixReadOnly(t);
+    };
+    const tick = () => {
+      const fields = [
+        ...document.querySelectorAll("main [data-sm-form] [data-sm-field]"),
+      ];
+      const banner = document.querySelector("main [data-sm-banner]");
+      w.__fb.push({
+        x: fields.map((f) => {
+          const m = tx(f);
+          return m === 0 ? 0 : Math.round(m.m41);
+        }),
+        banner: banner
+          ? {
+              y: (() => {
+                const m = tx(banner);
+                return m === 0 ? 0 : Math.round(m.m42);
+              })(),
+              opacity: Number(getComputedStyle(banner).opacity),
+            }
+          : null,
+      });
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+const feedback = (page: Page) =>
+  page.evaluate(() =>
+    (
+      window as unknown as {
+        __fb: Array<{
+          x: number[];
+          banner: { y: number; opacity: number } | null;
+        }>;
+      }
+    ).__fb.splice(0),
+  );
+
+/** Brings the form into view, fully revealed (M2), before interacting. */
+async function formReady(page: Page, form: FormPage) {
+  await page.goto(form.path);
+  await hydrated(page, form);
+  await page.locator("main [data-sm-form]").scrollIntoViewIfNeeded();
+  await expect(
+    page.locator("main [data-sm-form] [data-sm-field]").last(),
+  ).toHaveCSS("opacity", "1");
+}
+
+for (const form of PAGES) {
+  test.describe(`${form.path} form feedback (T039) @feature-sobre-mi`, () => {
+    test("a submit with errors shakes each invalid field once; typing doesn't (AC 38)", async ({
+      page,
+    }) => {
+      await formReady(page, form);
+      await recordFeedback(page);
+      await page.getByRole("button", { name: form.button }).click();
+      await page.waitForTimeout(700);
+      const frames = await feedback(page);
+      const invalid = form.errors.length;
+      const fields = frames[0]?.x.length ?? 0;
+      // Every invalid field moved; on /contacto the optional travel-date
+      // field (4th wrapper) never did; everything ends back at x 0.
+      const moved = Array.from({ length: fields }, (_, i) =>
+        frames.some((f) => (f.x[i] ?? 0) !== 0),
+      );
+      expect(moved.filter(Boolean)).toHaveLength(invalid);
+      if (form.path === "/contacto") expect(moved[3]).toBe(false);
+      expect(frames.at(-1)?.x.every((x) => x === 0)).toBe(true);
+      await expect(field(page, form.errors[0]?.[0] ?? "")).toBeFocused();
+
+      await field(page, "Nombre").pressSequentially("Persona");
+      await page.waitForTimeout(300);
+      const typing = await feedback(page);
+      expect(typing.every((f) => f.x.every((x) => x === 0))).toBe(true);
+    });
+
+    test("the banner enters from above, and replays on a repeat valid submit (AC 41, 42)", async ({
+      page,
+    }) => {
+      await formReady(page, form);
+      await fill(page, form);
+      await recordFeedback(page);
+      for (let round = 0; round < 2; round++) {
+        await page.getByRole("button", { name: form.button }).click();
+        await page.waitForTimeout(600);
+        const frames = (await feedback(page)).filter((f) => f.banner);
+        expect(frames.some((f) => (f.banner?.y ?? 0) < 0)).toBe(true);
+        expect(frames.some((f) => (f.banner?.opacity ?? 1) < 1)).toBe(true);
+        expect(frames.at(-1)?.banner).toEqual({ y: 0, opacity: 1 });
+        await expect(page.getByRole("status")).toHaveCount(1);
+        await expect(page.getByRole("status")).toBeFocused();
+      }
+    });
+
+    test("typed markup stays text with motion on, and events carry only control ids (R-06)", async ({
+      page,
+    }) => {
+      await formReady(page, form);
+      await page.evaluate(() => {
+        const w = window as unknown as { __events: unknown[] };
+        w.__events = [];
+        const root = document.querySelector("main [data-sm-form]");
+        for (const type of ["sm:field-errors", "sm:banner"]) {
+          root?.addEventListener(type, (e) =>
+            w.__events.push({
+              type,
+              detail: (e as CustomEvent).detail ?? null,
+            }),
+          );
+        }
+      });
+      const payload = '<b>x</b>"><img src=x onerror=alert(1)>';
+      await field(page, "Nombre").fill(payload);
+      await page.getByRole("button", { name: form.button }).click();
+      await page.waitForTimeout(500);
+      await fill(page, form);
+      await field(page, "Nombre").fill(payload);
+      await page.getByRole("button", { name: form.button }).click();
+      await page.waitForTimeout(500);
+      await expect(page.locator("main b, main img[src='x']")).toHaveCount(0);
+      await expect(field(page, "Nombre")).toHaveValue(payload);
+      const events = await page.evaluate(
+        () => (window as unknown as { __events: unknown[] }).__events,
+      );
+      expect(events.length).toBe(2);
+      for (const e of events as Array<{ type: string; detail: unknown }>) {
+        const json = JSON.stringify(e.detail);
+        expect(json).not.toContain("<b>");
+        expect(json).not.toContain("Persona");
+        if (e.type === "sm:field-errors") {
+          const ids = (e.detail as { fields: string[] }).fields;
+          expect(Object.keys(e.detail as object)).toEqual(["fields"]);
+          for (const id of ids)
+            expect(id).toMatch(/^(contact|collab)-[a-z-]+$/);
+        } else {
+          expect(e.detail).toBeNull();
+        }
+      }
+    });
+
+    test.describe("reduced motion", () => {
+      test.use({ reducedMotion: "reduce" });
+
+      test("no shake, a static banner, the same focus (AC 38, 41)", async ({
+        page,
+      }) => {
+        await page.goto(form.path);
+        await hydrated(page, form);
+        await recordFeedback(page);
+        await page.getByRole("button", { name: form.button }).click();
+        await page.waitForTimeout(500);
+        const errorFrames = await feedback(page);
+        expect(errorFrames.every((f) => f.x.every((x) => x === 0))).toBe(true);
+        await expect(field(page, form.errors[0]?.[0] ?? "")).toBeFocused();
+        await fill(page, form);
+        await feedback(page);
+        await page.getByRole("button", { name: form.button }).click();
+        await page.waitForTimeout(400);
+        const bannerFrames = (await feedback(page)).filter((f) => f.banner);
+        expect(bannerFrames.length).toBeGreaterThan(0);
+        expect(
+          bannerFrames.every(
+            (f) => f.banner?.y === 0 && f.banner?.opacity === 1,
+          ),
+        ).toBe(true);
+        await expect(page.getByRole("status")).toBeFocused();
+      });
+    });
+  });
+}
