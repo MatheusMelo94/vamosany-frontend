@@ -3,12 +3,13 @@
 import { motionEnabled, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { getEases } from "@/lib/gsap-ease";
 import { smSel } from "@/features/sobre-mi/motion/attributes";
+import { entrance } from "@/features/sobre-mi/motion/scenes/entrance";
 import { navScrolled } from "@/features/sobre-mi/motion/scenes/nav-scrolled";
 import { settle } from "@/features/sobre-mi/motion/scenes/settle";
 import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
 
 /** Scenes, in order. Page-specific scenes read `data-sm-scene` themselves. */
-const SCENES: readonly Scene[] = [navScrolled, settle];
+const SCENES: readonly Scene[] = [navScrolled, entrance, settle];
 
 /**
  * Headless motion controller of the Sobre mí pages (ADR-0003 pattern; TDD

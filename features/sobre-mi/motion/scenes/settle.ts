@@ -8,7 +8,6 @@ import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
  * its selectors from here.
  */
 const OPACITY = [
-  "[data-sm-heading]",
   "[data-sm-reveal]",
   "[data-sm-notes] > *",
   "[data-sm-closing] [data-sm-closing-item]",
@@ -19,7 +18,7 @@ const OPACITY = [
   "[data-sm-channels] li",
   "[data-sm-faq-group] details",
 ];
-const TRAINS = ["[data-sm-train]", "[data-sm-sweep]"];
+const TRAINS = ["[data-sm-sweep]"];
 const SCALED = ["[data-sm-rail]", "[data-sm-rule]"];
 const CLIPPED = ["[data-sm-signature]"];
 

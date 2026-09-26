@@ -259,3 +259,143 @@ test.describe("Sobre mí motion: gate and controller (T032) @feature-sobre-mi", 
     });
   }
 });
+
+/* ---- M1 heading entrance (T033) ------------------------------------- */
+
+type Frame = {
+  t: number;
+  label: number;
+  dek: number;
+  train: string;
+  /** Largest vertical offset of the split words (0 when none or landed). */
+  wordsOffset: number;
+  count: string;
+  split: number;
+};
+
+/** Records the header's state every animation frame from the first paint. */
+async function recordHeader(page: Page) {
+  await page.addInitScript(() => {
+    const frames: unknown[] = [];
+    (window as unknown as { __frames: unknown[] }).__frames = frames;
+    const t0 = performance.now();
+    const tick = () => {
+      const label = document.querySelector("[data-sm-label]");
+      const dek = document.querySelector("[data-sm-dek]");
+      const train = document.querySelector("[data-sm-train]");
+      const heading = document.querySelector("[data-sm-heading]");
+      if (label && dek && train && heading) {
+        const visible = getComputedStyle(heading).opacity !== "0";
+        const words = [...train.querySelectorAll("*")];
+        frames.push({
+          t: Math.round(performance.now() - t0),
+          label: visible ? Number(getComputedStyle(label).opacity) : 0,
+          dek: visible ? Number(getComputedStyle(dek).opacity) : 0,
+          train: getComputedStyle(train).getPropertyValue("--train").trim(),
+          wordsOffset: Math.max(
+            0,
+            ...words.map((w) => {
+              const t = getComputedStyle(w).transform;
+              return t === "none" ? 0 : Math.abs(new DOMMatrixReadOnly(t).m42);
+            }),
+          ),
+          count:
+            document.querySelector("[data-sm-count]")?.textContent?.trim() ??
+            "",
+          split: words.length,
+        });
+      }
+      if (performance.now() - t0 < 8000) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+const frames = (page: Page) =>
+  page.evaluate(() => (window as unknown as { __frames: Frame[] }).__frames);
+
+test.describe("M1 heading entrance (T033) @feature-sobre-mi", () => {
+  test("label, then words, then train, then dek — the dek lands while the train still moves (AC 15)", async ({
+    page,
+  }) => {
+    await recordHeader(page);
+    await page.goto("/sobre-mi");
+    await expect
+      .poll(async () => (await frames(page)).at(-1)?.train, { timeout: 8000 })
+      .toBe("0%");
+    await page.waitForTimeout(600);
+    const f = await frames(page);
+    const first = (pred: (x: Frame) => boolean) => f.find(pred)?.t ?? Infinity;
+    const labelStart = first((x) => x.label > 0);
+    // The words start rising on the first frame their offset shrinks.
+    const wordsStart =
+      f.find((x, i) => i > 0 && x.wordsOffset < (f[i - 1]?.wordsOffset ?? 0))
+        ?.t ?? Infinity;
+    const trainStart = first((x) => x.train !== "100%" && x.train !== "0%");
+    const dekStart = first((x) => x.dek > 0);
+    const trainEnd = first((x) => x.train === "0%" && x.t > trainStart);
+    // Under load, frames get sparse and neighbouring starts can share a
+    // sampled frame; sharing one isn't out of order. The dek-before-the-
+    // train-stops check (≈1 s apart) stays strict: it is AC 15's point.
+    expect(labelStart).toBeLessThanOrEqual(wordsStart);
+    expect(wordsStart).toBeLessThanOrEqual(trainStart);
+    expect(trainStart).toBeLessThanOrEqual(dekStart);
+    expect(dekStart).toBeLessThan(trainEnd);
+    // Ends as one text run: no split wrappers, marker home, fully visible.
+    const end = f.at(-1);
+    expect(end).toMatchObject({ split: 0, train: "0%", label: 1, dek: 1 });
+    await expect(page.locator("[data-sm-train]")).toHaveText("Sobre mí");
+  });
+
+  test("the H1's accessible name is the title at every moment (AC 14)", async ({
+    page,
+  }) => {
+    await page.goto("/sobre-mi");
+    const h1 = page.getByRole("heading", {
+      level: 1,
+      name: "Sobre mí",
+      exact: true,
+    });
+    for (let i = 0; i < 25; i++) {
+      await expect(h1).toHaveCount(1);
+      await page.waitForTimeout(100);
+    }
+  });
+
+  test("the '20' counts up from 0 during the entrance; assistive tech reads only 20 (AC 21)", async ({
+    page,
+  }) => {
+    await recordHeader(page);
+    await page.goto("/sobre-mi");
+    const label = page.locator("[data-sm-label]");
+    for (let i = 0; i < 10; i++) {
+      expect(await label.ariaSnapshot()).toMatch(/\+20 visitas|\+ 20 visitas/);
+      await page.waitForTimeout(150);
+    }
+    await expect
+      .poll(async () => (await frames(page)).at(-1)?.count)
+      .toBe("20");
+    // Only what's on screen: the server HTML holds the final "20" (for
+    // reduced motion / no JS) while the heading is still hidden.
+    const counts = (await frames(page))
+      .filter((x) => x.label > 0)
+      .map((x) => Number(x.count));
+    expect(counts[0]).toBe(0);
+    expect(counts.some((n) => n > 0 && n < 20)).toBe(true);
+    const shown = counts.filter((n, i) => i === 0 || n !== counts[i - 1]);
+    expect([...shown].sort((a, b) => a - b)).toEqual(shown);
+  });
+
+  test("other pages run the same entrance without a counter", async ({
+    page,
+  }) => {
+    await recordHeader(page);
+    await page.goto("/preguntas-frecuentes");
+    await expect
+      .poll(async () => (await frames(page)).at(-1)?.train, { timeout: 8000 })
+      .toBe("0%");
+    const f = await frames(page);
+    expect(f.some((x) => x.wordsOffset > 0)).toBe(true);
+    expect(f.some((x) => x.label > 0 && x.label < 1)).toBe(true);
+  });
+});

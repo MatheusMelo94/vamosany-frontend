@@ -218,6 +218,21 @@ test.describe("Sobre mí pages: shared structure, layout and a11y @feature-sobre
       );
       await page.goto(route.path);
       await page.evaluate(() => document.fonts.ready);
+      // Idle = after the M1 entrance has settled (the label fades in, and a
+      // half-transparent label rightly fails contrast mid-animation).
+      await expect(page.locator("main [data-sm-label]")).toHaveCSS(
+        "opacity",
+        "1",
+      );
+      await expect
+        .poll(() =>
+          page
+            .locator("main [data-sm-train]")
+            .evaluate((el) =>
+              getComputedStyle(el).getPropertyValue("--train").trim(),
+            ),
+        )
+        .toBe("0%");
       const results = await new AxeBuilder({ page }).analyze();
       // Known, frozen (ADR-0006; landing.spec.ts KNOWN_A11Y): the footer's
       // text-white/45 captions are 4.48:1 on bg-ink. Waived only for nodes
