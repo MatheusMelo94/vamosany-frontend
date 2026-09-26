@@ -228,6 +228,57 @@ test.describe("navbar keyboard path (AC 10) @feature-sobre-mi", () => {
   });
 });
 
+/* ---- Pointer path (QA-0001, QA-0002) --------------------------------- */
+
+test.describe("navbar pointer path @feature-sobre-mi", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
+  });
+
+  // QA-0001: the panel floats 7px under the capsule. A pointer that travels
+  // slowly from the trigger to the first item must not lose the panel there.
+  for (const pxPerStep of [2, 4, 6]) {
+    test(`panel stays open while the pointer crosses the gap at ${pxPerStep}px per sample (QA-0001)`, async ({
+      page,
+    }) => {
+      await open(page);
+      const trigger = header(page).getByRole("button", {
+        name: "Sobre mí",
+        exact: true,
+      });
+      await trigger.hover();
+      await expect(trigger).toHaveAttribute("aria-expanded", "true");
+      const from = await box(trigger);
+      const item = megaPanel(page).getByRole("link").first();
+      const to = await box(item);
+      const x = from.x + from.width / 2;
+      const y0 = from.y + from.height / 2;
+      const y1 = to.y + to.height / 2;
+      await page.mouse.move(x, y0);
+      await page.mouse.move(x, y1, {
+        steps: Math.ceil((y1 - y0) / pxPerStep),
+      });
+      await expect(trigger).toHaveAttribute("aria-expanded", "true");
+      await expect(item).toBeVisible();
+    });
+  }
+
+  test("panel still closes when the pointer leaves the navbar upward (QA-0001)", async ({
+    page,
+  }) => {
+    await open(page);
+    const trigger = header(page).getByRole("button", {
+      name: "Sobre mí",
+      exact: true,
+    });
+    await trigger.hover();
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const from = await box(trigger);
+    await page.mouse.move(from.x + from.width / 2, 2, { steps: 10 });
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+});
+
 /* ---- Moving marker (DDR-0003; T011) ---------------------------------- */
 
 /** Dot rest position on an item (page coords): 24px in from the right, 15px down. */

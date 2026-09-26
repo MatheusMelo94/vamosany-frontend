@@ -145,7 +145,12 @@ export function Navbar(): JSX.Element {
                   // arbitrary: offset do dropdown = altura do trigger + 8px
                   <div
                     id={`${panelIdBase}-panel-${index}`}
-                    className="border-ink/[0.08] bg-canvas shadow-menu absolute inset-x-0 top-[calc(100%+0.5rem)] hidden rounded-3xl border lg:block"
+                    className={cn(
+                      "border-ink/[0.08] bg-canvas shadow-menu absolute inset-x-0 top-[calc(100%+0.5rem)] hidden rounded-3xl border lg:block",
+                      // Hover bridge (QA-0001): an unpainted strip over the 8px gap, 4px into the
+                      // capsule, so a pointer on its way to the items never leaves the panel.
+                      "before:absolute before:inset-x-0 before:-top-3 before:h-3",
+                    )}
                     onMouseEnter={() => setOpen(group.label)}
                     onMouseLeave={() => setOpen(null)}
                   >
