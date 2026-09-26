@@ -30,3 +30,25 @@ export async function waitForMotionToSettle(page: Page): Promise<void> {
     )
     .toBe(true);
 }
+
+/**
+ * Waits until the Sobre mí motion controller has mounted: `.gsap` is on
+ * <html> and GSAP has written its first inline opacity inside the scene
+ * (every scene's `fromTo` renders its start state at once). A condition,
+ * not a sleep: under load the dynamic chunk can take seconds to arrive.
+ */
+export async function waitForMotionController(page: Page): Promise<void> {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            document.documentElement.classList.contains("gsap") &&
+            document.querySelector(
+              "main [data-sm-scene] [style*='opacity']",
+            ) !== null,
+        ),
+      { timeout: 15_000 },
+    )
+    .toBe(true);
+}

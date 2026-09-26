@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { waitForMotionController } from "../support/motion";
 
 /**
  * Motion on the Sobre mí pages (DDR-0004; plan § 0.2–0.3; TDD § 4).
@@ -513,6 +514,54 @@ test.describe("M2 reveals keep content reachable (T034) @feature-sobre-mi", () =
     await expect(name).toBeFocused();
     await expect(wrapper).toHaveCSS("opacity", "1");
   });
+});
+
+test.describe("Focus never sits on an invisible reveal (ADR-0008 cond. 2) @feature-sobre-mi", () => {
+  for (const path of ["/trabaja-conmigo", "/contacto"]) {
+    test(`${path}: tabbing from the top to the last field finds every stop fully opaque at once`, async ({
+      page,
+    }) => {
+      await page.goto(path);
+      await waitForMotionController(page);
+      const lastId = await page
+        .locator("main [data-sm-form] form")
+        .locator("input, textarea, select")
+        .last()
+        .getAttribute("id");
+      expect(lastId).toBeTruthy();
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+
+      const failures: string[] = [];
+      for (let i = 0; i < 120; i++) {
+        await page.keyboard.press("Tab");
+        // Read in the same task as the focus lands: no waiting for a reveal.
+        const stop = await page.evaluate(() => {
+          const el = document.activeElement;
+          if (!el || !el.closest("main")) return null;
+          let effective = 1;
+          for (let n: Element | null = el; n; n = n.parentElement) {
+            effective *= Number(getComputedStyle(n).opacity);
+          }
+          const wrapper = el.closest("[data-sm-field]");
+          return {
+            name: `${el.tagName.toLowerCase()}#${el.id}`,
+            id: el.id,
+            effective,
+            wrapper: wrapper ? getComputedStyle(wrapper).opacity : "1",
+          };
+        });
+        if (!stop) continue;
+        if (stop.effective !== 1 || stop.wrapper !== "1") {
+          failures.push(
+            `${stop.name}: effective ${stop.effective}, wrapper ${stop.wrapper}`,
+          );
+        }
+        if (stop.id === lastId) break;
+      }
+      await expect(page.locator(`#${lastId}`)).toBeFocused();
+      expect(failures).toEqual([]);
+    });
+  }
 });
 
 /* ---- M3 Sobre mí scenes (T035) -------------------------------------- */

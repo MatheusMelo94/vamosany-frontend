@@ -7,6 +7,7 @@ import { colaboraciones } from "@/features/sobre-mi/motion/scenes/colaboraciones
 import { contacto } from "@/features/sobre-mi/motion/scenes/contacto";
 import { entrance } from "@/features/sobre-mi/motion/scenes/entrance";
 import { faq } from "@/features/sobre-mi/motion/scenes/faq";
+import { focusReveal } from "@/features/sobre-mi/motion/scenes/focus-reveal";
 import { formFeedback } from "@/features/sobre-mi/motion/scenes/form-feedback";
 import { navScrolled } from "@/features/sobre-mi/motion/scenes/nav-scrolled";
 import { reveals } from "@/features/sobre-mi/motion/scenes/reveals";
@@ -27,6 +28,8 @@ const SCENES: readonly Scene[] = [
   contacto,
   faq,
   formFeedback,
+  // Last: it completes whatever reveal the scenes above created (ADR-0008).
+  focusReveal,
 ];
 
 /**
