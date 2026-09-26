@@ -45,7 +45,7 @@ Deferred (backend), kept for spec § When the Backend Is Connected: the delivery
 |---|---|---|
 | E1 | T006 scoped every hiding rule as `.gsap [data-sm-scene] [data-sm-…]` (`app/globals.css`, after the tokens). A target is hidden only when **both** motion is on **and** the page root carries `data-sm-scene`. | **T032 must add `data-sm-scene="<page>"` to each page root in the same commit that mounts `CuadernoMotion`.** Adding one without the other either does nothing or hides content with no controller to reveal it. The reduced/no-JS e2e in T032 guards this. |
 | E2 | T020: `<main>` in the `(cuaderno)` layout is a page-wide named container, `@container/screen`. | Container queries in the M3 form rows and M4 scenes use `@…/screen` for page-level breakpoints; component-level ones keep their own `@container`. Selectors in motion scenes must not assume a `main > section` structure. |
-| E3 | `/` First Load JS is **178 / 180 kB** before any M4 code. | **M4 adds 0 bytes to `/`.** See § 0.3. |
+| E3 | `/` First Load JS is **178 / 180 kB** before any M4 code. | **M4 adds no application code to `/`**; webpack runtime growth is capped at 1,000 B (§ 0.3 item 6). |
 
 ### 0.3 Zero bytes on `/`: why the lazy approach guarantees it, and the check
 
@@ -56,6 +56,7 @@ Deferred (backend), kept for spec § When the Backend Is Connected: the delivery
 3. **Reading bar (T036), changed from v1:** the navbar is **not** edited. The Colaboraciones scene creates `<span aria-hidden data-reading-bar>` and appends it to `[data-nav] .nav-capsule` at runtime, inside its `useGSAP` context, removing it on revert. It exists only on `/colaboraciones` with motion on, and the existing `[data-reading-bar]` CSS still applies.
 4. The form leaves import no GSAP (F8).
 5. **Check (T043, new, before T032):** a script, `scripts/check-first-load.mjs`, reads the `next build` output manifests and computes the gzip First Load JS of `/`. It fails if the value is above the committed baseline in `perf/first-load.json` (`{ "/": <bytes measured on this branch before M4> }`) by more than 0 bytes, or above 180 kB. It runs in `ci.yml` after `npm run build`, and every M4 commit body quotes its output.
+6. **Amendment 2026-09-26 (coordinator decision, measured during T032):** adding any `next/dynamic` chunk anywhere in the app grows webpack's shared runtime (its chunk map) and regroups shared chunks, which `/` also loads: +206 B with the controller reduced to `return null`, +0 B with no lazy import. That growth is not application code reachable from `/`, so point 1 still holds. The guard therefore allows a **runtime allowance of at most 1,000 B** over the pre-M4 baseline for all of M4 combined. The 180 kB budget is unchanged, and point 2 (no edits to modules `/` ships) stays binding. If M4 needs more than 1,000 B, the Engineer stops and reports.
 
 ---
 
@@ -284,7 +285,7 @@ Gates: **G1** Security pre-implementation review (threat model) before T027. **G
 
 | Route | Expected First Load JS impact | Notes |
 |---|---|---|
-| `/` (landing) | **Measured 178 / 180 kB after M0–M2. M4 must add 0 bytes** (§ 0.3) | Guarded by T043 (`scripts/check-first-load.mjs`, budget file `perf/first-load.json`) |
+| `/` (landing) | **Measured 178 / 180 kB after M0–M2. M4 adds no app code; runtime allowance ≤ 1,000 B** (§ 0.3 item 6) | Guarded by T043 (`scripts/check-first-load.mjs`, budget file `perf/first-load.json`) |
 | `/sobre-mi`, `/colaboraciones`, `/preguntas-frecuentes` | shared chunk + Navbar + `CuadernoMotion` wrapper (the controller, ScrollTrigger, SplitText and CustomEase are dynamic) + `FaqDeepLink` (tiny) | Well under 180 kB |
 | `/contacto`, `/trabaja-conmigo` | + form leaf + zod (client validation). **v1.1: no GSAP in the form leaf** (M8 is in the lazy controller, § 0.1 F8) | Measure in T029. If > 180 kB, use `zod/mini` for the client schema (Architect call with the numbers) |
 
@@ -323,7 +324,7 @@ Gates: **G1** Security pre-implementation review (threat model) before T027. **G
 | 1 | M0 (foundations, characterization baseline) | Render-preserving; landing diff 0 |
 | 2 | M1 + M2 (navbar + 5 static pages) | The menu must not link to routes that don't exist yet; this is the only PR that regenerates landing snapshots (the 6 desktop files) |
 | 3 | M3 (UI-only forms) | Gated by Security G2 (light). G1 is done. No contract |
-| 4 | M4 (motion) | DDR-0004; ADR-0007 Accepted; T043 guard first (0 bytes on `/`) |
+| 4 | M4 (motion) | DDR-0004; ADR-0007 Accepted; T043 guard first (≤ 1,000 B runtime allowance on `/`) |
 | 5 | M5 (baselines, perf, QA handoff) | Closes the feature |
 
 If the user prefers a single PR, the same order still applies.
