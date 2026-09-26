@@ -9,8 +9,9 @@ type Props = { item: FaqQuestion };
  * One question as a native disclosure (spec § Page 5; AC 47, 49): works
  * without JS, Enter/Space toggle it, opening doesn't move focus. The id is
  * the slug of the question (deep links, T022) and scrolls clear of the
- * sticky navbar (`data-sm-anchor`). "+" turns to "×" with a CSS rotation,
- * only when motion is allowed.
+ * sticky navbar (`data-sm-anchor`). "+" turns to "×" with a CSS rotation
+ * (transition only when motion is allowed) while open — and back as soon as
+ * the M7 scene starts closing it (`data-closing`, ADR-0007).
  */
 export function FaqItem({ item }: Props): JSX.Element {
   return (
@@ -24,7 +25,7 @@ export function FaqItem({ item }: Props): JSX.Element {
         {/* arbitrary: 22px glyph (mockup .pm); no type-scale step */}
         <span
           aria-hidden
-          className="font-display flex-none text-[1.375rem] leading-none font-bold group-open:rotate-45 motion-safe:transition-transform motion-safe:duration-(--duration-slow) motion-safe:ease-(--ease-default)"
+          className="font-display flex-none text-[1.375rem] leading-none font-bold group-[[open]:not([data-closing])]:rotate-45 motion-safe:transition-transform motion-safe:duration-(--duration-slow) motion-safe:ease-(--ease-default)"
         >
           +
         </span>

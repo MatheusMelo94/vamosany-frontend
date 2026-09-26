@@ -6,9 +6,9 @@ import { smSel } from "@/features/sobre-mi/motion/attributes";
 import { colaboraciones } from "@/features/sobre-mi/motion/scenes/colaboraciones";
 import { contacto } from "@/features/sobre-mi/motion/scenes/contacto";
 import { entrance } from "@/features/sobre-mi/motion/scenes/entrance";
+import { faq } from "@/features/sobre-mi/motion/scenes/faq";
 import { navScrolled } from "@/features/sobre-mi/motion/scenes/nav-scrolled";
 import { reveals } from "@/features/sobre-mi/motion/scenes/reveals";
-import { settle } from "@/features/sobre-mi/motion/scenes/settle";
 import { sobreMi } from "@/features/sobre-mi/motion/scenes/sobre-mi";
 import { sweeps } from "@/features/sobre-mi/motion/scenes/sweeps";
 import { trabajaConmigo } from "@/features/sobre-mi/motion/scenes/trabaja-conmigo";
@@ -24,7 +24,7 @@ const SCENES: readonly Scene[] = [
   colaboraciones,
   trabajaConmigo,
   contacto,
-  settle,
+  faq,
 ];
 
 /**
