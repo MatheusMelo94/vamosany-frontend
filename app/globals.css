@@ -524,3 +524,27 @@ main > .pin-spacer {
 [data-sm-anchor] {
   scroll-margin-top: calc(var(--spacing) * 24);
 }
+
+/* Touch targets on coarse pointers (spec § Accessibility Acceptance:
+   ≥ 44×44 px; design-conventions § Spacing): an invisible hit area centred
+   on the element, at least 44px each way. Only under (pointer: coarse), so
+   fine pointers keep today's box, layout and pixels exactly; nothing is
+   painted. */
+@utility tap-target {
+  @media (pointer: coarse) {
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, calc(var(--spacing) * 11));
+      height: max(100%, calc(var(--spacing) * 11));
+      transform: translate(-50%, -50%);
+      /* above following siblings that carry a transform (motion) and so
+         paint later; still under the sticky navbar (z-50) */
+      z-index: 1;
+    }
+  }
+}

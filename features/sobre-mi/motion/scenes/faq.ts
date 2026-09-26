@@ -30,6 +30,7 @@ export const faq: Scene = ({ root, eases, contextSafe }) => {
         opacity: 1,
         y: 0,
         duration: F.rows.duration,
+        clearProps: "transform",
         stagger: F.rows.stagger,
         ease: eases.ds,
         scrollTrigger: {

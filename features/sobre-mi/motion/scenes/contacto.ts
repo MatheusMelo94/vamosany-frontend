@@ -21,6 +21,7 @@ export const contacto: Scene = ({ root, eases }) => {
     {
       opacity: 1,
       x: 0,
+      clearProps: "transform",
       duration: C.duration,
       stagger: C.stagger,
       delay: C.delay,

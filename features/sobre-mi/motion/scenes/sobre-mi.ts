@@ -76,6 +76,7 @@ export const sobreMi: Scene = ({ root, eases }) => {
         {
           opacity: 1,
           x: 0,
+          clearProps: "transform",
           duration: S.timelineRows.duration,
           stagger: S.timelineRows.stagger,
           ease: eases.ds,

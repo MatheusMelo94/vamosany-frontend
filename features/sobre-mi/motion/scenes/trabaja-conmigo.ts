@@ -28,6 +28,7 @@ export const trabajaConmigo: Scene = ({ root, eases }) => {
         {
           opacity: 1,
           y: 0,
+          clearProps: "transform",
           duration: T.text.duration,
           stagger: T.text.stagger,
         },

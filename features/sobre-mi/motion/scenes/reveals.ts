@@ -11,6 +11,10 @@ import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
  * `[data-sm-reveal]` targets (they have their own scenes); the no-JS block is
  * outside `[data-sm-form]`, so it is never animated.
  *
+ * The transform is cleared when a reveal ends, so the settled page keeps no
+ * inline transforms: they would create stacking contexts that trap the
+ * links' coarse-pointer hit areas under later siblings (RV-0001).
+ *
  * Opacity, not autoAlpha: autoAlpha's `visibility: hidden` would take the
  * not-yet-revealed fields, buttons and links out of the tab order and the
  * accessibility tree (a keyboard user tabbing down would skip the form).
@@ -34,6 +38,7 @@ export const reveals: Scene = ({ root, eases }) => {
       {
         opacity: 1,
         y: 0,
+        clearProps: "transform",
         duration,
         stagger,
         ease: eases.ds,

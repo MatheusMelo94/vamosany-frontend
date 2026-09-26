@@ -36,7 +36,11 @@ export function ProductLedger({ rows }: Props): JSX.Element {
               className="text-label-sm text-ink-muted mt-1.5 block font-mono"
             >
               {row.partner.href ? (
-                <ExternalLink href={row.partner.href} className="text-ink">
+                <ExternalLink
+                  href={row.partner.href}
+                  // standalone link: ≥ 44×44 px tap area on coarse pointers
+                  className="tap-target text-ink"
+                >
                   {row.partner.text}
                 </ExternalLink>
               ) : (

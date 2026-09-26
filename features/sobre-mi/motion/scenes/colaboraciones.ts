@@ -70,7 +70,13 @@ export const colaboraciones: Scene = ({ root, eases }) => {
       tl.fromTo(
         partner,
         { opacity: 0, x: C.partner.x },
-        { opacity: 1, x: 0, duration: C.partner.duration, ease: eases.ds },
+        {
+          opacity: 1,
+          x: 0,
+          duration: C.partner.duration,
+          ease: eases.ds,
+          clearProps: "transform",
+        },
         C.partner.at,
       );
     }
@@ -82,6 +88,7 @@ export const colaboraciones: Scene = ({ root, eases }) => {
         {
           opacity: 1,
           y: 0,
+          clearProps: "transform",
           duration: C.body.duration,
           stagger: C.body.stagger,
           ease: eases.ds,
