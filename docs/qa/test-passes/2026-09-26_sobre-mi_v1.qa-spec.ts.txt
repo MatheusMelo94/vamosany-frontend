@@ -1,0 +1,722 @@
+// QA evidence for docs/qa/test-passes/2026-09-26_sobre-mi_v1.md (not part of the suite).
+// To promote: copy to tests/e2e/sobre-mi/qa-journeys.spec.ts and retag @feature-sobre-mi.
+// Probes that record measurements (tap targets, gap threshold) are exploratory, not assertions of record.
+
+import { test, expect, type Page, type Locator } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { waitForMotionToSettle } from "../support/motion";
+
+/**
+ * QA test pass — Sobre mí (spec v1.1). Covers ACs without an existing E2E
+ * case, the Engineer's 8px-gap question, and exploratory mobile probes.
+ * Synthetic data only. Tag: @qa-sobre-mi.
+ */
+
+const ROUTES = [
+  "/sobre-mi",
+  "/colaboraciones",
+  "/trabaja-conmigo",
+  "/contacto",
+  "/preguntas-frecuentes",
+] as const;
+
+const isDesktop = (page: Page) => (page.viewportSize()?.width ?? 0) >= 1024;
+const header = (page: Page) => page.locator("header[data-nav]");
+const megaPanel = (page: Page) =>
+  header(page).locator(".nav-capsule div.rounded-3xl");
+const field = (page: Page, label: string) =>
+  page.locator("main").getByLabel(label, { exact: true });
+
+async function hydratedButton(page: Page, name: string) {
+  await expect(page.getByRole("button", { name })).toHaveAttribute(
+    "type",
+    "submit",
+  );
+}
+
+async function axeSeriousInMain(page: Page): Promise<string[]> {
+  await waitForMotionToSettle(page);
+  const results = await new AxeBuilder({ page }).analyze();
+  const out: string[] = [];
+  for (const v of results.violations) {
+    if (v.impact !== "serious" && v.impact !== "critical") continue;
+    for (const n of v.nodes) {
+      const target = String(n.target[0]);
+      const inFooter = await page.evaluate(
+        (sel) => Boolean(document.querySelector(sel)?.closest("footer")),
+        target,
+      );
+      if (v.id === "color-contrast" && inFooter) continue; // known, ADR-0006
+      out.push(`${v.id}: ${target}`);
+    }
+  }
+  return out;
+}
+
+/* ---------------------------------------------------------------- AC 2 */
+const OLD = [
+  "Our Story",
+  "How We Research",
+  "Press",
+  "Work With Us",
+  "Refunds",
+  "The usual suspects.",
+  "A human replies.",
+];
+
+test.describe("QA navbar @qa-sobre-mi", () => {
+  test("AC 2: no menu or drawer shows the old About items", async ({ page }) => {
+    await page.goto("/");
+    if (isDesktop(page)) {
+      for (const label of ["Itineraries", "Guides", "Blog", "Services", "Sobre mí"]) {
+        await header(page).getByRole("button", { name: label, exact: true }).focus();
+        await page.keyboard.press("Enter");
+        const panel = megaPanel(page);
+        await expect(panel).toBeVisible();
+        const text = await panel.innerText();
+        for (const o of OLD) expect(text, `${label} panel`).not.toContain(o);
+        expect(text).not.toMatch(/^Contact$/m);
+        await page.keyboard.press("Escape");
+      }
+    } else {
+      await page.getByRole("button", { name: "Toggle menu" }).click();
+      const drawer = header(page).locator("div.fixed.overflow-y-auto");
+      const text = await drawer.innerText();
+      for (const o of OLD) expect(text).not.toContain(o);
+      expect(text).not.toMatch(/^Contact$/m);
+      expect(text).toContain("Sobre mí");
+    }
+  });
+
+  test("8px gap: slow pointer travel from trigger to panel keeps it open", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "mega-menu at >= 1024 only");
+    await page.goto(process.env.GAP_PATH ?? "/sobre-mi");
+    await page.waitForTimeout(1200);
+    const results: string[] = [];
+    for (const label of (process.env.GAP_LABELS ?? "Itineraries,Sobre mí").split(",")) {
+      const trigger = header(page).getByRole("button", { name: label, exact: true });
+      const tb = (await trigger.boundingBox())!;
+      const cap = (await header(page).locator(".nav-capsule").boundingBox())!;
+      await page.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2);
+      await expect(trigger).toHaveAttribute("aria-expanded", "true");
+      const pb = (await megaPanel(page).boundingBox())!;
+      const gap = pb.y - (cap.y + cap.height);
+      // Straight down, 1px per mousemove: a real slow hand.
+      const fromY = tb.y + tb.height / 2;
+      const toY = pb.y + 40;
+      const steps = Math.round(toY - fromY);
+      await page.mouse.move(tb.x + tb.width / 2, toY, { steps });
+      const stillOpen = await trigger.getAttribute("aria-expanded");
+      results.push(`${label}: gap=${gap.toFixed(1)}px steps=${steps} open=${stillOpen}`);
+      // Reset
+      await page.mouse.move(5, 700);
+      await page.waitForTimeout(200);
+    }
+    test.info().annotations.push({ type: "gap-probe", description: results.join(" | ") });
+    console.log("GAP PROBE", page.url(), results.join(" | "));
+    expect(results.every((r) => r.endsWith("open=true")), results.join(" | ")).toBe(true);
+  });
+
+  test("8px gap: fast travel (3 mousemoves) keeps it open", async ({ page }) => {
+    test.skip(!isDesktop(page), "mega-menu at >= 1024 only");
+    await page.goto("/sobre-mi");
+    await page.waitForTimeout(1200);
+    const trigger = header(page).getByRole("button", { name: "Sobre mí", exact: true });
+    const tb = (await trigger.boundingBox())!;
+    await page.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2);
+    const pb = (await megaPanel(page).boundingBox())!;
+    await page.mouse.move(tb.x + tb.width / 2, pb.y + 40, { steps: 3 });
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("keyboard: Tab walks all 5 items with a visible focus ring, marker follows, Esc returns", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "mega-menu at >= 1024 only");
+    await page.goto("/contacto");
+    await page.waitForTimeout(1200);
+    const trigger = header(page).getByRole("button", { name: "Sobre mí", exact: true });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const panel = megaPanel(page);
+    await expect(panel).toBeVisible();
+    const hrefs: string[] = [];
+    const rings: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press("Tab");
+      const f = page.locator(":focus");
+      hrefs.push((await f.getAttribute("href")) ?? "?");
+      rings.push(
+        await f.evaluate((el) => {
+          const s = getComputedStyle(el);
+          return `${s.outlineStyle} ${s.outlineWidth} ${s.boxShadow !== "none" ? "shadow" : ""}`;
+        }),
+      );
+    }
+    console.log("KEYBOARD rings", rings.join(" | "));
+    expect(hrefs).toEqual([
+      "/sobre-mi",
+      "/colaboraciones",
+      "/trabaja-conmigo",
+      "/contacto",
+      "/preguntas-frecuentes",
+    ]);
+    // Current page carries aria-current in the panel (AC 5-equivalent for /contacto)
+    await expect(panel.locator('[aria-current="page"]')).toHaveAttribute("href", "/contacto");
+    for (const r of rings) expect(r.startsWith("none")).toBe(false);
+    // Tab beyond the last item: where does focus go, and does the panel stay open?
+    await page.keyboard.press("Tab");
+    const after = await page.locator(":focus").evaluate((el) => el.outerHTML.slice(0, 80));
+    const expanded = await trigger.getAttribute("aria-expanded");
+    console.log("KEYBOARD after last item", after, "expanded=", expanded);
+    await page.keyboard.press("Escape");
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("AC 3/9 drawer item tap targets and current dot on each route", async ({ page }) => {
+    test.skip(isDesktop(page), "drawer below 1024");
+    await page.goto("/trabaja-conmigo");
+    await page.getByRole("button", { name: "Toggle menu" }).click();
+    const drawer = header(page).locator("div.fixed.overflow-y-auto");
+    const current = drawer.locator('[aria-current="page"]');
+    await expect(current).toHaveAttribute("href", "/trabaja-conmigo");
+    await expect(current.locator("[data-current-dot]")).toHaveCount(1);
+    const sizes = await drawer.locator("a").evaluateAll((els) =>
+      els.map((e) => {
+        const r = e.getBoundingClientRect();
+        return `${(e.textContent ?? "").trim().slice(0, 20)}=${Math.round(r.width)}x${Math.round(r.height)}`;
+      }),
+    );
+    console.log("DRAWER link sizes", sizes.join(" | "));
+    const burger = await page.getByRole("button", { name: "Toggle menu" }).boundingBox();
+    console.log("BURGER size", burger?.width, burger?.height);
+  });
+});
+
+/* --------------------------------------------------- page-level AC gaps */
+test.describe("QA page ACs @qa-sobre-mi", () => {
+  test("AC 26: Sobre mí closing row targets", async ({ page }) => {
+    await page.goto("/sobre-mi");
+    const main = page.locator("main");
+    await expect(main.getByRole("heading", { name: "¿Armamos tu viaje juntos?" })).toBeVisible();
+    await expect(main.getByRole("link", { name: "Ver itinerarios" })).toHaveAttribute("href", "/#services");
+    await expect(main.getByRole("link", { name: "Viajes grupales" })).toHaveAttribute(
+      "href",
+      "/preguntas-frecuentes#viajes-grupales",
+    );
+    await main.getByRole("link", { name: "Ver itinerarios" }).click();
+    await expect(page).toHaveURL(/\/#services$/);
+    await expect(page.locator("#services")).toBeInViewport();
+  });
+
+  test("AC 27/28: partner links open in a new tab and say so", async ({ page }) => {
+    await page.goto("/colaboraciones");
+    const main = page.locator("main");
+    for (const host of ["estudioulbia.com", "monacases.com.uy", "efehus.com"]) {
+      const links = main.locator(`a[href*="${host}"]`);
+      const n = await links.count();
+      expect(n, host).toBeGreaterThan(0);
+      for (let i = 0; i < n; i++) {
+        const l = links.nth(i);
+        await expect(l).toHaveAttribute("target", "_blank");
+        expect(await l.getAttribute("rel")).toContain("noopener");
+        const name = await l.evaluate((el) => el.textContent ?? "");
+        expect(name, host).toContain("(se abre en otra pestaña)");
+        await expect(l).toHaveAccessibleName(/\(se abre en otra pestaña\)/);
+      }
+    }
+    await expect(main.locator('[lang="en"]')).toContainText(
+      "I think about New York more than a normal person should.",
+    );
+    // Seven product rows with H2s
+    const h2 = await main.locator("h2").allTextContents();
+    for (const t of [
+      "El cuaderno que empezó todo",
+      "Agenda Vamos a New York 2023",
+      "Cápsula con Mona Cases",
+      "Cuadernos 2023",
+      "Agenda Vamos a New York 2024",
+      "Tote bags con Efe Hus",
+      "Agenda Vamos a New York 2026",
+    ])
+      expect(h2.map((s) => s.trim())).toContain(t);
+  });
+
+  test("AC 31: Colaboraciones closing row", async ({ page }) => {
+    await page.goto("/colaboraciones");
+    const main = page.locator("main");
+    await expect(main.getByRole("heading", { name: "¿Querés crear algo juntos?" })).toBeVisible();
+    await expect(main.getByText(/Cada una de estas colaboraciones nació de una conversación/)).toBeVisible();
+    await expect(main.getByRole("link", { name: "Escribime", exact: true })).toHaveAttribute(
+      "href",
+      "mailto:hola@vamosany.com",
+    );
+    await expect(main.getByRole("link", { name: "Trabajá conmigo", exact: true })).toHaveAttribute(
+      "href",
+      "/trabaja-conmigo",
+    );
+  });
+
+  test("AC 33/37: Trabajá conmigo form labels in md order, idle state", async ({ page }) => {
+    await page.goto("/trabaja-conmigo");
+    await hydratedButton(page, "Agendemos un cafecito");
+    const form = page.locator("main [data-sm-form]");
+    const labels = (await form.locator("label").allTextContents()).map((s) => s.replace(/\s+/g, " ").trim());
+    expect(labels).toEqual([
+      "Nombre",
+      "Empresa o marca",
+      "¿Qué tipo de colaboración te interesa?",
+      "Email",
+      "Contame tu idea",
+    ]);
+    const sel = field(page, "¿Qué tipo de colaboración te interesa?");
+    await expect(sel).toHaveValue("");
+    expect((await sel.locator("option:checked").innerText()).trim()).toBe("Elegí una opción");
+    expect((await sel.locator("option").allInnerTexts()).map((s) => s.trim())).toEqual([
+      "Elegí una opción",
+      "Marca",
+      "Servicio en New York",
+      "Guía turístico",
+      "Empresa",
+      "Agencia de viajes",
+      "Otro",
+    ]);
+    for (const l of ["Nombre", "Empresa o marca", "Email", "Contame tu idea"])
+      await expect(field(page, l)).toHaveValue("");
+    await expect(page.locator("main")).not.toContainText("Uso tu email solo para responderte.");
+    const main = page.locator("main");
+    for (const t of ["El cafecito", "Virtual", "En Montevideo", "O en New York"])
+      await expect(main.getByText(t, { exact: true })).toBeVisible();
+    await expect(field(page, "Nombre")).toHaveAttribute("autocomplete", "name");
+    await expect(field(page, "Empresa o marca")).toHaveAttribute("autocomplete", "organization");
+    await expect(field(page, "Email")).toHaveAttribute("autocomplete", "email");
+  });
+
+  test("AC 34/36/37/40: Contacto copy, labels, optional travel date", async ({ page }) => {
+    await page.goto("/contacto");
+    await hydratedButton(page, "Enviar mensaje");
+    const main = page.locator("main");
+    const text = await main.innerText();
+    expect(text).toContain("puede que tarde un par de días en contestarte");
+    expect(text).not.toMatch(/[[\]]/);
+    await expect(main.getByRole("heading", { name: "Otras formas de encontrarme", exact: true })).toBeVisible();
+    const form = page.locator("main [data-sm-form]");
+    const labels = (await form.locator("label").allTextContents()).map((s) => s.replace(/\s+/g, " ").trim());
+    expect(labels).toEqual([
+      "Nombre",
+      "Email",
+      "¿Sobre qué me escribís?",
+      "¿Cuándo viajás? (opcional)",
+      "Mensaje",
+    ]);
+    const sel = field(page, "¿Sobre qué me escribís?");
+    await expect(sel).toHaveValue("");
+    expect((await sel.locator("option").allInnerTexts()).map((s) => s.trim())).toEqual([
+      "Elegí una opción",
+      "Itinerario personalizado",
+      "Consultoría",
+      "Viajes grupales",
+      "Productos",
+      "Colaboraciones",
+      "Otro",
+    ]);
+    await expect(main).not.toContainText("Uso tu email solo para responderte.");
+    // AC 40: empty travel date doesn't block
+    await field(page, "Nombre").fill("Persona Sintetica 7f3a");
+    await field(page, "Email").fill("sintetico-7f3a@ejemplo.test");
+    await sel.selectOption({ index: 2 });
+    await field(page, "Mensaje").fill("mensaje-sintetico-7f3a");
+    await page.getByRole("button", { name: "Enviar mensaje" }).click();
+    await expect(page.getByRole("status")).toBeVisible();
+    await expect(field(page, "¿Cuándo viajás? (opcional)")).not.toHaveAttribute("aria-invalid", "true");
+    // Channels are links
+    for (const [name, href] of [
+      ["hola@vamosany.com", "mailto:hola@vamosany.com"],
+      ["Instagram", "https://www.instagram.com/vamosany/"],
+      ["TikTok", "https://www.tiktok.com/@vamosany"],
+    ] as const) {
+      const l = main.locator(`[data-sm-notes] a[href="${href}"]`);
+      await expect(l, name).toHaveCount(1);
+    }
+  });
+
+  test("AC 46/50: FAQ groups, counts, list, closing row", async ({ page }) => {
+    await page.goto("/preguntas-frecuentes");
+    const main = page.locator("main");
+    for (const [id, name, count, n] of [
+      ["itinerarios-y-consultorias", "Itinerarios y consultorías", "8 preguntas", 8],
+      ["viajes-grupales", "Viajes grupales", "5 preguntas", 5],
+      ["productos", "Productos", "1 pregunta", 1],
+    ] as const) {
+      const g = main.locator(`[id="${id}"]`);
+      await expect(g, id).toHaveCount(1);
+      await expect(main.getByRole("heading", { name, exact: true })).toBeVisible();
+      await expect(g).toContainText(count);
+      await expect(g.locator("details")).toHaveCount(n);
+    }
+    await expect(main.locator("details")).toHaveCount(14);
+    const second = main.locator("details").nth(1);
+    await second.locator("summary").click();
+    await expect(second.locator("ul > li")).toHaveCount(5);
+    await expect(main.getByRole("heading", { name: "¿No está tu pregunta? Escribime y te respondo yo." })).toBeVisible();
+    await expect(main.getByRole("link", { name: "Escribime", exact: true })).toHaveAttribute("href", "/contacto");
+    await expect(page.locator("main")).toContainText("14 preguntas");
+  });
+});
+
+/* --------------------------------------------- AC 45: axe per form state */
+const FORMS = [
+  { path: "/contacto", button: "Enviar mensaje" },
+  { path: "/trabaja-conmigo", button: "Agendemos un cafecito" },
+] as const;
+
+for (const f of FORMS) {
+  test.describe(`QA ${f.path} axe per state @qa-sobre-mi`, () => {
+    test("AC 45: Field error and Not configured are axe-clean at this viewport", async ({ page }) => {
+      await page.goto(f.path);
+      await hydratedButton(page, f.button);
+      await page.locator("main [data-sm-form]").scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: f.button }).click();
+      await expect(page.locator('main [aria-invalid="true"]').first()).toBeVisible();
+      expect(await axeSeriousInMain(page), "field error").toEqual([]);
+      // fill all required
+      const main = page.locator("main");
+      await field(page, "Nombre").fill("Persona Sintetica 7f3a");
+      await field(page, "Email").fill("sintetico-7f3a@ejemplo.test");
+      if (f.path === "/contacto") {
+        await field(page, "¿Sobre qué me escribís?").selectOption({ index: 1 });
+        await field(page, "Mensaje").fill("mensaje-sintetico-7f3a");
+      } else {
+        await field(page, "Empresa o marca").fill("estudio-sintetico-7f3a");
+        await field(page, "¿Qué tipo de colaboración te interesa?").selectOption({ index: 1 });
+        await field(page, "Contame tu idea").fill("idea-sintetica-7f3a");
+      }
+      await page.getByRole("button", { name: f.button }).click();
+      await expect(page.getByRole("status")).toBeFocused();
+      // Next Tab reaches the banner's mailto (spec § Accessibility, keyboard path)
+      await page.keyboard.press("Tab");
+      await expect(page.locator(":focus")).toHaveAttribute("href", "mailto:hola@vamosany.com");
+      expect(await axeSeriousInMain(page), "not configured").toEqual([]);
+      void main;
+    });
+
+    test("keyboard: Tab order through the form is md order and focus not obscured", async ({ page }) => {
+      await page.goto(f.path);
+      await hydratedButton(page, f.button);
+      const first = field(page, "Nombre");
+      await first.focus();
+      const order: string[] = [];
+      const obscured: string[] = [];
+      for (let i = 0; i < 6; i++) {
+        const info = await page.locator(":focus").evaluate((el) => {
+          const nav = document.querySelector("header[data-nav] .nav-capsule")!.getBoundingClientRect();
+          const r = el.getBoundingClientRect();
+          return {
+            id: (el as HTMLInputElement).name || el.textContent?.trim() || el.tagName,
+            top: r.top,
+            navBottom: nav.bottom,
+          };
+        });
+        order.push(info.id);
+        if (info.top < info.navBottom) obscured.push(`${info.id}@${Math.round(info.top)}<${Math.round(info.navBottom)}`);
+        await page.keyboard.press("Tab");
+      }
+      console.log("FORM TAB ORDER", f.path, order.join(" > "), "obscured:", obscured.join(","));
+      expect(obscured).toEqual([]);
+    });
+
+    test("pre-hydration TAP (touch) sends and navigates nothing", async ({ page }) => {
+      test.skip(!page.viewportSize() || page.viewportSize()!.width > 400, "phone only");
+      let release: () => void = () => {};
+      const held = new Promise<void>((r) => (release = r));
+      await page.route("**/_next/static/chunks/**", async (route) => {
+        await held;
+        await route.continue();
+      });
+      const reqs: { url: string; body: string; method: string; type: string }[] = [];
+      page.on("request", (r) =>
+        reqs.push({ url: r.url(), body: r.postData() ?? "", method: r.method(), type: r.resourceType() }),
+      );
+      await page.goto(f.path, { waitUntil: "domcontentloaded" });
+      const url = page.url();
+      const value = "sintetico-tap-9c1e@ejemplo.test";
+      await field(page, "Email").fill(value);
+      await field(page, "Nombre").fill("Persona Tap 9c1e");
+      await page.getByRole("button", { name: f.button }).tap();
+      await page.waitForTimeout(1000);
+      release();
+      await hydratedButton(page, f.button);
+      await page.waitForTimeout(300);
+      expect(page.url()).toBe(url);
+      expect(reqs.filter((r) => r.type === "document")).toHaveLength(1);
+      expect(reqs.filter((r) => r.method !== "GET" || r.body !== "")).toEqual([]);
+      expect(reqs.filter((r) => r.url.includes("9c1e") || r.body.includes("9c1e"))).toEqual([]);
+    });
+  });
+}
+
+/* ---------------------------------------------------- exploratory: mobile */
+async function overflowReport(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const vw = document.documentElement.clientWidth;
+    const out: string[] = [];
+    const sw = document.scrollingElement!.scrollWidth;
+    if (sw > vw) out.push(`scrollWidth ${sw} > ${vw}`);
+    for (const el of document.querySelectorAll<HTMLElement>("main *, header *")) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      const s = getComputedStyle(el);
+      if (s.visibility === "hidden" || s.opacity === "0") continue;
+      if (el.closest("[aria-hidden='true']")) continue;
+      if (r.right > vw + 0.5 || r.left < -0.5) {
+        // ignore descendants of an element that clips horizontally
+        let p: HTMLElement | null = el.parentElement;
+        let clipped = false;
+        while (p && p !== document.body) {
+          const ps = getComputedStyle(p);
+          if (ps.overflowX !== "visible" || ps.overflow === "hidden" || ps.clipPath !== "none") {
+            const pr = p.getBoundingClientRect();
+            if (pr.right <= vw + 0.5 && pr.left >= -0.5) {
+              clipped = true;
+              break;
+            }
+          }
+          p = p.parentElement;
+        }
+        if (!clipped)
+          out.push(
+            `${el.tagName.toLowerCase()}.${(el.className?.toString() ?? "").slice(0, 40)} "${(el.textContent ?? "").trim().slice(0, 30)}" [${Math.round(r.left)},${Math.round(r.right)}]`,
+          );
+      }
+    }
+    return out.slice(0, 15);
+  });
+}
+
+async function scrollThrough(page: Page) {
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.body.scrollHeight; y += 400) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 60));
+    }
+    window.scrollTo(0, document.body.scrollHeight);
+    await new Promise((r) => setTimeout(r, 400));
+  });
+}
+
+const VIEWS = [
+  { name: "320x640", width: 320, height: 640, mobile: true },
+  { name: "landscape-640x360", width: 640, height: 360, mobile: true },
+  { name: "zoom200-of-1280 (640x400)", width: 640, height: 400, mobile: false },
+];
+
+for (const v of VIEWS) {
+  test.describe(`QA exploratory ${v.name} @qa-sobre-mi`, () => {
+    test.use({ viewport: { width: v.width, height: v.height }, isMobile: v.mobile, hasTouch: v.mobile });
+    for (const r of ROUTES) {
+      test(`${r}: no horizontal overflow (JS on, after full scroll)`, async ({ page }, info) => {
+        test.skip(info.project.name !== "phone-360", "run once");
+        await page.goto(r);
+        await page.waitForTimeout(800);
+        await scrollThrough(page);
+        const rep = await overflowReport(page);
+        console.log("OVERFLOW", v.name, r, JSON.stringify(rep));
+        expect(rep).toEqual([]);
+      });
+    }
+    test("no-JS contact blocks: no overflow", async ({ browser }, info) => {
+      test.skip(info.project.name !== "phone-360", "run once");
+      const ctx = await browser.newContext({
+        javaScriptEnabled: false,
+        viewport: { width: v.width, height: v.height },
+        isMobile: v.mobile,
+        hasTouch: v.mobile,
+      });
+      const page = await ctx.newPage();
+      for (const r of ["/contacto", "/trabaja-conmigo"]) {
+        await page.goto(r);
+        const rep = await overflowReport(page);
+        console.log("OVERFLOW-NOJS", v.name, r, JSON.stringify(rep));
+        expect(rep, r).toEqual([]);
+      }
+      await ctx.close();
+    });
+  });
+}
+
+test.describe("QA exploratory tap targets @qa-sobre-mi", () => {
+  for (const r of ROUTES) {
+    test(`${r}: interactive targets >= 44x44 on coarse pointer`, async ({ page }, info) => {
+      test.skip(info.project.name !== "phone-360", "coarse pointer project only");
+      await page.goto(r);
+      await page.waitForTimeout(800);
+      await scrollThrough(page);
+      const small = await page.evaluate(() => {
+        const out: string[] = [];
+        for (const el of document.querySelectorAll<HTMLElement>(
+          "main a, main button, main summary, main input, main select, main textarea, header a, header button",
+        )) {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 && r.height === 0) continue;
+          // Inline links inside running prose are exempt (WCAG 2.5.8 inline exception)
+          const inProse = el.tagName === "A" && el.closest("p") && getComputedStyle(el).display === "inline";
+          if (r.width < 44 || r.height < 44)
+            out.push(
+              `${inProse ? "[inline] " : ""}${el.tagName.toLowerCase()} "${(el.getAttribute("aria-label") ?? el.textContent ?? "").trim().slice(0, 28)}" ${Math.round(r.width)}x${Math.round(r.height)}`,
+            );
+        }
+        return out;
+      });
+      console.log("TAP", r, JSON.stringify(small));
+      const nonInline = small.filter((s) => !s.startsWith("[inline]"));
+      test.info().annotations.push({ type: "tap", description: nonInline.join(" | ") });
+      expect.soft(nonInline).toEqual([]);
+    });
+  }
+});
+
+test.describe("QA exploratory long input @qa-sobre-mi", () => {
+  test("long email / long unbroken name / emoji do not widen the page; error line wraps", async ({ page }) => {
+    await page.goto("/contacto");
+    await hydratedButton(page, "Enviar mensaje");
+    const long = "sintetico." + "x".repeat(90) + "@ejemplo-muy-largo-sintetico.test";
+    await field(page, "Email").fill(long.replace("@", ""));
+    await field(page, "Nombre").fill("Supercalifragilisticoespialidoso".repeat(4) + " 🗽🍎✨");
+    await page.getByRole("button", { name: "Enviar mensaje" }).click();
+    await expect(field(page, "Email")).toHaveAttribute("aria-invalid", "true");
+    const rep = await overflowReport(page);
+    console.log("LONGINPUT", page.viewportSize()?.width, JSON.stringify(rep));
+    expect(rep).toEqual([]);
+    await expect(field(page, "Nombre")).toHaveAttribute("maxlength", "100");
+  });
+
+  test("whitespace-only required fields are rejected; leading/trailing spaces", async ({ page }) => {
+    await page.goto("/contacto");
+    await hydratedButton(page, "Enviar mensaje");
+    await field(page, "Nombre").fill("   ");
+    await field(page, "Email").fill("  sintetico-7f3a@ejemplo.test  ");
+    await field(page, "¿Sobre qué me escribís?").selectOption({ index: 1 });
+    await field(page, "Mensaje").fill("   \n  ");
+    await page.getByRole("button", { name: "Enviar mensaje" }).click();
+    const nameInvalid = await field(page, "Nombre").getAttribute("aria-invalid");
+    const msgInvalid = await field(page, "Mensaje").getAttribute("aria-invalid");
+    const emailInvalid = await field(page, "Email").getAttribute("aria-invalid");
+    console.log("WHITESPACE nameInvalid", nameInvalid, "msgInvalid", msgInvalid, "emailInvalid", emailInvalid);
+    expect(nameInvalid).toBe("true");
+    expect(msgInvalid).toBe("true");
+    expect(emailInvalid).not.toBe("true");
+  });
+
+  test("Enter in a text field submits (implicit submission) and double submit keeps one banner", async ({ page }) => {
+    await page.goto("/trabaja-conmigo");
+    await hydratedButton(page, "Agendemos un cafecito");
+    await field(page, "Nombre").fill("Persona Sintetica 7f3a");
+    await field(page, "Empresa o marca").fill("estudio-sintetico-7f3a");
+    await field(page, "¿Qué tipo de colaboración te interesa?").selectOption({ index: 3 });
+    await field(page, "Email").fill("sintetico-7f3a@ejemplo.test");
+    await field(page, "Contame tu idea").fill("idea-sintetica-7f3a");
+    await field(page, "Email").press("Enter");
+    await expect(page.getByRole("status")).toBeVisible();
+    const btn = page.getByRole("button", { name: "Agendemos un cafecito" });
+    await btn.dblclick();
+    await expect(page.getByRole("status")).toHaveCount(1);
+  });
+});
+
+test.describe("QA exploratory reduced motion screenshots @qa-sobre-mi", () => {
+  test.use({ reducedMotion: "reduce" });
+  for (const r of ROUTES) {
+    test(`${r}: full page, reduced motion, nothing hidden`, async ({ page }, info) => {
+      await page.goto(r);
+      await page.evaluate(() => document.fonts.ready);
+      const hidden = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>("main *")]
+          .filter((el) => {
+            const s = getComputedStyle(el);
+            return (
+              el.getClientRects().length > 0 &&
+              (s.opacity === "0" || s.visibility === "hidden") &&
+              !el.closest("[aria-hidden='true']") &&
+              (el.textContent ?? "").trim().length > 0
+            );
+          })
+          .map((el) => `${el.tagName} ${(el.textContent ?? "").trim().slice(0, 30)}`),
+      );
+      expect(hidden).toEqual([]);
+      await page.screenshot({
+        path: `../qa-shots/reduced-${info.project.name}${r.replace(/\//g, "_")}.png`,
+        fullPage: true,
+      });
+    });
+  }
+});
+
+void ({} as Locator);
+
+// ---- gap-threshold.spec.ts ----
+import { test, expect } from "@playwright/test";
+test("gap threshold @qa-sobre-mi", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) < 1024);
+  await page.goto("/sobre-mi");
+  await page.waitForTimeout(1200);
+  const hdr = page.locator("header[data-nav]");
+  const out: string[] = [];
+  for (const px of [2, 4, 6, 8, 10, 12, 16, 24]) {
+    let closed = 0;
+    for (let rep = 0; rep < 4; rep++) {
+      const trigger = hdr.getByRole("button", { name: "Sobre mí", exact: true });
+      const tb = (await trigger.boundingBox())!;
+      // start at varied offsets inside the trigger so sample phase varies
+      const y0 = tb.y + tb.height / 2 + rep * 1.7;
+      await page.mouse.move(tb.x + tb.width / 2, y0);
+      await expect(trigger).toHaveAttribute("aria-expanded", "true");
+      const pb = (await hdr.locator(".nav-capsule div.rounded-3xl").boundingBox())!;
+      const toY = pb.y + 40;
+      const steps = Math.max(1, Math.round((toY - y0) / px));
+      await page.mouse.move(tb.x + tb.width / 2, toY, { steps });
+      if ((await trigger.getAttribute("aria-expanded")) !== "true") closed++;
+      await page.mouse.move(5, 700);
+      await page.waitForTimeout(150);
+    }
+    out.push(`${px}px/sample: closed ${closed}/4`);
+  }
+  console.log("THRESHOLD", out.join(" | "));
+});
+
+// ---- nav-probes.spec.ts ----
+import { test, expect } from "@playwright/test";
+test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024);
+test("click on trigger after hover @qa-sobre-mi", async ({ page }) => {
+  await page.goto(process.env.GAP_PATH ?? "/sobre-mi");
+  await page.waitForTimeout(1000);
+  const t = page.locator("header[data-nav]").getByRole("button", { name: process.env.LBL ?? "Sobre mí", exact: true });
+  await t.click(); // real pointer: moves (mouseenter) then clicks
+  await page.waitForTimeout(300);
+  console.log("CLICK result aria-expanded =", await t.getAttribute("aria-expanded"));
+});
+test("tab past panel into main: panel still open over focus? @qa-sobre-mi", async ({ page }) => {
+  await page.goto(process.env.GAP_PATH ?? "/sobre-mi");
+  await page.waitForTimeout(1000);
+  const t = page.locator("header[data-nav]").getByRole("button", { name: process.env.LBL ?? "Sobre mí", exact: true });
+  await t.focus();
+  await page.keyboard.press("Enter");
+  const log: string[] = [];
+  for (let i = 0; i < 14; i++) {
+    await page.keyboard.press("Tab");
+    const info = await page.evaluate(() => {
+      const f = document.activeElement as HTMLElement;
+      const panel = document.querySelector("header[data-nav] .nav-capsule div.rounded-3xl");
+      const fr = f.getBoundingClientRect();
+      let covered = false;
+      if (panel) {
+        const pr = panel.getBoundingClientRect();
+        covered = !f.closest("header") && fr.top < pr.bottom && fr.bottom > pr.top && fr.left < pr.right && fr.right > pr.left;
+      }
+      return `${f.tagName}:${(f.textContent ?? "").trim().slice(0, 18)} open=${!!panel} covered=${covered}`;
+    });
+    log.push(info);
+  }
+  console.log("TABPAST", log.join(" | "));
+});
