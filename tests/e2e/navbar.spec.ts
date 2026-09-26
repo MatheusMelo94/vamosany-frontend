@@ -31,7 +31,23 @@ async function isolate(page: Page) {
   );
 }
 
-const PANELS = ["Itineraries", "Guides", "Blog", "Services", "About"] as const;
+/** Trigger label → snapshot slug. "About" became "Sobre mí" (DDR-0002; plan § 12 item 5). */
+const PANELS = [
+  ["Itineraries", "itineraries"],
+  ["Guides", "guides"],
+  ["Blog", "blog"],
+  ["Services", "services"],
+  ["Sobre mí", "sobre-mi"],
+] as const;
+
+/** spec § Menu IA (DDR-0002). */
+const SOBRE_MI_ITEMS = [
+  ["Sobre mí", "/sobre-mi"],
+  ["Colaboraciones", "/colaboraciones"],
+  ["Trabajá conmigo", "/trabaja-conmigo"],
+  ["Contacto", "/contacto"],
+  ["FAQ", "/preguntas-frecuentes"],
+] as const;
 
 type Box = { x: number; y: number; width: number; height: number };
 
@@ -64,7 +80,7 @@ const header = (page: Page) => page.locator("header[data-nav]");
 
 /** The open desktop mega-menu panel: the only rounded-3xl block inside the capsule. */
 const megaPanel = (page: Page) =>
-  header(page).locator(".nav-capsule > div.rounded-3xl");
+  header(page).locator(".nav-capsule div.rounded-3xl");
 
 const isDesktop = (page: Page) => (page.viewportSize()?.width ?? 0) >= 1024;
 
@@ -92,7 +108,7 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     });
   });
 
-  for (const label of PANELS) {
+  for (const [label, slug] of PANELS) {
     test(`mega-menu panel: ${label}`, async ({ page }) => {
       test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
       await open(page);
@@ -107,13 +123,10 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
       const panel = megaPanel(page);
       await expect(panel).toBeVisible();
       await isolate(page);
-      await expect(page).toHaveScreenshot(
-        `navbar-panel-${label.toLowerCase()}.png`,
-        {
-          clip: union(await box(header(page)), await box(panel)),
-          animations: "disabled",
-        },
-      );
+      await expect(page).toHaveScreenshot(`navbar-panel-${slug}.png`, {
+        clip: union(await box(header(page)), await box(panel)),
+        animations: "disabled",
+      });
     });
   }
 
@@ -146,5 +159,48 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     await expect(page).toHaveScreenshot("drawer-last-group.png", {
       animations: "disabled",
     });
+  });
+});
+
+test.describe("navbar Sobre mí group (DDR-0002) @feature-sobre-mi", () => {
+  test("desktop panel links each item to its route (AC 1)", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
+    await open(page);
+    const trigger = header(page).getByRole("button", {
+      name: "Sobre mí",
+      exact: true,
+    });
+    await trigger.hover();
+    const panel = megaPanel(page);
+    await expect(panel).toBeVisible();
+    await expect(panel.getByText("Vamos a New York")).toBeVisible();
+    await expect(panel.getByText("Ayuda")).toBeVisible();
+    for (const [title, href] of SOBRE_MI_ITEMS) {
+      await expect(
+        panel.getByRole("link", { name: new RegExp(`^${title} `) }),
+      ).toHaveAttribute("href", href);
+    }
+  });
+
+  test("drawer: tapping an item navigates and closes the drawer (AC 3)", async ({
+    page,
+  }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await open(page);
+    const toggle = header(page).getByRole("button", { name: "Toggle menu" });
+    await toggle.click();
+    const drawer = header(page).locator("> div.overflow-y-auto");
+    for (const [title, href] of SOBRE_MI_ITEMS) {
+      await expect(
+        drawer.getByRole("link", { name: title, exact: true }),
+      ).toHaveAttribute("href", href);
+    }
+    await drawer
+      .getByRole("link", { name: "Colaboraciones", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/colaboraciones$/);
+    await expect(drawer).toHaveCount(0);
   });
 });

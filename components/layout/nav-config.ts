@@ -3,6 +3,8 @@
  * mega-menu and the mobile drawer (one concern per file, split out of
  * navbar.tsx in T007).
  */
+import { SOBRE_MI_NAV } from "@/features/sobre-mi/content/nav";
+
 export type NavItem = {
   title: string;
   blurb: string;
@@ -166,28 +168,7 @@ export const NAV: NavGroup[] = [
       },
     ],
   },
-  {
-    label: "About",
-    columns: [
-      {
-        heading: "The studio",
-        items: [
-          { title: "Our Story", blurb: "Why we started walking." },
-          { title: "How We Research", blurb: "On foot, twice a year." },
-          { title: "Press", blurb: "Where we've turned up." },
-          { title: "Work With Us", blurb: "Partnerships and briefs." },
-        ],
-      },
-      {
-        heading: "Help",
-        items: [
-          { title: "Contact", blurb: "A human replies." },
-          { title: "Refunds", blurb: "Fourteen days, no questions." },
-          { title: "FAQ", blurb: "The usual suspects." },
-        ],
-      },
-    ],
-  },
+  SOBRE_MI_NAV,
 ];
 
 /** Routes whose navbar capsule renders the reading bar (DDR-0004, M4). */
