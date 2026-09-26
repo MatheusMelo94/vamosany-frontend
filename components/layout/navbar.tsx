@@ -2,12 +2,20 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { GlobeIcon } from "@/components/ui/icons";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { cn } from "@/lib/utils";
 import { NAV } from "@/components/layout/nav-config";
+
+/* Desktop-only, pointer/focus-driven: loaded on first panel open, never in
+   First Load JS (plan § 11). Until it mounts, items keep their CSS hover. */
+const NavMarker = dynamic(
+  () => import("./nav-marker").then((m) => m.NavMarker),
+  { ssr: false },
+);
 
 const LANGUAGES = [
   { code: "EN", label: "English" },
@@ -133,8 +141,10 @@ export function Navbar(): JSX.Element {
                     onMouseEnter={() => setOpen(group.label)}
                     onMouseLeave={() => setOpen(null)}
                   >
+                    <NavMarker />
+                    {/* relative: the items paint above the marker's highlight */}
                     <div
-                      className="grid gap-10 px-8 py-8"
+                      className="relative grid gap-10 px-8 py-8"
                       style={{
                         gridTemplateColumns: `repeat(${group.columns.length}, minmax(0,1fr))`,
                       }}
@@ -147,17 +157,26 @@ export function Navbar(): JSX.Element {
                               <li key={item.title}>
                                 <Link
                                   href={item.href ?? "#services"}
+                                  data-nav-item
                                   aria-current={
                                     isCurrent(item.href) ? "page" : undefined
                                   }
                                   className={cn(
-                                    "group hover:bg-surface-1 block rounded-xl p-3 transition-colors",
+                                    // Once the marker is ready it is the hover highlight (DDR-0003).
+                                    "group hover:bg-surface-1 block rounded-xl p-3 transition-colors in-data-marker-ready:hover:bg-transparent",
                                     item.price &&
                                       "border-hairline hover:border-ink border",
                                   )}
                                 >
-                                  <span className="body-sm text-ink flex items-center gap-2 font-semibold">
-                                    {item.title}
+                                  {/* pr-4: room for the marker dot, which sits
+                                      24px in from the item's right edge (DDR-0003) */}
+                                  <span className="body-sm text-ink flex items-center gap-2 pr-4 font-semibold">
+                                    <span
+                                      data-nav-title
+                                      className="underline-offset-4 group-hover:underline"
+                                    >
+                                      {item.title}
+                                    </span>
                                     {item.tag ? (
                                       <span className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap">
                                         {item.tag}

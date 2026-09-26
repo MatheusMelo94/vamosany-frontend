@@ -227,3 +227,211 @@ test.describe("navbar keyboard path (AC 10) @feature-sobre-mi", () => {
     await expect(trigger).toBeFocused();
   });
 });
+
+/* ---- Moving marker (DDR-0003; T011) ---------------------------------- */
+
+/** Dot rest position on an item (page coords): 24px in from the right, 15px down. */
+const DOT_OFFSET = { right: 24, top: 15 };
+
+async function openByHover(page: Page, label: string): Promise<Locator> {
+  const trigger = header(page).getByRole("button", {
+    name: label,
+    exact: true,
+  });
+  await trigger.hover();
+  const panel = megaPanel(page);
+  await expect(panel).toBeVisible();
+  // The marker chunk is dynamic: wait until it has mounted in this panel.
+  await expect(panel).toHaveAttribute("data-marker-ready", "");
+  return panel;
+}
+
+/** Waits until the dot rests on `item` (x/y within half a pixel, scale 1). */
+async function expectDotOn(panel: Locator, item: Locator, timeout = 3000) {
+  const target = await box(item);
+  const dot = panel.locator("[data-marker-dot]");
+  await expect
+    .poll(
+      async () => {
+        const d = await box(dot);
+        return (
+          Math.abs(d.x - (target.x + target.width - DOT_OFFSET.right)) <= 0.5 &&
+          Math.abs(d.y - (target.y + DOT_OFFSET.top)) <= 0.5 &&
+          Math.abs(d.width - 10) <= 0.1
+        );
+      },
+      { timeout },
+    )
+    .toBe(true);
+}
+
+/** The highlight's visible rect, from its clip-path inset against the marker root. */
+async function highlightBox(panel: Locator): Promise<Box> {
+  return panel.locator("[data-nav-marker]").evaluate((root) => {
+    const layer = root.querySelector<HTMLElement>("[data-marker-layer]");
+    const r = root.getBoundingClientRect();
+    const m = /inset\(([-\d.]+)px ([-\d.]+)px ([-\d.]+)px ([-\d.]+)px/.exec(
+      layer ? getComputedStyle(layer).clipPath : "",
+    );
+    if (!m) throw new Error("no clip-path inset on the highlight");
+    const [top, right, bottom, left] = m.slice(1).map(Number) as [
+      number,
+      number,
+      number,
+      number,
+    ];
+    return {
+      x: r.left + left,
+      y: r.top + top,
+      width: r.width - left - right,
+      height: r.height - top - bottom,
+    };
+  });
+}
+
+function overlaps(a: Box, b: Box): boolean {
+  return (
+    a.x < b.x + b.width &&
+    b.x < a.x + a.width &&
+    a.y < b.y + b.height &&
+    b.y < a.y + a.height
+  );
+}
+
+test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
+  });
+
+  for (const [label] of PANELS) {
+    test(`${label}: one highlight and one dot follow the pointer (AC 4)`, async ({
+      page,
+    }) => {
+      await open(page);
+      const panel = await openByHover(page, label);
+      const items = panel.locator("[data-nav-item]");
+      await expect(panel.locator("[data-marker-layer]")).toHaveCount(1);
+      await expect(panel.locator("[data-marker-dot]")).toHaveCount(1);
+
+      const first = items.first();
+      const last = items.last();
+      await first.hover();
+      await expectDotOn(panel, first);
+      await last.hover();
+      await expectDotOn(panel, last);
+      await expect
+        .poll(async () => {
+          const h = await highlightBox(panel);
+          const t = await box(last);
+          return [h.x - t.x, h.y - t.y, h.width - t.width, h.height - t.height]
+            .map((v) => Math.round(Math.abs(v)))
+            .join(",");
+        })
+        .toBe("0,0,0,0");
+      // The item's own hover background is off: the marker is the highlight.
+      await expect(last).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    });
+  }
+
+  test("follows keyboard focus (AC 4)", async ({ page }) => {
+    await open(page);
+    const trigger = header(page).getByRole("button", {
+      name: "Sobre mí",
+      exact: true,
+    });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const panel = megaPanel(page);
+    await expect(panel).toHaveAttribute("data-marker-ready", "");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await expectDotOn(panel, panel.locator("[data-nav-item]").nth(1));
+  });
+
+  test("retargets mid-flight to the latest item", async ({ page }) => {
+    await open(page);
+    const panel = await openByHover(page, "Itineraries");
+    const items = panel.locator("[data-nav-item]");
+    await items.nth(0).hover();
+    await expectDotOn(panel, items.nth(0));
+    await items.nth(11).hover();
+    await page.waitForTimeout(120);
+    await items.nth(5).hover();
+    await expectDotOn(panel, items.nth(5));
+    await expect(panel.locator("[data-marker-dot]")).toHaveCount(1);
+  });
+
+  for (const [label] of PANELS) {
+    test(`${label}: the dot never covers a title, tag or price (AC 7)`, async ({
+      page,
+    }) => {
+      await open(page);
+      const panel = await openByHover(page, label);
+      const items = panel.locator("[data-nav-item]");
+      const count = await items.count();
+      for (let i = 0; i < count; i++) {
+        const item = items.nth(i);
+        await item.hover();
+        await expectDotOn(panel, item);
+        const dot = await box(panel.locator("[data-marker-dot]"));
+        const blockers = [item.locator("[data-nav-title]")];
+        for (const text of ["Best seller", "New", "Most popular"]) {
+          const tag = item.getByText(text, { exact: true });
+          if (await tag.count()) blockers.push(tag);
+        }
+        for (const price of ["from €25", "€149", "€290", "See details"]) {
+          const el = item.getByText(price, { exact: true });
+          if (await el.count()) blockers.push(el);
+        }
+        for (const blocker of blockers) {
+          expect(overlaps(dot, await box(blocker))).toBe(false);
+        }
+      }
+    });
+  }
+
+  for (const [label, slug] of PANELS) {
+    test(`${label}: hover snapshot`, async ({ page }) => {
+      await open(page);
+      const panel = await openByHover(page, label);
+      const item = panel.locator("[data-nav-item]").nth(1);
+      await item.hover();
+      await expectDotOn(panel, item);
+      await page.waitForTimeout(400);
+      await isolate(page);
+      await expect(page).toHaveScreenshot(`navbar-panel-${slug}-hover.png`, {
+        clip: union(await box(header(page)), await box(panel)),
+        animations: "disabled",
+      });
+    });
+  }
+
+  test.describe("reduced motion", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("the marker jumps with no travel (AC 8)", async ({ page }) => {
+      await open(page);
+      const panel = await openByHover(page, "Guides");
+      const items = panel.locator("[data-nav-item]");
+      await items.nth(0).hover();
+      await expectDotOn(panel, items.nth(0), 500);
+      await items.nth(11).hover();
+      await page.evaluate(
+        () =>
+          new Promise<void>((r) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => r())),
+          ),
+      );
+      // Two frames after the hover, the dot already rests on the target: no tween.
+      const target = await box(items.nth(11));
+      const dot = await box(panel.locator("[data-marker-dot]"));
+      expect(
+        Math.abs(dot.x - (target.x + target.width - DOT_OFFSET.right)),
+      ).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(dot.y - (target.y + DOT_OFFSET.top))).toBeLessThanOrEqual(
+        0.5,
+      );
+      expect(Math.abs(dot.width - 10)).toBeLessThanOrEqual(0.1);
+    });
+  });
+});
