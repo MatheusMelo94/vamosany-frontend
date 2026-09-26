@@ -159,9 +159,12 @@ No duplicated server data in client state. Derive, don't copy.
 - **CSS transitions** for simple state changes (hover, focus, open/close, color, ≤ 300 ms). **GSAP** for sequences, scroll-driven motion, morphing, staggered reveals, and anything choreographed.
 - GSAP runs only in client components, only inside `useGSAP(() => { … }, { scope: containerRef, dependencies: [...] })`. Never `useEffect` + raw `gsap` calls.
 - Plugins register once in `lib/gsap.ts` (`gsap.registerPlugin(useGSAP, ScrollTrigger, …)`); client modules import `gsap` from there.
-- Animate `transform` and `opacity` (use `autoAlpha`); never animate `width`/`height`/`top`/`left`/`margin` — use Flip for layout changes.
+- Animate `transform` and `opacity`; never animate `width`/`height`/`top`/`left`/`margin` — use Flip for layout changes (ADR-0008).
+  - **Entrance reveals of content that is, or contains, focusable or readable elements** (text, links, buttons, form fields) animate `opacity`, **not** `autoAlpha`: `autoAlpha`'s `visibility: hidden` removes not-yet-revealed content from the tab order and the accessibility tree, which breaks the keyboard path and screen-reader browsing.
+  - Such reveals must never leave focus on an invisible element: the controller listens for `focusin` in its scope and completes the reveal of the focused target (or its revealed ancestor) at once.
+  - Use `autoAlpha` for exits, closed overlays/menus/dialogs, decorative layers (`aria-hidden`), and content that must not be reachable until a user action reveals it.
 - Every animation module declares reduced-motion behavior with `gsap.matchMedia()` — `(prefers-reduced-motion: reduce)` branch either skips motion or uses instant `set()`; this is mandatory, not optional.
-- Initial state is set to avoid flash-of-unstyled/unanimated content: elements that animate *in* start hidden via a token class (`opacity-0` / `invisible`) and `useGSAP` (layout-effect timing) sets the tween; hydration never shows the pre-animation frame.
+- Initial state is set to avoid flash-of-unstyled/unanimated content: elements that animate *in* start at `opacity: 0` (never `invisible`/`visibility: hidden` for focusable or readable content — see above) and `useGSAP` (layout-effect timing) sets the tween; hydration never shows the pre-animation frame. Where the project uses a motion gate (e.g. ADR-0002's `.gsap` class), the hidden initial state applies only under the gate, so no-JS and reduced motion render content visible.
 - Scroll reveals: `ScrollTrigger` with `once: true` by default; pinning/scrubbing only when the spec's motion intent asks for it.
 - Durations and easings come from `design-conventions.md § Motion Principles`. Hard-coded magic numbers are a review finding.
 - No animation may block input for longer than 300 ms, and none may run on a loop without a purpose stated in the spec.

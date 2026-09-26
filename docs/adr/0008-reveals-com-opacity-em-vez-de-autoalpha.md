@@ -1,6 +1,6 @@
 # ADR-0008: Reveals de entrada usam `opacity`, não `autoAlpha`, quando o alvo é ou contém conteúdo focável ou legível
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-09-26, Matheus Melo)
 - **Date:** 2026-09-26
 - **Deciders:** Matheus Melo (único aprovador) — drafted by Frontend Architect
 
