@@ -1,11 +1,12 @@
-# Spec: vamosany-front-end — Sobre mí (5 pages + navbar menu) v1
+# Spec: vamosany-front-end — Sobre mí (5 pages + navbar menu) v1.1
 
-- **Status:** Ready for /plan — all open clarifications resolved by the user on 2026-09-26 (§ Resolved Clarifications). /plan also requires DDR-0002/0003/0004 to be *Accepted*.
+- **Status:** Ready for /plan — all open clarifications resolved by the user on 2026-09-26 (§ Resolved Clarifications). DDR-0002/0003/0004 are *Accepted*.
+- **Amended:** v1.1, 2026-09-26: UI-only release. The forms make no network request; backend delivery moves to § When the Backend Is Connected (user scope change + Security G1 R-01). Also fixes from Engineer findings (§ Amendment Log).
 - **Date:** 2026-09-26
 - **Owner:** Matheus Melo
-- **Constitution reference:** serves the **Visitor** (constitution § Users, frontend addition: pre-customer, mostly on a phone) on 360 first, 1280 second; advances the public-site success criterion **confirmed Contacto + Trabajá conmigo submissions per month, counted at the delivery endpoint** (accepted 2026-09-26; target set by the user after 30 days of baseline). Constitution § Success Criteria says the first marketing spec defines this metric; recording it in constitution v2 is a follow-up (§ Out of Scope 10), the constitution is not edited here.
-- **Related DDRs:** DDR-0002 (About → "Sobre mí", 5 pages), DDR-0003 (navbar mega-menu moving marker on all dropdowns), DDR-0004 (motion on the Sobre mí pages beyond one expressive moment). All *Proposed*. Also ADR-0002 (`.gsap` gate), ADR-0003 (headless motion controller), ADR-0006 (frozen landing).
-- **Backend contract:** none published. Both forms are **Pre-Contract** (§ Data Dependencies). All other content is static.
+- **Constitution reference:** serves the **Visitor** (constitution § Users, frontend addition: pre-customer, mostly on a phone) on 360 first, 1280 second; advances the public-site success criterion **confirmed Contacto + Trabajá conmigo submissions per month, counted at the delivery endpoint** (accepted 2026-09-26; target set by the user after 30 days of baseline). **It can't be measured in this release, because nothing is sent;** measurement starts when the backend is connected. Constitution § Success Criteria says the first marketing spec defines this metric; recording it in constitution v2 is a follow-up (§ Out of Scope 10), the constitution is not edited here.
+- **Related DDRs:** DDR-0002 (About → "Sobre mí", 5 pages), DDR-0003 (navbar mega-menu moving marker on all dropdowns), DDR-0004 (motion on the Sobre mí pages beyond one expressive moment). All *Accepted*. Also ADR-0002 (`.gsap` gate), ADR-0003 (headless motion controller), ADR-0006 (frozen landing).
+- **Backend contract:** none in this release. The forms are UI-only and send nothing (§ Data Dependencies). The future delivery contract is Pre-Contract (§ When the Backend Is Connected). All other content is static.
 - **Content source:** `tempcontentabout/ESTRUCTURA NUEVA WEB VAMOS A NY.md` (final, verbatim).
 - **Approved mockup:** Direction A "Cuaderno de campo", `docs/design/mockups/sobre-mi-cuaderno.html` (2026-09-26). Its images use relative paths (`img/…`, `logo-pretzel-dark.png`) and don't resolve from `docs/`; the files are in `public/img/` and `public/`. The mockup is illustration; **this text is the contract**. Where they differ, this spec says which one wins and why.
 
@@ -15,7 +16,7 @@
 
 ## Feature in One Sentence
 
-Replace the navbar's "About" menu (7 dead links) with "Sobre mí" (5 real pages written by Belén), built on one shared "Cuaderno de campo" page structure, with two contact forms whose delivery is Pre-Contract.
+Replace the navbar's "About" menu (7 dead links) with "Sobre mí" (5 real pages written by Belén), built on one shared "Cuaderno de campo" page structure, with two contact forms that ship as UI only (no delivery in this release).
 
 ## User & Trigger
 
@@ -31,10 +32,10 @@ Replace the navbar's "About" menu (7 dead links) with "Sobre mí" (5 real pages 
 2. They choose a page:
    - 2a. **Sobre mí** → reads Belén's story → closing row → "Ver itinerarios" (`/#services`) or "Viajes grupales" (FAQ group-trips section).
    - 2b. **Colaboraciones** → reads the product history, 2022 → 2026 → closing row → "Escribime" (email) or "Trabajá conmigo".
-   - 2c. **Trabajá conmigo** → finds their audience row → fills the cafecito form → success (or failure with fallback).
+   - 2c. **Trabajá conmigo** → finds their audience row → fills the cafecito form → is told to write to hola@vamosany.com, with what they typed kept on screen (this release).
    - 2d. **FAQ** → opens one or more questions → if not answered, closing row → "Escribime" → Contacto.
-   - 2e. **Contacto** → fills the form → success (with a link to the FAQ) or failure with fallback.
-3. Outcome: the Visitor has (a) read enough to trust Belén, and/or (b) sent a message that Belén receives, or knows the email to write to if sending failed.
+   - 2e. **Contacto** → fills the form → is told to write to hola@vamosany.com, with what they typed kept on screen (this release).
+3. Outcome: the Visitor has (a) read enough to trust Belén, and/or (b) knows to write to hola@vamosany.com and has their message text ready to copy. (When the backend is connected: (b) becomes a sent message.)
 
 ## Screens & Surfaces
 
@@ -96,15 +97,19 @@ These are static pages. Content is rendered on the server; there is no content l
 
 | State | What the Visitor sees | Rules |
 |---|---|---|
-| **Idle** | All fields empty, labels visible above fields, primary button ("Enviar mensaje" / "Agendemos un cafecito"), helper line "Uso tu email solo para responderte." | Selects start on an empty prompt option (§ Copy). |
+| **Idle** | All fields empty, labels visible above fields, primary button ("Enviar mensaje" / "Agendemos un cafecito"). No helper line in this release (see below). | Selects start on an empty prompt option (§ Copy). |
 | **Field error** | The field keeps its 2px ink border and gets a yellow bottom bar (inset 3px `brand`); below it, an error line in bold with a round ink "!" badge. Focus moves to the first invalid field. | Validated on submit. Once an error shows, it clears as soon as the value becomes valid. Color is never the only signal (text + badge). Nothing already typed is lost. |
-| **Submitting** | Button label "Enviando…", same width as before (min 220px), `aria-busy`; fields read-only with `surface-1` fill and `ink-muted` text. | No double submit. No spinner beyond the button. |
-| **Success** | The form is replaced in place (same position) by a block between two 2px ink rules: H2 "¡Recibido!" with the train marker + confirmation line naming the email typed. Focus moves to the H2. | Shown **only** after the delivery endpoint answers 2xx (§ Data Dependencies). Never simulated. |
-| **Failed** | A banner above the form (2px ink border): "No se pudo enviar tu mensaje." + fix + fallback email. Everything typed stays in the fields. Button reads "Probar de nuevo". | Also the state when the endpoint is not configured (env var unset), times out, or answers non-2xx. Server-side field validation errors map to **Field error**, not Failed. Never exposes internals. |
+| **Not configured** (after a valid submit) | A banner appears above the form (2px ink border, same style as the connected-state Failed banner): "Por ahora, escribime a hola@vamosany.com. Lo que escribiste sigue acá." The email is a `mailto:` link in mono bold. Every field keeps its value. The button label doesn't change. | **No network request of any kind.** Focus moves to the banner (focusable programmatically), which is announced politely. A later valid submit keeps the single banner (no duplicates; it is re-announced). A later submit with errors removes the banner and shows Field error. |
+| **No JS** | In place of the form: a block in the same banner style, [new] "Para escribirme, mandame un mail a hola@vamosany.com. Te respondo yo.", where the address is a `mailto:` link in mono bold at `headline` size, so it is prominent. The form fields are not shown: a form that can't respond shouldn't invite typing. | Nothing can be submitted, so nothing leaves the browser (Security R-01). The Architect picks the mechanism. |
+| **Before hydration** | The form is visible (server-rendered). A tap on the button before the page is interactive does nothing visible: no navigation, no URL change, no reload. | R-01: no field value leaves the browser. After hydration, the next submit behaves as above. |
+
+**Helper line decision.** "Uso tu email solo para responderte." is **hidden in this release.** On a form that sends nothing, a promise about how the email will be used implies that it is sent, which isn't honest. The banner already gives the real path (the email address). The line returns, unchanged, when the backend is connected.
+
+Submitting, Success and connection-Failed are **not in this release**. Their spec is kept in § When the Backend Is Connected.
 
 ## Content & Copy
 
-Provenance tags: **[md]** verbatim from the content file (do not edit); **[mock]** written in the approved mockup and accepted with it; **[new]** drafted in this spec and accepted by the user on 2026-09-26. Product language: Spanish (Rioplatense, voseo). Belén in first person.
+Provenance tags: **[md]** verbatim from the content file (do not edit); **[md-derived]** built from an md heading, with case or accent normalized; **[mock]** written in the approved mockup and accepted with it; **[new]** drafted in this spec and accepted by the user on 2026-09-26. Product language: Spanish (Rioplatense, voseo). Belén in first person.
 
 ### Navbar
 - Trigger: "Sobre mí" [mock, decided]. Column headings, items and blurbs: § Menu IA [decided].
@@ -124,7 +129,7 @@ Provenance tags: **[md]** verbatim from the content file (do not edit); **[mock]
 
 **01 Label** [mock]: `Sobre mí` · `Montevideo → New York` · `+20 visitas` (three items; "20" counts up, § Motion)
 
-**02 H1** [md: page name, the file has no "Título"]: **Sobre mí**
+**02 H1** [md-derived: from the heading "PÁGINA: SOBRE MI", sentence-cased with the accent restored; the file has no "Título"]: **Sobre mí**
 
 **03 Dek** [md]: Soy Belén, comunicadora, estratega digital y, sobre todo, una persona profundamente enamorada de New York.
 
@@ -165,7 +170,7 @@ Provenance tags: **[md]** verbatim from the content file (do not edit); **[mock]
 
 **01 Label** [mock]: `Colaboraciones` · `7 productos` · `2022 → 2026`
 
-**02 H1** [md: page name]: **Colaboraciones**
+**02 H1** [md-derived: from the heading "PÁGINA: COLABORACIONES", sentence-cased]: **Colaboraciones**
 
 **03 Dek** [md]: Además de itinerarios y consultorías, con los años fui creando productos para quienes aman New York tanto como yo. Todos nacieron de algo que yo quería tener y no encontraba, y casi siempre de la mano de personas y marcas que admiro. Cada uno tiene su historia, y acá te las cuento.
 
@@ -243,7 +248,9 @@ Then five audience rows [md]: H2 (`card-title`) left, text right at ≥760; stac
 
 **03 Dek** [md Texto]: ¿Estás planificando tu viaje a New York, tenés una duda sobre algún servicio o querés proponerme una colaboración? Contame lo que necesites. Cada mensaje lo leo y lo respondo yo, así que puede que tarde un par de días en contestarte, pero siempre respondo. — *The md had "[un par de días]" in brackets; the user kept the wording and dropped the brackets (2026-09-26).*
 
-**04 Body — notes column** [md]: H2 **Otras formas de encontrarme**, then a two-column list (channel mono muted | value mono bold), each value a link:
+**04 Body — notes column** [md]: H2 **Otras formas de encontrarme**, then the channel list, each value a link. The md writes "Otras formas de encontrarme:" with a colon. **The heading drops it on purpose**: headings don't end in punctuation, and this is intentional, not a copy error.
+
+Channel list layout: **at ≥860 (the 200px notes column)**, each channel is stacked: channel name (mono, 13px, `ink-muted`) on one line, value (mono bold, 15px) below it across the full 200px. At 15px, "hola@vamosany.com" (17 characters, ≈155px) fits on one line. **Below 860**, the notes column is full width, and name and value sit side by side (5.5rem | value). A value never breaks inside a word. If it can't fit (e.g. 200% zoom), the only allowed break is right after "@" (a word-break opportunity there), so "hola@" / "vamosany.com". No hyphenation and no `overflow-wrap: anywhere`. This fixes the mid-word break found at 1280 and keeps Direction A (same column, same type, no channel moved).
 
 | Channel | Value | Link |
 |---|---|---|
@@ -307,16 +314,17 @@ No closing row (the form is the closing action).
 
 | Key | Copy | Tag |
 |---|---|---|
-| Helper next to button | Uso tu email solo para responderte. | [mock] |
+| Helper next to button | Uso tu email solo para responderte. **Hidden in this release**; returns when the backend is connected. | [mock] |
 | Select prompt option | Elegí una opción | [new] |
-| Submitting button | Enviando… | [mock] |
-| Retry button (Failed) | Probar de nuevo | [mock] |
-| Failed banner title | No se pudo enviar tu mensaje. | [mock] |
-| Failed banner text | Revisá tu conexión y probá de nuevo, o escribime a hola@vamosany.com. Lo que escribiste sigue acá. | [mock] |
-| Not-configured banner (endpoint env var unset) | Por ahora, escribime a hola@vamosany.com. Lo que escribiste sigue acá. | [new, approved 2026-09-26] |
-| Success H2 | ¡Recibido! | [mock] |
-| Success, Contacto | Gracias por escribirme. Te respondo a **{email}** en un par de días. Mientras tanto, capaz tu duda ya está en las preguntas frecuentes. *("preguntas frecuentes" links to `/preguntas-frecuentes`)* | [mock] |
-| Success, Trabajá conmigo | Gracias por escribirme. Leo tu idea y te respondo a **{email}** para agendar el cafecito. | [mock] |
+| Submitting button *(connected only)* | Enviando… | [mock] |
+| Retry button (Failed) *(connected only)* | Probar de nuevo | [mock] |
+| Failed banner title *(connected only)* | No se pudo enviar tu mensaje. | [mock] |
+| Failed banner text *(connected only)* | Revisá tu conexión y probá de nuevo, o escribime a hola@vamosany.com. Lo que escribiste sigue acá. | [mock] |
+| Not-configured banner (**this release**, after a valid submit) | Por ahora, escribime a hola@vamosany.com. Lo que escribiste sigue acá. | [new, approved 2026-09-26] |
+| No-JS block (**this release**) | Para escribirme, mandame un mail a hola@vamosany.com. Te respondo yo. | [new] |
+| Success H2 *(connected only)* | ¡Recibido! | [mock] |
+| Success, Contacto *(connected only)* | Gracias por escribirme. Te respondo a **{email}** en un par de días. Mientras tanto, capaz tu duda ya está en las preguntas frecuentes. *("preguntas frecuentes" links to `/preguntas-frecuentes`)* | [mock] |
+| Success, Trabajá conmigo *(connected only)* | Gracias por escribirme. Leo tu idea y te respondo a **{email}** para agendar el cafecito. | [mock] |
 | Error: email empty | Falta tu email para poder responderte. | [mock] |
 | Error: email malformed | Revisá tu email, parece que le falta algo. | [new] |
 | Error: Nombre empty | Falta tu nombre. | [new] |
@@ -388,8 +396,8 @@ Timeline (`ease: ds` unless noted), same shape as `MOTION.heading`:
 ### M8 — Form feedback (Contacto and Trabajá conmigo)
 *Job: confirm what happened, always paired with text.*
 - Field error: the invalid field shakes horizontally (`x` 0, −7, 7, −4, 4, 0 over 0.4s, linear). Only on submit, not while typing.
-- Failed banner: from `y: −8`, `autoAlpha: 0`, 0.35s.
-- Success: the "¡Recibido!" marker sweeps in (1.0s, `arrive`, delay 0.1); the confirmation line rises (`y: 12`, 0.4s, stagger 0.08, delay 0.25).
+- Not-configured banner (this release): from `y: −8`, `autoAlpha: 0`, 0.35s (the Failed banner's values). Reduced: appears instantly.
+- Connected only (§ When the Backend Is Connected): Failed banner, same as above; Success: the "¡Recibido!" marker sweeps in (1.0s, `arrive`, delay 0.1), and the confirmation line rises (`y: 12`, 0.4s, stagger 0.08, delay 0.25).
 
 ### M9 — Navbar mega-menu moving marker (all dropdowns, desktop ≥1024) — DDR-0003
 *Job: "you are here / you are pointing here", the subway dot riding between stations.*
@@ -417,7 +425,8 @@ Breakpoints of record: 360 and 1280 first-class (constitution); 768 is also acce
 | Colaboraciones ledger | Stacked: year + partner above title and story | Stacked | 200px year/partner column + story |
 | Trabajá conmigo audience rows | Stacked: H2 above text | 2 columns (≥760): H2 \| text | 2 columns |
 | Forms | One field per row | Two per row (≥560) as listed; textarea full width | Same as 768 |
-| Submit row | Button full-width-capable (min 220px), helper wraps below | Button + helper on one line | Same |
+| Submit row | Button (min 220px); no helper in this release | Same | Same |
+| Contacto channel list | Name and value side by side | Side by side | Stacked in the 200px notes column; no mid-word break |
 | FAQ groups | Group name + count above its questions | Stacked | 200px group column + questions |
 | Closing row | Headline above buttons; buttons wrap | Headline and buttons on one line when they fit | One line, space-between |
 | Photo (Sobre mí) | Full column width, 3:2 | 3:2 | 3:2 within prose width |
@@ -429,12 +438,12 @@ At every width: no horizontal scroll down to 320px; text at 200% zoom stays read
 WCAG 2.2 AA floor (constitution). Beyond the baseline:
 
 - **Language:** these pages' `<main>` declares `lang="es"` (the site root is `lang="en"`, and the navbar/footer are still English). The Efe Hus quote declares `lang="en"`.
-- **Outline:** one H1 per page; H2s: Sobre mí ("En el camino", closing), Colaboraciones (each product title, closing), Trabajá conmigo (each audience, "El cafecito", "¡Recibido!"), Contacto ("Otras formas de encontrarme", "¡Recibido!"), FAQ (each group, closing). Landmarks: `header`, `nav`, `main`, `footer`.
+- **Outline:** one H1 per page; H2s: Sobre mí ("En el camino", closing), Colaboraciones (each product title, closing), Trabajá conmigo (each audience, "El cafecito"), Contacto ("Otras formas de encontrarme"); "¡Recibido!" only when connected, FAQ (each group, closing). Landmarks: `header`, `nav`, `main`, `footer`.
 - **H1 split:** the H1's accessible name equals the title text at every moment (word splitting is visual only).
 - **Counters:** "+20 visitas" and the Colaboraciones years expose only their final value to assistive tech (no intermediate numbers announced).
 - **Decorative motion elements** (train markers, menu highlight and dot, timeline rail, reading bar, audience rules, FAQ "+"/"×" glyph) are `aria-hidden` and carry no meaning that isn't in text.
 - **Keyboard path, menu:** Tab to "Sobre mí" trigger → Enter/Space opens → Tab through the 5 items (marker follows focus) → Enter navigates → Esc closes and returns focus to the trigger. Current page item has `aria-current="page"`, in the mega-menu and in the drawer.
-- **Keyboard path, forms:** Tab through fields in md order → Enter/submit. On errors: focus moves to the first invalid field; each error is tied to its field (`aria-invalid`, `aria-describedby`). Submitting: button `aria-busy`, disabled. Success: focus moves to the "¡Recibido!" H2 (focusable programmatically) and the block is announced politely. Failed: banner announced as an alert; focus stays on the retry button; typed values remain.
+- **Keyboard path, forms (this release):** Tab through fields in md order → Enter/submit. On errors: focus moves to the first invalid field; each error is tied to its field (`aria-invalid`, `aria-describedby`). On a valid submit: focus moves to the not-configured banner, which is announced politely; the next Tab reaches its `mailto:` link; typed values remain. JS off: the email block is reachable in normal reading/Tab order. (Connected-state keyboard behavior: § When the Backend Is Connected.)
 - **Labels:** every field has a visible label; the select prompt is an option, not a label; "(opcional)" is part of the label text.
 - **FAQ:** native disclosure (`details`/`summary` or equivalent with `aria-expanded`); Enter/Space toggles; opening does not move focus.
 - **External links** (partners, Instagram, TikTok) open in a new tab and say so to assistive tech (visually hidden "(se abre en otra pestaña)"). The "↗" glyph is `aria-hidden`.
@@ -449,18 +458,9 @@ WCAG 2.2 AA floor (constitution). Beyond the baseline:
 | Read / write | Entity & operation | Contract | Notes |
 |---|---|---|---|
 | Read | Page content (5 pages, menu) | N/A — static, from the content file | Where the copy lives (TS module, MDX, JSON) is the Architect's call |
-| **Write** | Contact message: `{ name, email, topic, travelDate?, message }` | **Pre-Contract** — the user's own backend endpoint, built later | Not optimistic: Success only on a confirmed 2xx |
-| **Write** | Collaboration request: `{ name, company, collaborationType, email, idea }` | **Pre-Contract** — same | Same |
+| Write | *None in this release.* Contact message and collaboration request are **not sent** | — | Values live only in component state: not in the URL, storage, logs or any request (Security R-01, R-02, R-03). No Server Action or Route Handler in this feature. |
 
-**Delivery mechanism (decided by the user, 2026-09-26):** each form submits to a Server Action. The Server Action validates the input and POSTs it to an endpoint whose URL comes from a **server-only environment variable** (never `NEXT_PUBLIC_`; the name is the Architect's). Outcomes:
-- env var **unset** → Failed state, using the **not-configured banner** text ("Por ahora, escribime a hola@vamosany.com."), not the connection-error text. No request is made and no success is faked. This is the expected production behavior until the backend exists; the full form UI still ships.
-- endpoint answers **2xx** → Success.
-- endpoint answers **4xx with field errors** → Field error on those fields.
-- any other response, timeout, or network error → Failed.
-
-The request/response shape is Pre-Contract: the Architect defines it and the MSW mock the Engineer builds against, and the user's backend adopts or replaces it later. Which mail provider or inbox sits behind the endpoint is not a frontend concern.
-
-Routed to the user / backend team: the two endpoint shapes above, field length limits, and anti-spam (honeypot, rate limit; Security's call). "Received" means the endpoint answered 2xx. Privacy: the helper line promises the email is used only to reply; Security should confirm that no other use and no retention beyond need happens.
+The future write contract is in § When the Backend Is Connected.
 
 ## Locale Behavior (flag for the Architect)
 
@@ -487,7 +487,7 @@ Proposed additions (each with its reason; values come from the approved mockup):
 1. **Footer changes** (frozen by ADR-0006): the line "© 2026 Vamos a NY. Made in Madrid, walked in New York." (Belén is in Montevideo) and the footer's top link row ("Our story", "How we research", "Press"… pointing to `#`). Follow-up: a DDR to update both to the new IA.
 2. **pt and en translations** of the 5 pages and menu, and i18n routing (Architect ADR).
 3. Translating the rest of the navbar (Itineraries, Guides, Blog, Services, Log in, Sign up).
-4. The delivery backend for both forms (endpoint, provider, anti-spam, storage). This spec ships the UI and states only.
+4. **Any network delivery of the forms** (endpoint, Server Action, provider, anti-spam, storage) and the Submitting / Success / connection-Failed states. Kept, not deleted, in § When the Backend Is Connected.
 5. Pages removed from the menu: Press, Refunds, How We Research.
 6. Buying products, product photos per Colaboraciones row, newsletter signup (the FAQ mentions the newsletter, but no signup link is added).
 7. FAQ search (14 questions don't need one).
@@ -544,19 +544,19 @@ Viewports: 360, 768, 1280 unless stated. "Reduced" = `reducedMotion: 'reduce'`.
 
 **Contacto**
 34. The dek reads "…puede que tarde un par de días en contestarte…" with no brackets; no "[" or "]" appears in any Contacto copy.
-35. "Otras formas de encontrarme" lists Email, Instagram and TikTok as links; with motion on they slide in after the title sequence; reduced shows them in place.
+35. "Otras formas de encontrarme" (no colon) lists Email, Instagram and TikTok as links; at 1280 each channel is stacked in the notes column and "hola@vamosany.com" sits on one line, never broken mid-word (at 200% zoom it may break only after "@"); with motion on they slide in after the title sequence; reduced shows them in place.
 36. The form shows the five fields in [md] order and labels, "(opcional)" on "¿Cuándo viajás?", and the button "Enviar mensaje".
 
 **Forms (both pages; run each on Contacto and Trabajá conmigo)**
-37. Idle: fields empty, selects on "Elegí una opción", helper "Uso tu email solo para responderte." visible.
+37. Idle: fields empty, selects on "Elegí una opción", no helper line under the button.
 38. Submitting with required fields empty shows each field's error text from § Form copy under that field, sets `aria-invalid` and `aria-describedby`, moves focus to the first invalid field, and (motion on) shakes the invalid fields once; nothing typed is lost.
 39. An email without "@" or domain shows "Revisá tu email, parece que le falta algo."; fixing it clears the error while typing.
-40. Leaving "¿Cuándo viajás?" empty does not block sending (Contacto).
-41. Submitting valid data: button reads "Enviando…", keeps its width, is disabled with `aria-busy`; fields are read-only; a second click sends nothing.
-42. On confirmed receipt: the form is replaced in place by "¡Recibido!" (marker sweeps in; reduced: static) and the page-specific confirmation with the typed email; focus is on the H2 and the block is announced. On Contacto, "preguntas frecuentes" links to `/preguntas-frecuentes`.
-43. On delivery failure (network or server): the banner "No se pudo enviar tu mensaje." with the fallback email appears above the form and is announced as an alert; all values remain; the button reads "Probar de nuevo" and resubmits.
-44. No code path shows "¡Recibido!" without a 2xx from the endpoint. With the endpoint env var unset, submitting valid data shows the Failed state with the not-configured banner ("Por ahora, escribime a hola@vamosany.com.") and never the connection-error text; the same happens when the mock endpoint returns 5xx, times out, or the network fails.
-45. axe reports no violations in the Field error, Submitting, Success and Failed states.
+40. Leaving "¿Cuándo viajás?" empty does not block a valid submit (Contacto).
+41. **Not configured:** submitting valid data makes **no network request**, shows the banner "Por ahora, escribime a hola@vamosany.com. Lo que escribiste sigue acá." above the form, with the address as a `mailto:` link, moves focus to the banner and announces it; every field keeps its value; the URL doesn't change.
+42. Submitting valid data again keeps exactly one banner. A later submit with an invalid field removes the banner and shows Field error (AC 38).
+43. "Enviando…", "¡Recibido!", "No se pudo enviar tu mensaje." and "Uso tu email solo para responderte." appear nowhere in this release's build of the two pages.
+44. **R-01 (Security G1):** with JavaScript disabled, and with a click on the submit button before hydration, a form filled with synthetic values causes **no navigation, no URL change, and no request whose URL or body contains any field value** (Playwright asserts over every request). With JS disabled, the form area shows the no-JS block "Para escribirme, mandame un mail a hola@vamosany.com. Te respondo yo." with a working `mailto:` link, and no form fields.
+45. axe reports no violations in the Idle, Field error, Not configured and No-JS states, on both pages.
 
 **FAQ**
 46. Three groups (Itinerarios y consultorías 8, Viajes grupales 5, Productos 1) with the [md] questions and answers in [md] order; the second question's answer is a five-item bulleted list.
@@ -579,11 +579,45 @@ None.
 | 1 | Reply time "[un par de días]" | Keep the wording, drop the brackets | Page 4 dek, Form copy (Success, Contacto), AC 34 |
 | 2 | Sobre mí photo | The landing's subway photo `how-subway.webp` (credit in `CREDITS.json`), neutral caption, no "a reemplazar" note | Page 1 body item 5, AC 23 |
 | 3 | "juntas" vs "juntos" | "¿Armamos tu viaje juntos?" | Page 1 closing, AC 26 |
-| 4 | Forms before the endpoint exists | The full form UI ships. A Server Action POSTs to an endpoint set by a server-only env var; when it is unset or the call fails → Failed with the email fallback; Success only on 2xx. Pre-Contract shape defined by the Architect | Form States, Data Dependencies, AC 44 |
+| 4 | Forms before the endpoint exists | The full form UI ships. A Server Action POSTs to an endpoint set by a server-only env var; when it is unset or the call fails → Failed with the email fallback; Success only on 2xx. Pre-Contract shape defined by the Architect | Form States, Data Dependencies, AC 44 — **superseded by v1.1** (UI-only release; see § Amendment Log) |
 | 5 | Success metric | Confirmed form submissions per month, counted at the endpoint; constitution v2 is a follow-up | Header, Out of Scope 10 |
 | 6 | Sobre mí closing destinations | `/#services` and `/preguntas-frecuentes#viajes-grupales` | Screens, Journey, Page 1 closing, AC 26 |
 | 7 | [new] copy and social URLs | Drafts accepted; Instagram `https://www.instagram.com/vamosany/`, TikTok `https://www.tiktok.com/@vamosany` | Copy provenance, Page 4 channels |
 | 8 | Mockup location | Copied to `docs/design/mockups/sobre-mi-cuaderno.html` | Header |
+
+## When the Backend Is Connected (not in this release)
+
+Kept so the copy and states don't have to be designed again. It becomes active by a spec amendment when the user's endpoint exists; Security R-01 to R-03 must be revisited then.
+
+**Delivery (user decision, 2026-09-26, deferred):** each form submits through the server to an endpoint whose URL comes from a **server-only environment variable** (never `NEXT_PUBLIC_`). Outcomes: env var unset → the Not configured banner (as in this release); **2xx** → Success; 4xx with field errors → Field error; any other response, timeout or network error → Failed. The request/response shape is Pre-Contract, defined by the Architect at that time:
+- Contact message: `{ name, email, topic, travelDate?, message }`
+- Collaboration request: `{ name, company, collaborationType, email, idea }`
+
+Not optimistic. Field length limits and anti-spam are Security's call. The helper line "Uso tu email solo para responderte." returns.
+
+| State | What the Visitor sees | Rules |
+|---|---|---|
+| **Submitting** | Button label "Enviando…", same width as before (min 220px), `aria-busy`; fields read-only with `surface-1` fill and `ink-muted` text. | No double submit. No spinner beyond the button. |
+| **Success** | The form is replaced in place by a block between two 2px ink rules: H2 "¡Recibido!" with the train marker + the page-specific confirmation naming the email typed (§ Form copy). Focus moves to the H2, and the block is announced politely. | Only on a confirmed 2xx. Never simulated. |
+| **Failed** | A banner above the form: "No se pudo enviar tu mensaje." + "Revisá tu conexión y probá de nuevo, o escribime a hola@vamosany.com. Lo que escribiste sigue acá." Values kept. Button reads "Probar de nuevo". Announced as an alert. | Never exposes internals. |
+
+Motion: M8 connected items. Acceptance criteria for that release, to renumber then:
+- C1. Valid submit: "Enviando…", width kept, disabled with `aria-busy`, fields read-only; a second click sends nothing.
+- C2. On 2xx: "¡Recibido!" replaces the form (marker sweeps in; reduced: static) with the typed email; focus on the H2; on Contacto, "preguntas frecuentes" links to `/preguntas-frecuentes`.
+- C3. On non-2xx, timeout or network error: the Failed banner, values kept, "Probar de nuevo" resubmits.
+- C4. No path shows "¡Recibido!" without a 2xx.
+
+## Amendment Log
+
+**v1.1 (2026-09-26)**
+- Scope: no backend connection in this release. The forms' states are now Idle, Field error, Not configured, No JS and Before hydration. Submitting, Success and Failed moved to § When the Backend Is Connected (copy kept). ACs 41–45 rewritten; AC 44 is Security G1 R-01. Data Dependencies has no writes. The success metric starts with the backend.
+- Helper line hidden until the backend is connected (honesty).
+- Contacto channel list: stacked in the 200px notes column at ≥860, so the address doesn't break mid-word; break only after "@" as a last resort (Engineer finding a).
+- "Otras formas de encontrarme" drops the md's colon on purpose (finding b).
+- H1s "Sobre mí" and "Colaboraciones" retagged [md-derived] (finding c).
+- Engineer finding d, confirmed: the Contacto main column is only empty while the form UI isn't built. Once it is, the form (JS) or the no-JS block always fills it.
+- Engineer finding e, confirmed: the middle dots in the partner lines "Mona Cases · mayo 2023" and "Efe Hus · Flor" are intended ([mock], accepted with the mockup). They join a partner name to a detail and are not a meta string.
+- DDR-0004 (Accepted, immutable) cites ACs "42–43" for the success and failed motion. Those now map to C2–C3 above; the not-configured banner motion is AC 41.
 
 ---
 
