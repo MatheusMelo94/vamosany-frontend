@@ -8,15 +8,14 @@ import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
  * its selectors from here.
  */
 const OPACITY = [
-  "[data-sm-timeline] li",
   "[data-sm-partner]",
   "[data-sm-row-body] > *",
   "[data-sm-channels] li",
   "[data-sm-faq-group] details",
 ];
-const TRAINS = ["[data-sm-sweep]"];
-const SCALED = ["[data-sm-rail]", "[data-sm-rule]"];
-const CLIPPED = ["[data-sm-signature]"];
+const TRAINS: string[] = [];
+const SCALED = ["[data-sm-rule]"];
+const CLIPPED: string[] = [];
 
 export const settle: Scene = ({ root }) => {
   // gsap.set on an empty list warns "GSAP target not found": skip those.

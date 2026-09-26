@@ -7,10 +7,19 @@ import { entrance } from "@/features/sobre-mi/motion/scenes/entrance";
 import { navScrolled } from "@/features/sobre-mi/motion/scenes/nav-scrolled";
 import { reveals } from "@/features/sobre-mi/motion/scenes/reveals";
 import { settle } from "@/features/sobre-mi/motion/scenes/settle";
+import { sobreMi } from "@/features/sobre-mi/motion/scenes/sobre-mi";
+import { sweeps } from "@/features/sobre-mi/motion/scenes/sweeps";
 import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
 
 /** Scenes, in order. Page-specific scenes read `data-sm-scene` themselves. */
-const SCENES: readonly Scene[] = [navScrolled, entrance, reveals, settle];
+const SCENES: readonly Scene[] = [
+  navScrolled,
+  entrance,
+  reveals,
+  sweeps,
+  sobreMi,
+  settle,
+];
 
 /**
  * Headless motion controller of the Sobre mí pages (ADR-0003 pattern; TDD

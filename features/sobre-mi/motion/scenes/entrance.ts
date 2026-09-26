@@ -79,6 +79,10 @@ export const entrance: Scene = ({ root, eases, contextSafe }) => {
       const end = Number(counter.textContent);
       if (Number.isFinite(end)) {
         const value = { n: 0 };
+        // Hold the final number's width while counting, so "9" → "10"
+        // doesn't shift the label (AC 19); reverts with the controller.
+        gsap.set(counter, { display: "inline-block", textAlign: "right" });
+        gsap.set(counter, { minWidth: counter.getBoundingClientRect().width });
         counter.textContent = "0";
         tl.to(
           value,

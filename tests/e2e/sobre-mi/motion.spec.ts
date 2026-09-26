@@ -513,3 +513,183 @@ test.describe("M2 reveals keep content reachable (T034) @feature-sobre-mi", () =
     await expect(wrapper).toHaveCSS("opacity", "1");
   });
 });
+
+/* ---- M3 Sobre mí scenes (T035) -------------------------------------- */
+
+const trainOf = (page: Page, selector: string) =>
+  page
+    .locator(selector)
+    .first()
+    .evaluate((el) => getComputedStyle(el).getPropertyValue("--train").trim());
+
+const scrollToY = (page: Page, y: number) =>
+  page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), y);
+
+/** Document-relative top of an element, and its scale/translate. */
+const geometry = (page: Page, selector: string) =>
+  page
+    .locator(selector)
+    .first()
+    .evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const t = getComputedStyle(el).transform;
+      return {
+        top: Math.round(r.top + window.scrollY),
+        transform: t,
+      };
+    });
+
+test.describe("M3 Sobre mí scenes (T035) @feature-sobre-mi", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/sobre-mi");
+    await expect(page.locator("main [data-sm-heading]")).toHaveCSS(
+      "opacity",
+      "1",
+    );
+  });
+
+  test("the pull line's train pulls in when it enters view (AC 22)", async ({
+    page,
+  }) => {
+    const sweep = "main [data-sm-sweep]";
+    await scrollToY(page, 0);
+    const before = await trainOf(page, sweep);
+    await scrollToEl(page, sweep);
+    await expect.poll(() => trainOf(page, sweep)).toBe("0%");
+    // It was parked (or already travelling) before it was reached.
+    expect(before).not.toBe("0%");
+  });
+
+  test("the photo drifts inside a box that never moves (AC 23)", async ({
+    page,
+  }) => {
+    const box = "main [data-sm-parallax]";
+    const img = "main [data-sm-parallax] img";
+    await scrollToEl(page, box);
+    await page.waitForTimeout(600);
+    const a = {
+      box: await geometry(page, box),
+      img: await geometry(page, img),
+    };
+    await page.evaluate(() =>
+      window.scrollBy({ top: 250, behavior: "instant" }),
+    );
+    await page.waitForTimeout(800);
+    const b = {
+      box: await geometry(page, box),
+      img: await geometry(page, img),
+    };
+    expect(b.box.top).toBe(a.box.top);
+    expect(a.img.transform).not.toBe("none");
+    expect(b.img.transform).not.toBe(a.img.transform);
+  });
+
+  test("the signature is written in, left to right, when reached (AC 24)", async ({
+    page,
+  }) => {
+    const sig = "main [data-sm-signature]";
+    const clip = () =>
+      page.locator(sig).evaluate((el) => getComputedStyle(el).clipPath);
+    expect(await clip()).toMatch(/inset\(0(%|px)? 100%/);
+    await scrollToEl(page, sig);
+    await expect
+      .poll(clip, { timeout: 4000 })
+      .toMatch(/^(none|inset\(0(%|px)?( 0(%|px)?)*\))$/);
+  });
+
+  test("the timeline rail fills with scroll and the rows slide in (AC 25)", async ({
+    page,
+  }) => {
+    const list = page.locator("main [data-sm-timeline]");
+    const scaleY = () =>
+      page.locator("main [data-sm-rail]").evaluate((el) => {
+        const t = getComputedStyle(el).transform;
+        return t === "none" ? 1 : new DOMMatrixReadOnly(t).d;
+      });
+    const top = await list.evaluate(
+      (el) => el.getBoundingClientRect().top + window.scrollY,
+    );
+    const height = await list.evaluate(
+      (el) => el.getBoundingClientRect().height,
+    );
+    const vh = page.viewportSize()?.height ?? 800;
+    const samples: number[] = [];
+    // From "list top at 80%" to "list bottom at 55%" of the viewport.
+    const start = top - vh * 0.8;
+    const end = top + height - vh * 0.55;
+    for (const f of [0.15, 0.5, 0.85]) {
+      await scrollToY(page, Math.round(start + (end - start) * f));
+      await page.waitForTimeout(900);
+      samples.push(await scaleY());
+    }
+    expect(samples[0]).toBeGreaterThan(0);
+    expect(samples[0]).toBeLessThan(samples[1] ?? 0);
+    expect(samples[1]).toBeLessThan(samples[2] ?? 0);
+    await scrollToY(page, Math.round(end + 200));
+    await expect.poll(scaleY).toBeCloseTo(1, 2);
+    const rows = page.locator("main [data-sm-timeline] li");
+    await expect
+      .poll(() =>
+        rows.evaluateAll((els) =>
+          els.every((el) => {
+            const t = getComputedStyle(el).transform;
+            const x = t === "none" ? 0 : new DOMMatrixReadOnly(t).m41;
+            return getComputedStyle(el).opacity === "1" && x === 0;
+          }),
+        ),
+      )
+      .toBe(true);
+  });
+
+  test("no animation shifts the layout, from load through a full scroll (AC 19)", async ({
+    page,
+  }) => {
+    await page.evaluate(() => {
+      const w = window as unknown as { __shifts: string[] };
+      w.__shifts = [];
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as unknown as Array<{
+          value: number;
+          sources?: Array<{ node?: Node }>;
+        }>) {
+          for (const source of entry.sources ?? []) {
+            const el =
+              source.node instanceof Element
+                ? source.node
+                : source.node?.parentElement;
+            if (el?.closest("main"))
+              w.__shifts.push(`${el.tagName}:${entry.value}`);
+          }
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    await scrollThrough(page);
+    const shifts = await page.evaluate(
+      () => (window as unknown as { __shifts: string[] }).__shifts,
+    );
+    expect(shifts).toEqual([]);
+  });
+
+  test("at 360 the timeline tag sits under its line", async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) !== 360, "phone layout");
+    const row = page.locator("main [data-sm-timeline] li").first();
+    const line = await row.locator("span").nth(1).boundingBox();
+    const tag = await row.locator("span").nth(2).boundingBox();
+    expect(tag!.y).toBeGreaterThanOrEqual(line!.y + line!.height - 1);
+  });
+
+  test.describe("reduced motion", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("rail full, rows in place, photo still (AC 23, 25)", async ({
+      page,
+    }) => {
+      await scrollThrough(page);
+      await expect(page.locator("main [data-sm-parallax] img")).toHaveCSS(
+        "transform",
+        "none",
+      );
+      expect(await notFinal(page)).toEqual(ALL_FINAL);
+    });
+  });
+});
