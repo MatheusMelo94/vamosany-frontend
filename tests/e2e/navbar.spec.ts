@@ -246,23 +246,20 @@ async function openByHover(page: Page, label: string): Promise<Locator> {
   return panel;
 }
 
-/** Waits until the dot rests on `item` (x/y within half a pixel, scale 1). */
-async function expectDotOn(panel: Locator, item: Locator, timeout = 3000) {
+/** Whether the dot rests on `item` now (x/y within half a pixel, scale 1). */
+async function dotRestsOn(panel: Locator, item: Locator): Promise<boolean> {
   const target = await box(item);
-  const dot = panel.locator("[data-marker-dot]");
-  await expect
-    .poll(
-      async () => {
-        const d = await box(dot);
-        return (
-          Math.abs(d.x - (target.x + target.width - DOT_OFFSET.right)) <= 0.5 &&
-          Math.abs(d.y - (target.y + DOT_OFFSET.top)) <= 0.5 &&
-          Math.abs(d.width - 10) <= 0.1
-        );
-      },
-      { timeout },
-    )
-    .toBe(true);
+  const d = await box(panel.locator("[data-marker-dot]"));
+  return (
+    Math.abs(d.x - (target.x + target.width - DOT_OFFSET.right)) <= 0.5 &&
+    Math.abs(d.y - (target.y + DOT_OFFSET.top)) <= 0.5 &&
+    Math.abs(d.width - 10) <= 0.1
+  );
+}
+
+/** Waits until the dot rests on `item`. */
+async function expectDotOn(panel: Locator, item: Locator, timeout = 3000) {
+  await expect.poll(() => dotRestsOn(panel, item), { timeout }).toBe(true);
 }
 
 /** The highlight's visible rect, from its clip-path inset against the marker root. */
@@ -423,15 +420,49 @@ test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
           ),
       );
       // Two frames after the hover, the dot already rests on the target: no tween.
-      const target = await box(items.nth(11));
-      const dot = await box(panel.locator("[data-marker-dot]"));
-      expect(
-        Math.abs(dot.x - (target.x + target.width - DOT_OFFSET.right)),
-      ).toBeLessThanOrEqual(0.5);
-      expect(Math.abs(dot.y - (target.y + DOT_OFFSET.top))).toBeLessThanOrEqual(
-        0.5,
-      );
-      expect(Math.abs(dot.width - 10)).toBeLessThanOrEqual(0.1);
+      expect(await dotRestsOn(panel, items.nth(11))).toBe(true);
     });
+  });
+});
+
+test.describe("navbar marker on a Sobre mí route (AC 5, 6, 9) @feature-sobre-mi", () => {
+  test("opens on the current page with no travel and returns to it (AC 5, 6)", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
+    await page.goto("/colaboraciones");
+    await page.evaluate(() => document.fonts.ready);
+    const panel = await openByHover(page, "Sobre mí");
+    const current = panel.locator('[data-nav-item][aria-current="page"]');
+    await expect(current).toHaveAttribute("href", "/colaboraciones");
+    await expect(panel.locator('[aria-current="page"]')).toHaveCount(1);
+    // No travel: already on the current item two frames after mounting.
+    await page.evaluate(
+      () =>
+        new Promise<void>((r) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => r())),
+        ),
+    );
+    expect(await dotRestsOn(panel, current)).toBe(true);
+    const other = panel.locator("[data-nav-item]").last();
+    await other.hover();
+    await expectDotOn(panel, other);
+    // Pointer leaves the items but stays in the panel: back to the current page.
+    const box0 = await box(panel);
+    await page.mouse.move(box0.x + box0.width - 8, box0.y + box0.height - 8);
+    await expectDotOn(panel, current);
+  });
+
+  test("drawer marks the current page with aria-current and the dot (AC 9)", async ({
+    page,
+  }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await page.goto("/colaboraciones");
+    await header(page).getByRole("button", { name: "Toggle menu" }).click();
+    const drawer = header(page).locator("> div.overflow-y-auto");
+    const current = drawer.locator('[aria-current="page"]');
+    await expect(current).toHaveCount(1);
+    await expect(current).toHaveAttribute("href", "/colaboraciones");
+    await expect(current.locator("[data-current-dot]")).toBeVisible();
   });
 });

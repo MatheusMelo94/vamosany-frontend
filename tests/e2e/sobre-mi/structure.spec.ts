@@ -17,6 +17,13 @@ const ROUTES: Route[] = [
       "Soy Belén, comunicadora, estratega digital y, sobre todo, una persona profundamente enamorada de New York.",
     h1: "Sobre mí",
   },
+  {
+    path: "/colaboraciones",
+    title: "Colaboraciones — Vamos a NY",
+    description:
+      "Además de itinerarios y consultorías, con los años fui creando productos para quienes aman New York tanto como yo.",
+    h1: "Colaboraciones",
+  },
 ];
 
 test.describe("Sobre mí pages: route structure @feature-sobre-mi", () => {
