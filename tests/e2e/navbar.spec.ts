@@ -301,6 +301,37 @@ test.describe("navbar pointer path @feature-sobre-mi", () => {
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
   });
 
+  for (const from of ["/sobre-mi", "/"]) {
+    test(`a Services item on ${from} lands on the landing's #services (RV-0010)`, async ({
+      page,
+    }) => {
+      // On "/", let the landing's load-time motion settle first, as every
+      // landing test here does; a click during it is not what this covers.
+      if (from === "/") await open(page);
+      else await page.goto(from);
+      const trigger = header(page).getByRole("button", {
+        name: "Services",
+        exact: true,
+      });
+      await trigger.hover();
+      await megaPanel(page)
+        .getByRole("link", { name: /Custom itinerary with Belén/ })
+        .click();
+      await expect(page).toHaveURL(/\/#services$/);
+      // Smooth scroll (CSS) settles the section at the top of the viewport.
+      await expect
+        .poll(() =>
+          page.evaluate(() =>
+            Math.abs(
+              document.getElementById("services")?.getBoundingClientRect()
+                .top ?? Number.POSITIVE_INFINITY,
+            ),
+          ),
+        )
+        .toBeLessThan(1);
+    });
+  }
+
   test("panel still closes when the pointer leaves the navbar upward (QA-0001)", async ({
     page,
   }) => {

@@ -199,7 +199,7 @@ export function Navbar(): JSX.Element {
                             {column.items.map((item) => (
                               <li key={item.title}>
                                 <Link
-                                  href={item.href ?? "#services"}
+                                  href={item.href ?? "/#services"}
                                   data-nav-item
                                   aria-current={
                                     isCurrent(item.href) ? "page" : undefined
@@ -392,7 +392,7 @@ export function Navbar(): JSX.Element {
                       {column.items.map((item) => (
                         <li key={item.title}>
                           <Link
-                            href={item.href ?? "#services"}
+                            href={item.href ?? "/#services"}
                             aria-current={
                               isCurrent(item.href) ? "page" : undefined
                             }

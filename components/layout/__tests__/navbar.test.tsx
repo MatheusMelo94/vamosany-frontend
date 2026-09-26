@@ -212,6 +212,39 @@ describe("Navbar", () => {
   });
 });
 
+describe("Navbar item destinations (RV-0010)", () => {
+  const titles = NAV.flatMap((g) =>
+    g.columns.flatMap((c) => c.items.map((i) => i.title)),
+  );
+  /** hrefs of the rendered links that come from NAV items. */
+  const itemHrefs = (): string[] =>
+    screen
+      .getAllByRole("link")
+      .filter((a) => titles.some((t) => a.textContent?.startsWith(t)))
+      .map((a) => a.getAttribute("href") ?? "");
+
+  it("points every mega-menu item at a path, never a bare fragment", async () => {
+    render(<Navbar />);
+    for (const label of Object.keys(EXPECTED)) {
+      await openPanel(label);
+      for (const href of itemHrefs()) expect(href).toMatch(/^\//);
+    }
+    await openPanel("Services");
+    expect(
+      screen.getByRole("link", { name: /Custom itinerary with Belén/ }),
+    ).toHaveAttribute("href", "/#services");
+  });
+
+  it("points every drawer item at a path, never a bare fragment", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    const hrefs = itemHrefs();
+    expect(hrefs.length).toBeGreaterThan(20);
+    for (const href of hrefs) expect(href).toMatch(/^\//);
+  });
+});
+
 describe("Navbar disclosure keyboard path (AC 10)", () => {
   it("renders each open panel right after its trigger and points aria-controls at it", async () => {
     render(<Navbar />);
