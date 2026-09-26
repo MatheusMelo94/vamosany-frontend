@@ -101,7 +101,21 @@ export function Navbar(): JSX.Element {
         <div className="hidden items-center gap-1 lg:flex">
           <ul className="flex items-center gap-0.5">
             {NAV.map((group, index) => (
-              <li key={group.label}>
+              <li
+                key={group.label}
+                // Keyboard focus leaving trigger + panel closes it (RV-0005). A null
+                // relatedTarget (a click on the panel's unfocusable padding, the
+                // window losing focus) keeps it; the pointer path owns that case.
+                onBlur={(e) => {
+                  const next = e.relatedTarget;
+                  if (
+                    openRef.current === group.label &&
+                    next instanceof Node &&
+                    !e.currentTarget.contains(next)
+                  )
+                    setOpen(null);
+                }}
+              >
                 <button
                   ref={(el) => {
                     if (el) triggerRefs.current.set(group.label, el);

@@ -226,6 +226,28 @@ test.describe("navbar keyboard path (AC 10) @feature-sobre-mi", () => {
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
     await expect(trigger).toBeFocused();
   });
+
+  test("Tab past the last item closes the panel (RV-0005)", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
+    await open(page);
+    const trigger = header(page).getByRole("button", {
+      name: "Sobre mí",
+      exact: true,
+    });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    for (const [, href] of SOBRE_MI_ITEMS) {
+      await page.keyboard.press("Tab");
+      await expect(page.locator(":focus")).toHaveAttribute("href", href);
+      await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    }
+    await page.keyboard.press("Tab");
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(megaPanel(page)).toHaveCount(0);
+  });
 });
 
 /* ---- Pointer path (QA-0001, QA-0002) --------------------------------- */

@@ -249,6 +249,41 @@ describe("Navbar disclosure keyboard path (AC 10)", () => {
   });
 });
 
+describe("Navbar focus leaving a dropdown (RV-0005)", () => {
+  it("stays open while Tab walks its items", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await openPanel("Sobre mí");
+    for (let i = 0; i < 5; i += 1) await user.tab();
+    expect(document.activeElement).toHaveAttribute(
+      "href",
+      "/preguntas-frecuentes",
+    );
+    expect(screen.getByRole("button", { name: "Sobre mí" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+  });
+
+  it("closes when Tab moves focus past its last item", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await openPanel("Sobre mí");
+    for (let i = 0; i < 6; i += 1) await user.tab();
+    const trigger = screen.getByRole("button", { name: "Sobre mí" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("closes when Shift+Tab moves focus back before its trigger", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await openPanel("Sobre mí");
+    await user.tab({ shift: true });
+    const trigger = screen.getByRole("button", { name: "Sobre mí" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+});
+
 describe("Navbar pointer open (QA-0002)", () => {
   it("keeps a panel open when the pointer clicks the trigger that hovering just opened", async () => {
     const user = userEvent.setup();
