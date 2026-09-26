@@ -21,3 +21,24 @@ export type ClosingContent = {
   primary: ClosingAction;
   secondary?: ClosingAction;
 };
+
+/** Main-column prose blocks (spec § Page 1 styling notes). */
+export type ProseBlock =
+  /** A paragraph, 17px / 1.7. */
+  | { kind: "p"; text: string }
+  /** A display pull line with its own train marker. */
+  | { kind: "pull"; text: string; lang?: string }
+  /** A sentence set in the `headline` style. */
+  | { kind: "headline"; text: string }
+  /** A 3:2 photo with a mono caption under a hairline. */
+  | { kind: "photo"; src: string; alt: string; caption: string }
+  /** Belén's signature, written on at the end of the story. */
+  | { kind: "signature"; text: string };
+
+/** One row of the "En el camino" timetable. */
+export type TimelineRow = {
+  time: string;
+  title: string;
+  line: string;
+  tag?: string;
+};
