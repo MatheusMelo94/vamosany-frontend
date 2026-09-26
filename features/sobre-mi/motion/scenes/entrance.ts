@@ -46,8 +46,8 @@ export const entrance: Scene = ({ root, eases, contextSafe }) => {
     if (label) {
       tl.fromTo(
         label,
-        { autoAlpha: 0, y: H.eyebrow.y },
-        { autoAlpha: 1, y: 0, duration: H.eyebrow.duration },
+        { opacity: 0, y: H.eyebrow.y },
+        { opacity: 1, y: 0, duration: H.eyebrow.duration },
       );
     }
     tl.fromTo(
@@ -70,8 +70,8 @@ export const entrance: Scene = ({ root, eases, contextSafe }) => {
     if (dek) {
       tl.fromTo(
         dek,
-        { autoAlpha: 0, y: H.lede.y },
-        { autoAlpha: 1, y: 0, duration: H.lede.duration },
+        { opacity: 0, y: H.lede.y },
+        { opacity: 1, y: 0, duration: H.lede.duration },
         MOTION.page.dekOffset,
       );
     }

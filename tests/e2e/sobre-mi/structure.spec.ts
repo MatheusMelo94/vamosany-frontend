@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { waitForMotionToSettle } from "../support/motion";
 
 /**
  * Route-level structure of the Sobre mí pages (spec § Shared Page Structure,
@@ -233,6 +234,7 @@ test.describe("Sobre mí pages: shared structure, layout and a11y @feature-sobre
             ),
         )
         .toBe("0%");
+      await waitForMotionToSettle(page);
       const results = await new AxeBuilder({ page }).analyze();
       // Known, frozen (ADR-0006; landing.spec.ts KNOWN_A11Y): the footer's
       // text-white/45 captions are 4.48:1 on bg-ink. Waived only for nodes

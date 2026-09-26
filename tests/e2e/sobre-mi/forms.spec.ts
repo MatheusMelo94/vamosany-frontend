@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { waitForMotionToSettle } from "../support/motion";
 
 /**
  * The two UI-only forms (spec v1.1 § Form States; AC 38–45; Security G1
@@ -123,6 +124,18 @@ async function fill(page: Page, form: FormPage) {
 
 /** Serious/critical axe violations, minus the frozen footer contrast (ADR-0006). */
 async function axeSerious(page: Page): Promise<string[]> {
+  // Audit the settled page: bring the form into view (its reveal fires)
+  // and wait until nothing is mid-fade.
+  const form = page.locator("main [data-sm-form]");
+  if (await form.isVisible()) {
+    await form.scrollIntoViewIfNeeded();
+    // In view, its reveal must have run to the end.
+    await expect(form.locator("[data-sm-field]").last()).toHaveCSS(
+      "opacity",
+      "1",
+    );
+  }
+  await waitForMotionToSettle(page);
   const results = await new AxeBuilder({ page }).analyze();
   const out: string[] = [];
   for (const v of results.violations) {
@@ -271,6 +284,11 @@ for (const form of PAGES) {
       // (chunks blocked) and the @media (scripting: none) swap is applied.
       await page.route("**/_next/static/chunks/**", (route) => route.abort());
       await page.goto(form.path, { waitUntil: "domcontentloaded" });
+      // Without JS the ADR-0002 gate never adds .gsap; the inline gate script
+      // still runs in this context, so undo it.
+      await page.evaluate(() =>
+        document.documentElement.classList.remove("gsap"),
+      );
       await page.addStyleTag({
         content:
           ".noscript\\:hidden{display:none!important}.noscript\\:block{display:block!important}",

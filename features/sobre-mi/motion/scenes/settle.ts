@@ -8,10 +8,6 @@ import type { Scene } from "@/features/sobre-mi/motion/scenes/types";
  * its selectors from here.
  */
 const OPACITY = [
-  "[data-sm-reveal]",
-  "[data-sm-notes] > *",
-  "[data-sm-closing] [data-sm-closing-item]",
-  "[data-sm-form] [data-sm-field]",
   "[data-sm-timeline] li",
   "[data-sm-partner]",
   "[data-sm-row-body] > *",

@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { Button } from "@/components/ui/button";
+import { sm } from "@/features/sobre-mi/motion/attributes";
 
 type Props = { label: string; hydrated: boolean };
 
@@ -11,7 +12,8 @@ type Props = { label: string; hydrated: boolean };
  */
 export function SubmitRow({ label, hydrated }: Props): JSX.Element {
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    // data-sm-field: the button row reveals with the fields (TDD § 4.2, M2).
+    <div {...sm("field")} className="flex flex-wrap items-center gap-3">
       <Button type={hydrated ? "submit" : "button"} className="min-w-55">
         {label}
       </Button>

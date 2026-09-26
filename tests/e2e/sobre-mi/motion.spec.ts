@@ -399,3 +399,117 @@ test.describe("M1 heading entrance (T033) @feature-sobre-mi", () => {
     expect(f.some((x) => x.label > 0 && x.label < 1)).toBe(true);
   });
 });
+
+/* ---- M2 shared reveals (T034) --------------------------------------- */
+
+const state = (page: Page, selector: string, index = 0) =>
+  page
+    .locator(selector)
+    .nth(index)
+    .evaluate((el) => {
+      const t = getComputedStyle(el).transform;
+      return {
+        opacity: Number(getComputedStyle(el).opacity),
+        y: t === "none" ? 0 : Math.round(new DOMMatrixReadOnly(t).m42),
+      };
+    });
+
+/** Scrolls an element to mid-viewport instantly (html is smooth by default). */
+const scrollToEl = (page: Page, selector: string, index = 0) =>
+  page
+    .locator(selector)
+    .nth(index)
+    .evaluate((el) => {
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: top - window.innerHeight / 2,
+        behavior: "instant",
+      });
+    });
+
+const toTop = (page: Page) =>
+  page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+
+test.describe("M2 shared reveals (T034) @feature-sobre-mi", () => {
+  for (const [path, selector, index] of [
+    ["/sobre-mi", "main [data-sm-reveal]", 8],
+    ["/sobre-mi", "main figure[data-sm-reveal]", 0],
+    ["/sobre-mi", "main [data-sm-closing] [data-sm-closing-item]", 0],
+    ["/trabaja-conmigo", "main [data-sm-notes] > *", 5],
+    ["/trabaja-conmigo", "main [data-sm-form] [data-sm-field]", 0],
+  ] as const) {
+    test(`${path} ${selector} #${index}: hidden below the fold, revealed once when reached (AC 17)`, async ({
+      page,
+    }) => {
+      await page.goto(path);
+      // The controller has mounted once it has shown the heading block.
+      await expect(page.locator("main [data-sm-heading]")).toHaveCSS(
+        "opacity",
+        "1",
+      );
+      expect(await state(page, selector, index)).toMatchObject({ opacity: 0 });
+      await scrollToEl(page, selector, index);
+      await expect
+        .poll(() => state(page, selector, index))
+        .toEqual({ opacity: 1, y: 0 });
+      // Up and back down: it stays revealed, no replay.
+      await toTop(page);
+      await page.waitForTimeout(300);
+      await scrollToEl(page, selector, index);
+      for (let i = 0; i < 5; i++) {
+        expect(await state(page, selector, index)).toEqual({
+          opacity: 1,
+          y: 0,
+        });
+        await page.waitForTimeout(60);
+      }
+    });
+  }
+
+  test("pull lines and the signature are not prose reveals", async ({
+    page,
+  }) => {
+    await page.goto("/sobre-mi");
+    await expect(
+      page.locator("main [data-sm-sweep]").first(),
+    ).not.toHaveAttribute("data-sm-reveal");
+    const pull = page.locator("main p:has(> [data-sm-sweep])").first();
+    await expect(pull).not.toHaveAttribute("data-sm-reveal");
+    await expect(page.locator("main [data-sm-signature]")).not.toHaveAttribute(
+      "data-sm-reveal",
+    );
+  });
+
+  test("the no-JS block is never animated, and the button row is a form reveal target", async ({
+    page,
+  }) => {
+    await page.goto("/contacto");
+    const fields = page.locator("main [data-sm-form] [data-sm-field]");
+    await expect(fields).toHaveCount(6);
+    await expect(fields.last().getByRole("button")).toHaveText(
+      "Enviar mensaje",
+    );
+    await expect(
+      page.locator("main [data-sm-field]:not([data-sm-form] [data-sm-field])"),
+    ).toHaveCount(0);
+  });
+});
+
+test.describe("M2 reveals keep content reachable (T034) @feature-sobre-mi", () => {
+  test("Tab reaches the not-yet-revealed form fields, which reveal on focus", async ({
+    page,
+  }) => {
+    await page.goto("/trabaja-conmigo");
+    await expect(page.locator("main [data-sm-heading]")).toHaveCSS(
+      "opacity",
+      "1",
+    );
+    const name = page.locator("#collab-name");
+    const wrapper = page.locator("main [data-sm-form] [data-sm-field]").first();
+    await expect(wrapper).toHaveCSS("opacity", "0");
+    await expect(wrapper).toHaveCSS("visibility", "visible");
+    await name.focus();
+    await expect(name).toBeFocused();
+    await expect(wrapper).toHaveCSS("opacity", "1");
+  });
+});
