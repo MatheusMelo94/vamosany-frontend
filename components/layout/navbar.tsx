@@ -80,7 +80,9 @@ export function Navbar(): JSX.Element {
       data-nav
       className="site-nav pointer-events-none sticky top-4 z-50 mt-4 px-4 sm:px-6"
     >
-      <div
+      {/* <nav>, not <div>: the site's navigation landmark at every width
+          (same box and classes as before, so the render is unchanged). */}
+      <nav
         className="nav-capsule border-ink/[0.08] max-w-page bg-canvas/55 shadow-nav pointer-events-auto relative mx-auto flex h-14 w-full items-center justify-between gap-4 rounded-full border pr-2 pl-5 backdrop-blur-xl backdrop-saturate-150 transition-shadow duration-(--duration-slow) sm:pr-2.5 sm:pl-7"
         onMouseLeave={() => setOpen(null)}
       >
@@ -323,7 +325,7 @@ export function Navbar(): JSX.Element {
             )}
           </svg>
         </button>
-      </div>
+      </nav>
 
       {/* Mobile menu — a floating panel under the capsule, over a veil that
           hides the page beneath and closes the menu when tapped */}
