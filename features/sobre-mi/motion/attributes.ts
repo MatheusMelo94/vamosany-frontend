@@ -21,6 +21,8 @@ export const SM_ATTR = {
   closingItem: "data-sm-closing-item",
   form: "data-sm-form",
   field: "data-sm-field",
+  /** Not-configured banner wrapper (M8 entrance, plan § 0.1 F8). */
+  banner: "data-sm-banner",
   sweep: "data-sm-sweep",
   parallax: "data-sm-parallax",
   signature: "data-sm-signature",
