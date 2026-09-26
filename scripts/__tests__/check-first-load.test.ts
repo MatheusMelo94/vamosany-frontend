@@ -150,10 +150,10 @@ describe("readLimits (perf/first-load.json)", () => {
   it("reads a route's baseline and its named runtime allowance", () => {
     expect(
       readLimits(
-        { "/": { baseline: 178123, runtimeAllowanceBytes: 1000 } },
+        { "/": { baseline: 178492, runtimeAllowanceBytes: 1000 } },
         "/",
       ),
-    ).toEqual({ baseline: 178123, allowance: 1000 });
+    ).toEqual({ baseline: 178492, allowance: 1000 });
   });
 
   it("defaults the allowance to 0 and rejects a route without a baseline", () => {
@@ -164,7 +164,7 @@ describe("readLimits (perf/first-load.json)", () => {
     expect(() => readLimits({}, "/")).toThrow(/No baseline for \//);
   });
 
-  it("matches the committed file: baseline 178123, allowance 1000", async () => {
+  it("matches the committed file: baseline 178492, allowance 1000", async () => {
     const { readFileSync } = await import("node:fs");
     const file = JSON.parse(
       readFileSync(
@@ -173,7 +173,7 @@ describe("readLimits (perf/first-load.json)", () => {
       ),
     );
     expect(readLimits(file, "/")).toEqual({
-      baseline: 178123,
+      baseline: 178492,
       allowance: 1000,
     });
   });

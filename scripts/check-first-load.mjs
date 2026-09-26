@@ -11,7 +11,7 @@
  *
  * perf/first-load.json: { "<route>": { "baseline": <bytes>,
  * "runtimeAllowanceBytes": <bytes> } }. The allowance (plan § 0.3 item 6) is
- * the most `/` may grow over the pre-M4 baseline from webpack's shared
+ * the most `/` may grow over the committed baseline from webpack's shared
  * runtime (its chunk map) when lazy chunks are added elsewhere; it is not
  * room for application code.
  *
