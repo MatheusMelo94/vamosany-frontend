@@ -102,3 +102,71 @@ test.describe("coarse-pointer tap targets (RV-0001, QA-0003) @feature-sobre-mi",
     }
   });
 });
+
+test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () => {
+  test("the logo link and the burger take taps across ≥ 44 × 44 px", async ({
+    page,
+  }) => {
+    test.skip(!isPhone(page), "coarse pointer (phone project)");
+    await page.goto("/sobre-mi");
+    const header = page.locator("header[data-nav]");
+    for (const target of [
+      header.getByRole("link", { name: "Vamos a NY — home" }),
+      header.getByRole("button", { name: "Toggle menu" }),
+    ]) {
+      const extent = await hitExtent(target);
+      expect(atLeast44(extent), JSON.stringify(extent)).toEqual({
+        height: true,
+        width: true,
+      });
+    }
+  });
+
+  test("each drawer item owns its whole slot: no dead gaps between items", async ({
+    page,
+  }) => {
+    test.skip(!isPhone(page), "coarse pointer (phone project)");
+    await page.goto("/sobre-mi");
+    await page
+      .locator("header[data-nav]")
+      .getByRole("button", { name: "Toggle menu" })
+      .click();
+    const column = page
+      .locator("header[data-nav] > div.overflow-y-auto ul ul")
+      .last();
+    const items = column.locator("a");
+    const count = await items.count();
+    expect(count).toBeGreaterThan(1);
+    // Hit regions measured through each item's centre: [top, bottom] in px.
+    const regions: Array<[number, number]> = [];
+    for (let i = 0; i < count; i++) {
+      const item = items.nth(i);
+      await item.scrollIntoViewIfNeeded();
+      regions.push(
+        await item.evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          const cx = r.left + r.width / 2;
+          const cy = r.top + r.height / 2;
+          const hits = (y: number) =>
+            document.elementFromPoint(cx, y)?.closest("a") === el;
+          let up = 0;
+          while (up < 60 && hits(cy - up - 1)) up++;
+          let down = 0;
+          while (down < 60 && hits(cy + down + 1)) down++;
+          return [Math.round(cy - up), Math.round(cy + down)];
+        }),
+      );
+    }
+    for (let i = 0; i < count; i++) {
+      const [top, bottom] = regions[i]!;
+      // The text is 22px; its slot on the 30px pitch is the target.
+      expect(bottom - top, `item ${i}`).toBeGreaterThanOrEqual(29);
+      if (i > 0) {
+        expect(
+          Math.abs(top - regions[i - 1]![1]),
+          `gap before item ${i}`,
+        ).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+});

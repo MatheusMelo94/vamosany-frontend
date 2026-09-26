@@ -86,7 +86,13 @@ export function Navbar(): JSX.Element {
         className="nav-capsule border-ink/[0.08] max-w-page bg-canvas/55 shadow-nav pointer-events-auto relative mx-auto flex h-14 w-full items-center justify-between gap-4 rounded-full border pr-2 pl-5 backdrop-blur-xl backdrop-saturate-150 transition-shadow duration-(--duration-slow) sm:pr-2.5 sm:pl-7"
         onMouseLeave={() => setOpen(null)}
       >
-        <Link href="/" className="shrink-0" aria-label="Vamos a NY — home">
+        {/* tap-target: ≥ 44 × 44 px invisible hit area on coarse pointers
+            (QA-0004); nothing drawn changes */}
+        <Link
+          href="/"
+          className="tap-target shrink-0"
+          aria-label="Vamos a NY — home"
+        >
           <BrandLogo className="h-6" priority />
         </Link>
 
@@ -305,7 +311,7 @@ export function Navbar(): JSX.Element {
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
-          className="text-ink hover:bg-ink/5 grid size-10 place-items-center rounded-full transition-colors lg:hidden"
+          className="tap-target text-ink hover:bg-ink/5 grid size-10 place-items-center rounded-full transition-colors lg:hidden"
         >
           <svg viewBox="0 0 20 20" aria-hidden className="size-5">
             {mobileOpen ? (
@@ -356,7 +362,13 @@ export function Navbar(): JSX.Element {
                               isCurrent(item.href) ? "page" : undefined
                             }
                             onClick={() => setMobileOpen(false)}
-                            className="body-sm text-ink-subtle flex items-center justify-between gap-3"
+                            className={cn(
+                              "body-sm text-ink-subtle flex items-center justify-between gap-3",
+                              // Coarse pointers: the hit area fills the item's slot, half of the
+                              // 8px gap above and below (invisible; QA-0004). 44px exclusive
+                              // targets don't fit the frozen 30px pitch.
+                              "pointer-coarse:relative pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1",
+                            )}
                           >
                             {item.title}
                             {item.price ? (
