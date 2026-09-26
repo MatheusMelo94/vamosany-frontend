@@ -116,8 +116,8 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
         name: label,
         exact: true,
       });
-      // A real click fires mouseenter (open) then click (toggle closed), so the
-      // open-with-pointer-on-trigger state is reached by hovering the trigger.
+      // The open-with-pointer-on-trigger state, reached by hovering (a click
+      // now keeps it open too, QA-0002; hover is the characterized path).
       await trigger.hover();
       await expect(trigger).toHaveAttribute("aria-expanded", "true");
       const panel = megaPanel(page);
@@ -262,6 +262,22 @@ test.describe("navbar pointer path @feature-sobre-mi", () => {
       await expect(item).toBeVisible();
     });
   }
+
+  test("a mouse click on a closed trigger leaves its panel open (QA-0002)", async ({
+    page,
+  }) => {
+    await open(page);
+    const trigger = header(page).getByRole("button", {
+      name: "Sobre mí",
+      exact: true,
+    });
+    // A real click: the pointer moves onto the trigger (mouseenter) and clicks.
+    await trigger.click();
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    await expect(megaPanel(page)).toBeVisible();
+    await trigger.click();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
 
   test("panel still closes when the pointer leaves the navbar upward (QA-0001)", async ({
     page,

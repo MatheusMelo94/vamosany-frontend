@@ -249,6 +249,37 @@ describe("Navbar disclosure keyboard path (AC 10)", () => {
   });
 });
 
+describe("Navbar pointer open (QA-0002)", () => {
+  it("keeps a panel open when the pointer clicks the trigger that hovering just opened", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    const trigger = screen.getByRole("button", { name: "Sobre mí" });
+    await user.hover(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    await user.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("closes it on the next pointer click", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    const trigger = screen.getByRole("button", { name: "Sobre mí" });
+    await user.click(trigger);
+    await user.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("keeps Enter a toggle on a hovered trigger", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    const trigger = screen.getByRole("button", { name: "Sobre mí" });
+    await user.hover(trigger);
+    trigger.focus();
+    await user.keyboard("{Enter}");
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+});
+
 describe("Navbar current page (AC 5, AC 9)", () => {
   afterEach(() => {
     vi.mocked(usePathname).mockReturnValue("/");

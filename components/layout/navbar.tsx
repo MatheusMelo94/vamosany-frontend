@@ -37,6 +37,8 @@ export function Navbar(): JSX.Element {
   /** Trigger per group label, so Escape can hand focus back (disclosure pattern). */
   const triggerRefs = useRef(new Map<string, HTMLButtonElement>());
   const openRef = useRef(open);
+  /** Group whose panel the pointer opened by hovering, until a click claims it (QA-0002). */
+  const hoverOpenedRef = useRef<string | null>(null);
 
   useEffect(() => {
     openRef.current = open;
@@ -107,10 +109,24 @@ export function Navbar(): JSX.Element {
                   }}
                   type="button"
                   aria-controls={`${panelIdBase}-panel-${index}`}
-                  onMouseEnter={() => setOpen(group.label)}
-                  onClick={() =>
-                    setOpen((cur) => (cur === group.label ? null : group.label))
-                  }
+                  onMouseEnter={() => {
+                    if (openRef.current !== group.label)
+                      hoverOpenedRef.current = group.label;
+                    setOpen(group.label);
+                  }}
+                  onClick={(e) => {
+                    // A pointer click (detail > 0) on the trigger that hovering just
+                    // opened keeps it open: "hover or click" opens (QA-0002). The next
+                    // click, and Enter/Space (detail 0), toggle as before.
+                    const claimsHover =
+                      e.detail > 0 && hoverOpenedRef.current === group.label;
+                    hoverOpenedRef.current = null;
+                    if (claimsHover) setOpen(group.label);
+                    else
+                      setOpen((cur) =>
+                        cur === group.label ? null : group.label,
+                      );
+                  }}
                   aria-expanded={open === group.label}
                   className={cn(
                     textLink,
