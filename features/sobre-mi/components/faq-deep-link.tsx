@@ -2,10 +2,15 @@
 
 import { useEffect } from "react";
 
-/** Decodes the URL fragment; a malformed escape is treated as no match. */
+/** Anchor ids are short slugs; anything longer can't match (G2 0013). */
+const MAX_HASH = 200;
+
+/** Decodes the URL fragment; a malformed escape or an oversized one is no match. */
 function hashId(): string {
+  const raw = window.location.hash.slice(1);
+  if (!raw || raw.length > MAX_HASH) return "";
   try {
-    return decodeURIComponent(window.location.hash.slice(1));
+    return decodeURIComponent(raw);
   } catch {
     return "";
   }
@@ -17,8 +22,10 @@ function hashId(): string {
  * and scrolls it into view; a hash naming a group just scrolls to it. Anchors
  * carry `data-sm-anchor` (scroll-margin), so they land below the sticky
  * navbar. The hash is only a lookup key for getElementById — never used as a
- * selector or written to the DOM (S§ Input & Output Handling). Unknown hash:
- * nothing opens, nothing scrolls. Renders nothing.
+ * selector or written to the DOM — and only elements carrying
+ * `data-sm-anchor` are acted on (S§ Input & Output Handling; G2 0013).
+ * Unknown, malformed or oversized hash: nothing opens, nothing scrolls.
+ * Renders nothing.
  */
 export function FaqDeepLink(): null {
   useEffect(() => {
@@ -26,7 +33,9 @@ export function FaqDeepLink(): null {
       const id = hashId();
       if (!id) return;
       const target = document.getElementById(id);
-      if (!target) return;
+      // Only FAQ groups and questions (G2 0013, R-04): the resolved element
+      // must carry data-sm-anchor; the hash is never turned into a selector.
+      if (!target?.hasAttribute("data-sm-anchor")) return;
       if (target instanceof HTMLDetailsElement) target.open = true;
       target.scrollIntoView({ block: "start", behavior: "instant" });
     };

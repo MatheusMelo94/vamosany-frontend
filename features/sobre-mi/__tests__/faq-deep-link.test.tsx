@@ -5,13 +5,19 @@ function Page() {
   return (
     <>
       <FaqDeepLink />
-      <section id="viajes-grupales">
-        <details id="como-funcionan-los-viajes-grupales">
+      <div id="contenido">
+        <details id="footer-credits">
+          <summary>Not an FAQ anchor</summary>
+          <p>Credits</p>
+        </details>
+      </div>
+      <section id="viajes-grupales" data-sm-anchor="">
+        <details id="como-funcionan-los-viajes-grupales" data-sm-anchor="">
           <summary>¿Cómo funcionan los viajes grupales?</summary>
           <p>Answer</p>
         </details>
       </section>
-      <details id="que-es-un-itinerario-personalizado">
+      <details id="que-es-un-itinerario-personalizado" data-sm-anchor="">
         <summary>¿Qué es un itinerario personalizado?</summary>
         <p>Answer</p>
       </details>
@@ -98,5 +104,30 @@ describe("FaqDeepLink (AC 48)", () => {
   it("renders nothing", () => {
     const { container } = render(<FaqDeepLink />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("ignores ids that aren't FAQ anchors (G2 finding 0013)", () => {
+    for (const hash of ["#contenido", "#footer-credits"]) {
+      window.history.replaceState(null, "", `/${hash}`);
+      const { container, unmount } = render(<Page />);
+      expect(openIds(container)).toEqual([]);
+      unmount();
+    }
+    expect(scroll).not.toHaveBeenCalled();
+  });
+
+  it("survives a malformed percent-escape and an oversized hash (G2 finding 0014, R-04)", () => {
+    for (const hash of [
+      "#%E0%A4%A",
+      "#" + "a".repeat(5 * 1024),
+      "#" + "que-es-un-itinerario-personalizado".repeat(200),
+    ]) {
+      window.history.replaceState(null, "", `/${hash}`);
+      expect(() => {
+        const { unmount } = render(<Page />);
+        unmount();
+      }).not.toThrow();
+    }
+    expect(scroll).not.toHaveBeenCalled();
   });
 });
