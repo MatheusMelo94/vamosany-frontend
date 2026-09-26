@@ -3,6 +3,7 @@
 import { motionEnabled, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { getEases } from "@/lib/gsap-ease";
 import { smSel } from "@/features/sobre-mi/motion/attributes";
+import { colaboraciones } from "@/features/sobre-mi/motion/scenes/colaboraciones";
 import { entrance } from "@/features/sobre-mi/motion/scenes/entrance";
 import { navScrolled } from "@/features/sobre-mi/motion/scenes/nav-scrolled";
 import { reveals } from "@/features/sobre-mi/motion/scenes/reveals";
@@ -18,6 +19,7 @@ const SCENES: readonly Scene[] = [
   reveals,
   sweeps,
   sobreMi,
+  colaboraciones,
   settle,
 ];
 

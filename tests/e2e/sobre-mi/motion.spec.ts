@@ -693,3 +693,142 @@ test.describe("M3 Sobre mí scenes (T035) @feature-sobre-mi", () => {
     });
   });
 });
+
+/* ---- M4 Colaboraciones (T036) --------------------------------------- */
+
+const yearAt = (page: Page, row: number) =>
+  page
+    .locator("main [data-sm-year]")
+    .nth(row)
+    .evaluate((el) => ({
+      text: el.textContent,
+      opacity: Number(getComputedStyle(el).opacity),
+    }));
+
+const barScale = (page: Page) =>
+  page.locator("[data-nav] [data-reading-bar]").evaluate((el) => {
+    const t = getComputedStyle(el).transform;
+    return t === "none" ? 1 : new DOMMatrixReadOnly(t).a;
+  });
+
+test.describe("M4 Colaboraciones (T036) @feature-sobre-mi", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/colaboraciones");
+    await expect(page.locator("main [data-sm-heading]")).toHaveCSS(
+      "opacity",
+      "1",
+    );
+  });
+
+  test("each 4-digit year ticks up from the previous row's; '2024–25' fades in (AC 29)", async ({
+    page,
+  }) => {
+    const years = page.locator("main [data-sm-year]");
+    // Row 5 (2024) is below the fold at every viewport: until reached it
+    // shows the previous row's year, then ticks to its own. (Row 1 may
+    // already be past its trigger on load at 1280 and tick at once.)
+    expect((await yearAt(page, 4)).text).toBe("2023");
+    // 2023 → 2023: no tick, the year never changes.
+    expect((await yearAt(page, 2)).text).toBe("2023");
+    expect((await yearAt(page, 5)).opacity).toBe(0);
+    const seen = new Set<string>();
+    await scrollToEl(page, "main [data-sm-year]", 4);
+    for (let i = 0; i < 30; i++) {
+      seen.add((await yearAt(page, 4)).text ?? "");
+      await page.waitForTimeout(25);
+    }
+    await expect.poll(async () => (await yearAt(page, 4)).text).toBe("2024");
+    expect(seen.has("2023")).toBe(true);
+    await scrollToEl(page, "main [data-sm-year]", 5);
+    await expect.poll(async () => (await yearAt(page, 5)).opacity).toBe(1);
+    await scrollThrough(page);
+    expect(await years.allTextContents()).toEqual([
+      "2022",
+      "2023",
+      "2023",
+      "2023",
+      "2024",
+      "2024–25",
+      "2026",
+    ]);
+  });
+
+  test("assistive tech reads only the final year, even mid-tick (AC 29)", async ({
+    page,
+  }) => {
+    const row = page.locator("main ol > li").first();
+    for (let i = 0; i < 8; i++) {
+      const snapshot = await row.ariaSnapshot();
+      expect(snapshot).toContain("2022");
+      expect(snapshot).not.toContain("2021");
+      if (i === 0) await scrollToEl(page, "main ol > li");
+      await page.waitForTimeout(80);
+    }
+  });
+
+  test("the reading bar lives in the navbar capsule and fills through the ledger (AC 30)", async ({
+    page,
+  }) => {
+    const bar = page.locator("[data-nav] .nav-capsule [data-reading-bar]");
+    await expect(bar).toHaveCount(1);
+    await expect(
+      page.locator(
+        "[data-nav] .nav-capsule > [aria-hidden='true']:has([data-reading-bar])",
+      ),
+    ).toHaveCount(1);
+    await expect(bar).toHaveCSS("height", "3px");
+    const ledger = page.locator("main ol");
+    const box = await ledger.evaluate((el) => ({
+      top: el.getBoundingClientRect().top + window.scrollY,
+      height: el.getBoundingClientRect().height,
+    }));
+    const vh = page.viewportSize()?.height ?? 800;
+    // Scrubbed from "ledger top at 70%" to "ledger bottom at 60%".
+    const from = box.top - vh * 0.7;
+    const to = box.top + box.height - vh * 0.6;
+    const expected = (y: number) =>
+      Math.min(1, Math.max(0, (y - from) / (to - from)));
+    for (const y of [0, Math.round((from + to) / 2), Math.round(to + 200)]) {
+      await scrollToY(page, Math.max(0, y));
+      await page.waitForTimeout(900);
+      const actual = await barScale(page);
+      expect(Math.abs(actual - expected(Math.max(0, y)))).toBeLessThan(0.05);
+    }
+    // Empty before the ledger, where that point is reachable at this width.
+    if (from > 0) {
+      await scrollToY(page, 0);
+      await page.waitForTimeout(900);
+      expect(await barScale(page)).toBe(0);
+    }
+    await scrollToY(page, Math.round(to + 200));
+    await expect.poll(() => barScale(page)).toBeCloseTo(1, 2);
+  });
+
+  test("the reading bar is removed when leaving the page, and never on other pages", async ({
+    page,
+  }) => {
+    await expect(page.locator("[data-reading-bar]")).toHaveCount(1);
+    await page
+      .locator("main [data-sm-closing]")
+      .getByRole("link", { name: "Trabajá conmigo" })
+      .click();
+    await expect(page).toHaveURL(/\/trabaja-conmigo$/);
+    await expect(
+      page.locator("main [data-sm-scene='trabaja-conmigo']"),
+    ).toHaveCount(1);
+    await expect(page.locator("[data-reading-bar]")).toHaveCount(0);
+    await page.goto("/sobre-mi");
+    await expect(page.locator("main [data-sm-heading]")).toHaveCSS(
+      "opacity",
+      "1",
+    );
+    await expect(page.locator("[data-reading-bar]")).toHaveCount(0);
+  });
+
+  test("the Efe Hus quote's train sweeps in (AC 27)", async ({ page }) => {
+    const quote = "main p[lang='en'] [data-sm-sweep]";
+    expect(await trainOf(page, quote)).not.toBe("0%");
+    await scrollToEl(page, quote);
+    await expect.poll(() => trainOf(page, quote)).toBe("0%");
+  });
+});
