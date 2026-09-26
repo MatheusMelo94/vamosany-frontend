@@ -66,16 +66,18 @@ describe("ContactoPage", () => {
     expect(instagram).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  it("has no closing row, and reserves the form slot in the main column", () => {
-    const { container } = render(
-      <ContactoPage form={<form aria-label="Contacto" />} />,
-    );
+  it("has no closing row, and puts the contact form in the main column (T029)", () => {
+    const { container } = render(<ContactoPage />);
     expect(container.querySelector(smSel("closing"))).toBeNull();
     const notes = container.querySelector(smSel("notes"));
-    const form = screen.getByRole("form", { name: "Contacto" });
-    expect(notes?.compareDocumentPosition(form)).toBe(
+    const form = container.querySelector(smSel("form"));
+    expect(form).not.toBeNull();
+    expect(notes?.compareDocumentPosition(form as Node)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
+    expect(
+      screen.getByRole("button", { name: "Enviar mensaje" }),
+    ).toBeInTheDocument();
     expect(
       screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent),
     ).toEqual(["Otras formas de encontrarme"]);
