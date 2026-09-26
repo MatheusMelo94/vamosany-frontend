@@ -2,7 +2,7 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { GlobeIcon } from "@/components/ui/icons";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,14 @@ export function Navbar(): JSX.Element {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [lang, setLang] = useState<Lang>("EN");
   const [langOpen, setLangOpen] = useState(false);
+  const panelIdBase = useId();
+  /** Trigger per group label, so Escape can hand focus back (disclosure pattern). */
+  const triggerRefs = useRef(new Map<string, HTMLButtonElement>());
+  const openRef = useRef(open);
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -31,8 +39,10 @@ export function Navbar(): JSX.Element {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        const openGroup = openRef.current;
         setOpen(null);
         setLangOpen(false);
+        if (openGroup) triggerRefs.current.get(openGroup)?.focus();
       }
     };
     const onClick = (e: MouseEvent) => {
@@ -46,8 +56,6 @@ export function Navbar(): JSX.Element {
       window.removeEventListener("click", onClick);
     };
   }, []);
-
-  const active = NAV.find((g) => g.label === open);
 
   const textLink =
     "body-sm rounded-full px-3 py-1.5 font-semibold text-ink transition-colors hover:bg-ink/5";
@@ -69,10 +77,15 @@ export function Navbar(): JSX.Element {
 
         <div className="hidden items-center gap-1 lg:flex">
           <ul className="flex items-center gap-0.5">
-            {NAV.map((group) => (
+            {NAV.map((group, index) => (
               <li key={group.label}>
                 <button
+                  ref={(el) => {
+                    if (el) triggerRefs.current.set(group.label, el);
+                    else triggerRefs.current.delete(group.label);
+                  }}
                   type="button"
+                  aria-controls={`${panelIdBase}-panel-${index}`}
                   onMouseEnter={() => setOpen(group.label)}
                   onClick={() =>
                     setOpen((cur) => (cur === group.label ? null : group.label))
@@ -103,6 +116,68 @@ export function Navbar(): JSX.Element {
                     />
                   </svg>
                 </button>
+                {/* Desktop mega menu — rendered right after its trigger
+                    (disclosure pattern: DOM order = tab order) but still
+                    positioned against the capsule, its nearest positioned
+                    ancestor, so it floats beneath the capsule as before. */}
+                {open === group.label ? (
+                  // arbitrary: offset do dropdown = altura do trigger + 8px
+                  <div
+                    id={`${panelIdBase}-panel-${index}`}
+                    className="border-ink/[0.08] bg-canvas shadow-menu absolute inset-x-0 top-[calc(100%+0.5rem)] hidden rounded-3xl border lg:block"
+                    onMouseEnter={() => setOpen(group.label)}
+                    onMouseLeave={() => setOpen(null)}
+                  >
+                    <div
+                      className="grid gap-10 px-8 py-8"
+                      style={{
+                        gridTemplateColumns: `repeat(${group.columns.length}, minmax(0,1fr))`,
+                      }}
+                    >
+                      {group.columns.map((column) => (
+                        <div key={column.heading}>
+                          <p className="eyebrow">{column.heading}</p>
+                          <ul className="mt-5 space-y-1">
+                            {column.items.map((item) => (
+                              <li key={item.title}>
+                                <Link
+                                  href={item.href ?? "#services"}
+                                  className={cn(
+                                    "group hover:bg-surface-1 block rounded-xl p-3 transition-colors",
+                                    item.price &&
+                                      "border-hairline hover:border-ink border",
+                                  )}
+                                >
+                                  <span className="body-sm text-ink flex items-center gap-2 font-semibold">
+                                    {item.title}
+                                    {item.tag ? (
+                                      <span className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap">
+                                        {item.tag}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                  <span className="body-sm text-ink-subtle mt-0.5 block">
+                                    {item.blurb}
+                                  </span>
+                                  {item.price ? (
+                                    <span className="mt-3 flex items-center justify-between">
+                                      <span className="headline text-ink">
+                                        {item.price}
+                                      </span>
+                                      <span className="label-button text-ink underline-offset-4 group-hover:underline">
+                                        See details
+                                      </span>
+                                    </span>
+                                  ) : null}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -221,65 +296,6 @@ export function Navbar(): JSX.Element {
             )}
           </svg>
         </button>
-
-        {/* Desktop mega menu — floats beneath the capsule at its width */}
-        {active ? (
-          // arbitrary: offset do dropdown = altura do trigger + 8px
-          <div
-            className="border-ink/[0.08] bg-canvas shadow-menu absolute inset-x-0 top-[calc(100%+0.5rem)] hidden rounded-3xl border lg:block"
-            onMouseEnter={() => setOpen(active.label)}
-            onMouseLeave={() => setOpen(null)}
-          >
-            <div
-              className="grid gap-10 px-8 py-8"
-              style={{
-                gridTemplateColumns: `repeat(${active.columns.length}, minmax(0,1fr))`,
-              }}
-            >
-              {active.columns.map((column) => (
-                <div key={column.heading}>
-                  <p className="eyebrow">{column.heading}</p>
-                  <ul className="mt-5 space-y-1">
-                    {column.items.map((item) => (
-                      <li key={item.title}>
-                        <Link
-                          href={item.href ?? "#services"}
-                          className={cn(
-                            "group hover:bg-surface-1 block rounded-xl p-3 transition-colors",
-                            item.price &&
-                              "border-hairline hover:border-ink border",
-                          )}
-                        >
-                          <span className="body-sm text-ink flex items-center gap-2 font-semibold">
-                            {item.title}
-                            {item.tag ? (
-                              <span className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap">
-                                {item.tag}
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="body-sm text-ink-subtle mt-0.5 block">
-                            {item.blurb}
-                          </span>
-                          {item.price ? (
-                            <span className="mt-3 flex items-center justify-between">
-                              <span className="headline text-ink">
-                                {item.price}
-                              </span>
-                              <span className="label-button text-ink underline-offset-4 group-hover:underline">
-                                See details
-                              </span>
-                            </span>
-                          ) : null}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
       </div>
 
       {/* Mobile menu — a floating panel under the capsule, over a veil that

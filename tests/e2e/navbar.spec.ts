@@ -204,3 +204,26 @@ test.describe("navbar Sobre mí group (DDR-0002) @feature-sobre-mi", () => {
     await expect(drawer).toHaveCount(0);
   });
 });
+
+test.describe("navbar keyboard path (AC 10) @feature-sobre-mi", () => {
+  test("Enter opens, Tab reaches the first item, Escape returns focus to the trigger", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
+    await open(page);
+    const trigger = header(page).getByRole("button", {
+      name: "Sobre mí",
+      exact: true,
+    });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const panelId = await trigger.getAttribute("aria-controls");
+    await expect(page.locator(`[id="${panelId}"]`)).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect(page.locator(":focus")).toHaveAttribute("href", "/sobre-mi");
+    await page.keyboard.press("Escape");
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await expect(trigger).toBeFocused();
+  });
+});

@@ -208,3 +208,40 @@ describe("Navbar", () => {
     expect(screen.queryByText("Vamos a New York")).toBeNull();
   });
 });
+
+describe("Navbar disclosure keyboard path (AC 10)", () => {
+  it("renders each open panel right after its trigger and points aria-controls at it", async () => {
+    render(<Navbar />);
+    for (const label of Object.keys(EXPECTED)) {
+      await openPanel(label);
+      const trigger = screen.getByRole("button", { name: label });
+      const controls = trigger.getAttribute("aria-controls");
+      expect(controls).toBeTruthy();
+      const panel = document.getElementById(controls ?? "");
+      expect(panel).not.toBeNull();
+      expect(trigger.nextElementSibling).toBe(panel);
+    }
+  });
+
+  it("moves Tab from an open trigger to the panel's first item", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await openPanel("Sobre mí");
+    await user.tab();
+    expect(document.activeElement).toHaveAttribute("href", "/sobre-mi");
+  });
+
+  it("closes the dropdown on Escape and returns focus to its trigger", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await openPanel("Sobre mí");
+    await user.tab();
+    await user.tab();
+    expect(document.activeElement).toHaveAttribute("href", "/colaboraciones");
+    await user.keyboard("{Escape}");
+    const trigger = screen.getByRole("button", { name: "Sobre mí" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Vamos a New York")).toBeNull();
+    expect(trigger).toHaveFocus();
+  });
+});
