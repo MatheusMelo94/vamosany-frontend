@@ -1,7 +1,10 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { NAV, READING_BAR_ROUTES } from "@/components/layout/nav-config";
+
+vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => "/") }));
 
 /** Menu content rendered by the desktop mega-menu (DDR-0002: "About" became "Sobre mí"). */
 const EXPECTED: Record<string, Array<[heading: string, titles: string[]]>> = {
@@ -243,5 +246,47 @@ describe("Navbar disclosure keyboard path (AC 10)", () => {
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByText("Vamos a New York")).toBeNull();
     expect(trigger).toHaveFocus();
+  });
+});
+
+describe("Navbar current page (AC 5, AC 9)", () => {
+  afterEach(() => {
+    vi.mocked(usePathname).mockReturnValue("/");
+  });
+
+  it("marks only the current route's item with aria-current in the mega-menu", async () => {
+    vi.mocked(usePathname).mockReturnValue("/colaboraciones");
+    const { container } = render(<Navbar />);
+    await openPanel("Sobre mí");
+    const current = panelIn(container).querySelectorAll(
+      '[aria-current="page"]',
+    );
+    expect(current).toHaveLength(1);
+    expect(current[0]).toHaveAttribute("href", "/colaboraciones");
+  });
+
+  it("marks it in the drawer too, with a decorative dot", async () => {
+    vi.mocked(usePathname).mockReturnValue("/colaboraciones");
+    const user = userEvent.setup();
+    const { container } = render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    const current = container.querySelectorAll('[aria-current="page"]');
+    expect(current).toHaveLength(1);
+    const link = screen.getByRole("link", { name: "Colaboraciones" });
+    expect(link).toHaveAttribute("aria-current", "page");
+    const dot = link.querySelector("[data-current-dot]");
+    expect(dot).toHaveAttribute("aria-hidden", "true");
+    expect(dot).toHaveClass("bg-brand", "size-1.5", "rounded-full");
+    expect(container.querySelectorAll("[data-current-dot]")).toHaveLength(1);
+  });
+
+  it("marks nothing on the landing", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Navbar />);
+    await openPanel("Sobre mí");
+    expect(container.querySelector('[aria-current="page"]')).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    expect(container.querySelector('[aria-current="page"]')).toBeNull();
+    expect(container.querySelector("[data-current-dot]")).toBeNull();
   });
 });

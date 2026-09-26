@@ -2,6 +2,7 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { GlobeIcon } from "@/components/ui/icons";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -20,6 +21,10 @@ export function Navbar(): JSX.Element {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [lang, setLang] = useState<Lang>("EN");
   const [langOpen, setLangOpen] = useState(false);
+  /* Current page is derived from the URL, never stored (DDR-0002/0003). */
+  const pathname = usePathname();
+  const isCurrent = (href: string | undefined): boolean =>
+    href !== undefined && href === pathname;
   const panelIdBase = useId();
   /** Trigger per group label, so Escape can hand focus back (disclosure pattern). */
   const triggerRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -142,6 +147,9 @@ export function Navbar(): JSX.Element {
                               <li key={item.title}>
                                 <Link
                                   href={item.href ?? "#services"}
+                                  aria-current={
+                                    isCurrent(item.href) ? "page" : undefined
+                                  }
                                   className={cn(
                                     "group hover:bg-surface-1 block rounded-xl p-3 transition-colors",
                                     item.price &&
@@ -323,6 +331,9 @@ export function Navbar(): JSX.Element {
                         <li key={item.title}>
                           <Link
                             href={item.href ?? "#services"}
+                            aria-current={
+                              isCurrent(item.href) ? "page" : undefined
+                            }
                             onClick={() => setMobileOpen(false)}
                             className="body-sm text-ink-subtle flex items-center justify-between gap-3"
                           >
@@ -331,6 +342,15 @@ export function Navbar(): JSX.Element {
                               <span className="caption text-ink font-semibold">
                                 {item.price}
                               </span>
+                            ) : null}
+                            {/* Static "you are here" dot, the same as the
+                                language menu's selected dot (DDR-0003). */}
+                            {isCurrent(item.href) ? (
+                              <span
+                                data-current-dot
+                                aria-hidden
+                                className="bg-brand size-1.5 rounded-full"
+                              />
                             ) : null}
                           </Link>
                         </li>
