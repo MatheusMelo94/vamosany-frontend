@@ -1,9 +1,10 @@
-# Tasks: vamosany-front-end — Sobre mí (5 pages + navbar menu) v1
+# Tasks: vamosany-front-end — Sobre mí (5 pages + navbar menu) v1.1
 
-- **Plan:** `docs/specs/sobre-mi/plan.md` (Ready for /tasks) · **TDD:** `docs/tech-design/sobre-mi.md` · **Spec:** `docs/specs/sobre-mi/spec.md` v1 · **Contract Request:** `docs/specs/sobre-mi/contract-request.md`
+- **v1.1 (2026-09-26):** UI-only forms (spec v1.1 `d580ec0`; Security G1 R-01..R-07). Backend tasks are marked **Deferred (backend)**, not deleted. M3–M5 rewritten. See plan § 0.
+- **Plan:** `docs/specs/sobre-mi/plan.md` v1.1 (Ready for /tasks) · **TDD:** `docs/tech-design/sobre-mi.md` · **Spec:** `docs/specs/sobre-mi/spec.md` v1 · **Contract Request:** `docs/specs/sobre-mi/contract-request.md`
 - **Branch:** `feat/sobre-mi-pages` (the Engineer creates it from `main`). One task = one conventional commit. Execute in numeric order; the gates G1/G2 are Security, not the Engineer.
 - **Commands** (npm, ADR-0005): suite = `npm run typecheck && npm run lint && npm test`; build = `npm run build`; e2e = `npm run test:e2e -- --grep @feature-sobre-mi` (tag every new spec `@feature-sobre-mi`). Screenshot baselines are generated **only** by the CI bot (`update-snapshots` label, or `update-snapshots-desktop` after T003). Locally, snapshots are ignored unless `PW_LOCAL_BASELINE=1` (`playwright.config.ts`).
-- **Labels:** `Render-Preserving` (ADR-0006: the landing must be diff 0 unless the task names allowed diffs) · `Pre-Contract` · `ADR-0007` · `DDR-000N` · `Needs-Approval` (waiting on the user) · **build check required** where the task touches `app/`, `'use client'` boundaries, `next.config.ts`, `playwright.config.ts` or env.
+- **Labels:** `Render-Preserving` (ADR-0006: the landing must be diff 0 unless the task names allowed diffs) · `Pre-Contract` (only Deferred tasks now) · `Deferred (backend)` · `R-0N` (Security G1 control the task implements) · `ADR-0007` · `DDR-000N` · `Needs-Approval` (waiting on the user) · **build check required** where the task touches `app/`, `'use client'` boundaries, `next.config.ts`, `playwright.config.ts` or env.
 - **Citations shorthand:** `A§` = `frontend-architecture-conventions.md §`, `D§` = `design-conventions.md §`, `S§` = `frontend-security-conventions.md §`, `Q§` = `frontend-qa-conventions.md §`.
 - **AC numbers** are the spec's § Acceptance Criteria (1–51).
 
@@ -12,6 +13,7 @@
 ## M0 — Foundations (Render-Preserving; landing diff 0)
 
 ### T001 — chore: add `msw` and `server-only`; wire MSW into Vitest
+- **Status:** Skipped. Not needed in v1.1: no MSW, no `server-only` (plan § 0.1 F9); this also makes G1 R-07 moot
 - **Layer:** infra
 - **Files:** `package.json`, `package-lock.json`, `tests/fixtures/msw/server.ts`, `tests/fixtures/msw/handlers/index.ts` (empty array), `tests/setup.ts`
 - **Acceptance:**
@@ -23,6 +25,7 @@
 - **Labels:** Render-Preserving
 
 ### T002 — test(e2e): characterize the current navbar (closed, panels, drawer, language menu)
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** e2e baseline
 - **Files:** `tests/e2e/navbar.spec.ts` (new), `tests/e2e/navbar.spec.ts-snapshots/` (bot-generated)
 - **Acceptance:**
@@ -34,6 +37,7 @@
 - **Labels:** Render-Preserving · QA-owned file (the Engineer writes it; QA reviews)
 
 ### T003 — ci: scoped desktop snapshot update
+- **Status:** **Open** (DevOps). Needed before regenerating the 6 landing desktop snapshots (plan § 12)
 - **Owner:** Frontend DevOps Engineer
 - **Files:** `.github/workflows/update-snapshots.yml`
 - **Acceptance:**
@@ -45,6 +49,7 @@
 - **Labels:** —
 
 ### T004 — refactor: move `motionEnabled()` to `lib/gsap.ts`; split `CustomEase`/`getEases` into `lib/gsap-ease.ts`
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** lib
 - **Files:** `lib/gsap.ts`, `lib/gsap-ease.ts` (new), `lib/gsap-text.ts`, `features/landing/motion/attributes.ts` (re-export), `lib/__tests__/gsap-ease.test.ts`
 - **Acceptance:**
@@ -56,6 +61,7 @@
 - **Labels:** Render-Preserving · build check required
 
 ### T005 — feat(motion): add the Sobre mí motion values to `lib/motion.ts`
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** lib
 - **Files:** `lib/motion.ts`, `lib/__tests__/motion.test.ts` (new)
 - **Acceptance:**
@@ -67,6 +73,7 @@
 - **Labels:** Render-Preserving
 
 ### T006 — style: token additions and `.gsap` initial-state rules for `[data-sm-*]`
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** styling
 - **Files:** `app/globals.css`
 - **Acceptance:**
@@ -82,6 +89,7 @@
 ## M1 — Navbar (DDR-0002, DDR-0003)
 
 ### T007 — refactor(nav): extract `NAV` into `components/layout/nav-config.ts`
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** schemas & types
 - **Files:** `components/layout/nav-config.ts` (new: `NavGroup`, `NavItem` types, `NAV`, `READING_BAR_ROUTES`), `components/layout/navbar.tsx`, `components/layout/__tests__/navbar.test.tsx` (new)
 - **Acceptance:**
@@ -93,6 +101,7 @@
 - **Labels:** Render-Preserving
 
 ### T008 — feat(nav): "Sobre mí" group with five items (mega-menu + drawer)
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** client leaf
 - **Files:** `features/sobre-mi/content/nav.ts` (new), `components/layout/nav-config.ts`, `components/layout/__tests__/navbar.test.tsx`
 - **Acceptance:**
@@ -105,6 +114,7 @@
 - **Labels:** DDR-0002 · build check required
 
 ### T009 — fix(a11y nav): disclosure semantics, with Esc returning focus to the trigger
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** accessibility
 - **Files:** `components/layout/navbar.tsx`, `components/layout/__tests__/navbar.test.tsx`
 - **Acceptance:**
@@ -117,6 +127,7 @@
 - **Labels:** Render-Preserving
 
 ### T010 — feat(nav): current page (`aria-current`) and the static drawer dot
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** client leaf
 - **Files:** `components/layout/navbar.tsx`, `components/layout/__tests__/navbar.test.tsx` (mock `next/navigation` `usePathname`)
 - **Acceptance:**
@@ -128,6 +139,7 @@
 - **Labels:** DDR-0003 · build check required
 
 ### T011 — feat(nav): moving marker in every desktop dropdown
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** motion
 - **Files:** `components/layout/nav-marker.tsx` (new, `'use client'`, loaded with `next/dynamic` `ssr:false` from the navbar), `components/layout/navbar.tsx` (`data-nav-item`, `data-marker-ready`, title `group-hover:underline underline-offset-4`, room reserved for the dot on the title line), `tests/e2e/navbar.spec.ts`
 - **Acceptance:**
@@ -144,6 +156,7 @@
 ## M2 — Shared template and the five static pages
 
 ### T012 — feat(utils): `slugify()` for anchors
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** lib
 - **Files:** `lib/utils.ts`, `lib/__tests__/utils.test.ts`
 - **Acceptance:**
@@ -154,6 +167,7 @@
 - **Labels:** —
 
 ### T013 — test(content): commit the content source and the verbatim oracle
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** schemas & types
 - **Files:** `docs/content/sobre-mi-source.md` (verbatim copy of `tempcontentabout/ESTRUCTURA NUEVA WEB VAMOS A NY.md`), `features/sobre-mi/__tests__/verbatim.ts` (helper), `features/sobre-mi/__tests__/verbatim.test.ts`
 - **Acceptance:**
@@ -165,6 +179,7 @@
 - **Labels:** —
 
 ### T014 — feat(sobre-mi): content types and `ExternalLink`
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** schemas & types
 - **Files:** `features/sobre-mi/types.ts` (content block types), `features/sobre-mi/components/external-link.tsx`, `features/sobre-mi/__tests__/external-link.test.tsx`
 - **Acceptance:**
@@ -175,6 +190,7 @@
 - **Labels:** —
 
 ### T015 — feat(sobre-mi): template components (`PageHeader`, `NotesLayout`, `ClosingRow`)
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** Server Components
 - **Files:** `features/sobre-mi/components/{page-header,notes-layout,closing-row}.tsx`, `features/sobre-mi/motion/attributes.ts` (typed `SM_ATTR` contract, used by the markup from now on), `features/sobre-mi/__tests__/template.test.tsx`
 - **Acceptance:**
@@ -186,6 +202,7 @@
 - **Labels:** —
 
 ### T016 — feat(route): `(cuaderno)` layout and `/sobre-mi` route skeleton
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** route skeleton
 - **Files:** `app/(marketing)/(cuaderno)/layout.tsx`, `app/(marketing)/(cuaderno)/sobre-mi/page.tsx`, `features/sobre-mi/content/metadata.ts`, `features/sobre-mi/components/sobre-mi-page.tsx` (header only), `tests/e2e/sobre-mi/structure.spec.ts`
 - **Acceptance:**
@@ -197,6 +214,7 @@
 - **Labels:** build check required
 
 ### T017 — feat(sobre-mi): page body (notes, prose, pull line, photo, headline line, signature, timeline, closing)
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** Server Components
 - **Files:** `features/sobre-mi/content/sobre-mi.tsx`, `features/sobre-mi/components/{prose,pull-line,photo-figure,signature,timeline}.tsx`, `features/sobre-mi/components/sobre-mi-page.tsx`, `features/sobre-mi/__tests__/sobre-mi-page.test.tsx`
 - **Acceptance:**
@@ -209,6 +227,7 @@
 - **Labels:** —
 
 ### T018 — feat(sobre-mi): real italic for the signature (Courier Prime italic 400, no preload)
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** styling
 - **Files:** `features/sobre-mi/fonts.ts` (new `next/font` instance: `weight: "400"`, `style: "italic"`, `preload: false`, `display: "swap"`), `features/sobre-mi/components/signature.tsx`
 - **Acceptance:**
@@ -219,6 +238,7 @@
 - **Labels:** build check required · Render-Preserving (landing)
 
 ### T019 — feat(colaboraciones): page, product ledger and closing
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** Server Components + route
 - **Files:** `app/(marketing)/(cuaderno)/colaboraciones/page.tsx`, `features/sobre-mi/content/colaboraciones.tsx`, `features/sobre-mi/components/{product-ledger,colaboraciones-page}.tsx`, `features/sobre-mi/__tests__/colaboraciones-page.test.tsx`, `tests/e2e/sobre-mi/structure.spec.ts` (+ route)
 - **Acceptance:**
@@ -230,6 +250,7 @@
 - **Labels:** build check required
 
 ### T020 — feat(trabaja-conmigo): page with the static parts (audience rows, cafecito notes and cierre)
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** Server Components + route
 - **Files:** `app/(marketing)/(cuaderno)/trabaja-conmigo/page.tsx`, `features/sobre-mi/content/trabaja-conmigo.tsx`, `features/sobre-mi/components/{audience-rows,trabaja-conmigo-page}.tsx`, `features/sobre-mi/__tests__/trabaja-conmigo-page.test.tsx`
 - **Acceptance:**
@@ -241,6 +262,7 @@
 - **Labels:** build check required
 
 ### T021 — feat(faq): page, 3 groups, 14 native disclosures, closing row
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** Server Components + route
 - **Files:** `app/(marketing)/(cuaderno)/preguntas-frecuentes/page.tsx`, `features/sobre-mi/content/faq.tsx`, `features/sobre-mi/components/{faq-group,faq-item,faq-page}.tsx`, `features/sobre-mi/__tests__/faq-page.test.tsx`, `tests/e2e/sobre-mi/faq.spec.ts`
 - **Acceptance:**
@@ -253,6 +275,7 @@
 - **Labels:** build check required
 
 ### T022 — feat(faq): `FaqDeepLink` (hash opens a question and scrolls clear of the navbar)
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** client leaf
 - **Files:** `features/sobre-mi/components/faq-deep-link.tsx` (`'use client'`), `features/sobre-mi/components/faq-page.tsx`, `features/sobre-mi/__tests__/faq-deep-link.test.tsx`, `tests/e2e/sobre-mi/faq.spec.ts`
 - **Acceptance:**
@@ -264,6 +287,7 @@
 - **Labels:** build check required
 
 ### T023 — feat(contacto): page with the static parts (dek, "Otras formas de encontrarme")
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** Server Components + route
 - **Files:** `app/(marketing)/(cuaderno)/contacto/page.tsx`, `features/sobre-mi/content/contacto.tsx`, `features/sobre-mi/components/{channel-list,contacto-page}.tsx`, `features/sobre-mi/__tests__/contacto-page.test.tsx`
 - **Acceptance:**
@@ -275,6 +299,7 @@
 - **Labels:** build check required
 
 ### T024 — test(e2e): shared structure, responsive layout and axe on the 5 pages
+- **Status:** Done (committed on `feat/sobre-mi-pages`)
 - **Layer:** e2e
 - **Files:** `tests/e2e/sobre-mi/structure.spec.ts`
 - **Acceptance:**
@@ -288,236 +313,203 @@
 
 ---
 
-## M3 — Forms (Pre-Contract; Security-gated)
+## M3 — Forms, UI-only (spec v1.1; Security G1 R-01..R-06)
 
-### G1 — Security gate: pre-implementation threat model of the form surfaces
-- **Owner:** Frontend Security Engineer (posture: Production)
-- **Input:** plan § 10, `contract-request.md`, spec § Data Dependencies
-- **Output:** `docs/security/threat-model-sobre-mi-forms.md` with the required controls (rate limit, bot protection, honeypot, server-to-server auth, PII logging and retention). The Architect turns each required control into a task inserted before T031.
-- **Blocks:** T027 onward
+States in this release: **Idle, Field error, Not configured, No JS, Before hydration** (spec v1.1 § Form States). Mechanism: plan § 0.1 F1–F9. No network request of any kind.
 
-### T025 — feat(forms): zod schemas and form copy
+### G1 — Security gate: pre-implementation threat model
+- **Status:** Done. `docs/security/threat-models/2026-09-26_sobre-mi-forms_v1.md` (0 blocking; R-01 MEDIUM, R-02..R-07 LOW, R-08 INFO)
+
+### T025 — feat(forms): zod schemas and this release's form copy (trimmed)
 - **Layer:** schemas & types
-- **Files:** `features/sobre-mi/content/forms.ts` (labels, options slug → label, helper, errors, banners, success), `features/sobre-mi/schemas.ts` (`contactSchema`, `collaborationSchema`, `FIELD_LIMITS`), `features/sobre-mi/types.ts` (`FormState<F>`), `features/sobre-mi/__tests__/schemas.test.ts`
+- **Files:** `features/sobre-mi/content/forms.ts` (labels, options slug → label, field errors, not-configured banner, no-JS block; **only this release's strings**), `features/sobre-mi/schemas.ts` (`contactSchema`, `collaborationSchema`, `FIELD_LIMITS`), `features/sobre-mi/__tests__/schemas.test.ts`
 - **Acceptance:**
-  - Empty required fields produce exactly the spec's § Form copy message per field; an email without "@" or domain produces "Revisá tu email, parece que le falta algo." and an empty email produces "Falta tu email para poder responderte." **AC 38, 39**
-  - An empty `travelDate` parses to `null` and does not fail; select values outside the enum fail with the select copy; unknown keys are stripped. **AC 40**
+  - Empty required fields produce exactly the spec's § Form copy message per field; an empty email produces "Falta tu email para poder responderte." and a malformed one "Revisá tu email, parece que le falta algo." **AC 38, 39**
+  - An empty `travelDate` passes (→ `null`); out-of-enum select values fail with the select copy. **AC 40**
+  - A test asserts that the content module contains none of "Enviando…", "¡Recibido!", "No se pudo enviar tu mensaje." or "Uso tu email solo para responderte." **AC 43**
 - **Test type:** component (unit)
-- **Citations:** A§ Forms & Validation; D§ UX Writing; S§ Input & Output Handling
+- **Citations:** A§ Forms & Validation; D§ UX Writing; plan § 0.1 F6
 - **Depends on:** T005
-- **Labels:** Pre-Contract
-
-### T026 — feat(api): server env and the delivery client (`lib/api/forms.ts`) with MSW handlers
-- **Layer:** data functions
-- **Files:** `lib/env.ts` (`client` + `server` schemas: `FORMS_API_BASE_URL` optional URL, `FORMS_API_TIMEOUT_MS` default 8000), `.env.example`, `lib/api/errors.ts` (`AppError`), `lib/api/schemas/forms.ts` (422 body), `lib/api/forms.ts` (`import "server-only"`: `deliverContactMessage`, `deliverCollaborationRequest`), `tests/fixtures/delivery/scenarios.ts`, `tests/fixtures/msw/handlers/sobre-mi.ts`, `lib/api/__tests__/forms.test.ts`
-- **Acceptance:**
-  - With the env var unset: returns `{ ok:false, reason:"not-configured" }` and **no request is made** (MSW `onUnhandledRequest:"error"` plus a request spy). **AC 44**
-  - With it set (MSW): 202 → `{ ok:true }`; 422 with known `fieldErrors` → `{ ok:false, reason:"invalid", fieldErrors }`; 422 with an unknown code, 429, 500, a network error (`HttpResponse.error()`), a timeout (fake timers) or an unparsable body → `{ ok:false, reason:"unavailable" }`. The request body matches the contract-request shape and includes `Idempotency-Key`. **AC 44, 43 (mapping)**
-  - The failure log line contains status and requestId and **no** payload fields (spy on `console.error`).
-- **Test type:** component (unit, MSW)
-- **Citations:** A§ Data Fetching & Mutations, A§ Error Handling, A§ Configuration & Environment; S§ Secrets & Environment, S§ Logging & Monitoring; contract-request.md
-- **Depends on:** T001, T025
-- **Labels:** Pre-Contract · build check required (env)
-- **Commit footer:** `Pre-Contract: POST /v1/contact-messages, /v1/collaboration-requests mocked; reconcile when contract lands`
-
-### T027 — feat(forms): Server Actions `sendContactMessage`, `sendCollaborationRequest`
-- **Layer:** Server Actions
-- **Files:** `features/sobre-mi/actions.ts` (`'use server'`), `features/sobre-mi/__tests__/actions.test.ts`
-- **Acceptance:**
-  - Invalid `FormData` → `{ status:"field-errors", errors, values }` with the typed values echoed back (trimmed strings) and no delivery call. **AC 38 (server)**
-  - Delivery `ok` → `{ status:"success", email }`; `invalid` → `field-errors` mapped to the spec copy; `not-configured` → `{ status:"failed", reason:"not-configured", values }`; `unavailable` → `{ status:"failed", reason:"unavailable", values }`. No code path returns success without `ok:true`. **AC 42, 43, 44**
-  - Any control required by G1 that belongs in the action is covered here, or has a dedicated task (per G1's output).
-- **Test type:** component (unit; delivery module mocked with `vi.mock`)
-- **Citations:** A§ Data Fetching & Mutations (5-step action), A§ Error Handling (result unions); S§ Next.js Surface Map (Server Actions)
-- **Depends on:** G1, T026
-- **Labels:** Pre-Contract · build check required
-
-### T028 — feat(forms): form primitives (field, select, submit row, banner, success)
-- **Layer:** client leaves
-- **Files:** `features/sobre-mi/components/forms/{form-field,select-field,submit-row,form-banner,form-success}.tsx`, `features/sobre-mi/__tests__/form-primitives.test.tsx`
-- **Acceptance:**
-  - `FormField` with an error sets `aria-invalid="true"` and `aria-describedby` → the error element (bold text plus an `aria-hidden` "!" badge) and applies the inset 3px `brand` bar; the label is visible and bound with `htmlFor`; "(opcional)" sits inside the label. **AC 38, 36 (label)**
-  - `SubmitRow` pending: label "Enviando…", `disabled`, `aria-busy="true"`, `min-w-55` (220px) kept; the helper "Uso tu email solo para responderte." is always present. **AC 37, 41**
-  - `FormBanner` `reason="unavailable"` renders the connection-error copy and `reason="not-configured"` the not-configured copy, both `role="alert"`. `FormSuccess` renders H2 "¡Recibido!" (`tabIndex=-1`, train span) inside `aria-live="polite"`, with `{email}` rendered as text (a test with `<b>x</b>` as the email shows it literally). **AC 42, 43, 44**
-- **Test type:** component
-- **Citations:** A§ Forms & Validation; D§ Component States (loading keeps width, `aria-busy`); A§ Accessibility
-- **Depends on:** T025
 - **Labels:** —
 
-### T029 — feat(contacto): `ContactForm` (useActionState, client validation, focus, values kept)
+### T026 — Delivery client and server env
+- **Status:** **Deferred (backend).** Spec v1.1 § When the Backend Is Connected; requires a new plan revision and threat model v2 (G1 § 6: fail-closed activation, `lib/env.server.ts`, outbound hardening)
+
+### T027 — Server Actions `sendContactMessage`, `sendCollaborationRequest`
+- **Status:** **Deferred (backend).** Replaced in this release by plan § 0.1 F1 (no Server Action, G1 R-03). The no-JS and pre-hydration mechanism is decided in plan § 0.1 F2–F3 and implemented in T028–T030
+
+### T028 — feat(forms): form primitives (field, select, submit row, banner, no-JS block) (trimmed)
+- **Layer:** client leaves
+- **Files:** `features/sobre-mi/components/forms/{form-field,select-field,submit-row,not-configured-banner,no-js-block}.tsx`, `features/sobre-mi/__tests__/form-primitives.test.tsx`
+- **Acceptance:**
+  - `FormField`/`SelectField` render a visible `<label htmlFor>` ("(opcional)" inside the label) and a controlled control with `id` and `autoComplete` but **no `name` attribute**. With an error: `aria-invalid="true"`, `aria-describedby` → the error element (bold text + `aria-hidden` "!" badge), inset 3px `brand` bar, and a `data-sm-field` wrapper. **AC 36 (label), 38; R-01**
+  - `SubmitRow` renders one button with `min-w-55` (220px) and **no helper line**. It takes `hydrated: boolean` and renders `type="button"` when false, `type="submit"` when true. **AC 37, 43, 44; R-01**
+  - `NotConfiguredBanner`: 2px ink border, the text "Por ahora, escribime a hola@vamosany.com. Lo que escribiste sigue acá." with the address as a `mailto:` link in mono bold; `role="status"`, `tabIndex={-1}`, `data-sm-banner`. `NoJsBlock`: the same style, "Para escribirme, mandame un mail a hola@vamosany.com. Te respondo yo.", with the `mailto:` link at `headline` size. **AC 41, 44**
+  - An XSS string typed into a field renders as literal text in the error and banner states, and no element is created from it (`<b>x</b>` → no `<b>`). **R-06**
+- **Test type:** component
+- **Citations:** A§ Forms & Validation; A§ Accessibility; D§ Component States; G1 R-01, R-06
+- **Depends on:** T025
+- **Labels:** R-01 · R-06
+
+### T029 — feat(contacto): `ContactForm` (Idle, Field error, Not configured, No JS, Before hydration)
 - **Layer:** client leaf
 - **Files:** `features/sobre-mi/components/forms/contact-form.tsx` (`'use client'`), `features/sobre-mi/components/contacto-page.tsx`, `features/sobre-mi/__tests__/contact-form.test.tsx`
 - **Acceptance:**
-  - Five fields in `[md]` order with labels, selects on "Elegí una opción", `autocomplete` per spec, two-column rows `@fields:`; button "Enviar mensaje". **AC 36, 37**
-  - Submitting empty: `preventDefault`, every error shows, focus goes to the first invalid field, typed text is kept; fixing a field clears its error while typing; an empty "¿Cuándo viajás?" does not block. **AC 38, 39, 40**
-  - With the action stubbed: pending → fields `readOnly` plus the pending button, and a second click sends nothing; success replaces the form and focuses the H2, whose line links to `/preguntas-frecuentes`; failed shows the banner, keeps the values (`defaultValue` from `state.values`), shows the button "Probar de nuevo" and resubmits. **AC 41, 42, 43**
+  - Idle: five fields in `[md]` order (two per row at `@fields`), selects on "Elegí una opción", button "Enviar mensaje", no helper line. The form area is two siblings: form wrapper `noscript:hidden` and `NoJsBlock` `hidden noscript:block`. `<form>` has no `action`/`method`. **AC 36, 37; plan § 0.1 F2**
+  - Submit with errors: `preventDefault`, each error under its field, focus on the first invalid field, values kept, any banner removed, and one `sm:field-errors` `CustomEvent` dispatched on the form root with the invalid field ids. Fixing a field clears its error while typing. An empty "¿Cuándo viajás?" doesn't block. **AC 38, 39, 40, 42 (second half)**
+  - Valid submit: **no `fetch`/XHR/`sendBeacon` call** (spies), the `NotConfiguredBanner` appears above the form and receives focus, values are kept, and `location.href` is unchanged. A second valid submit keeps exactly one banner and re-announces it (`announceKey` remount). One `sm:banner` event is dispatched. **AC 41, 42; R-01, R-03**
+  - Values live only in `useState`; a test spies `localStorage`/`sessionStorage` `setItem` and `document.cookie`, which are never written. The button is `type="button"` in the server render (`renderToString`) and `type="submit"` after mount. **R-02, R-01**
 - **Test type:** component
-- **Citations:** A§ Forms & Validation (`useActionState`, `useFormStatus`, progressive enhancement); A§ Component Model (only the action crosses)
-- **Depends on:** T027, T028, T023
-- **Labels:** Pre-Contract · build check required
+- **Citations:** A§ Forms & Validation, A§ State Management, A§ Component Model; plan § 0.1 F1–F8; G1 R-01..R-03, R-06
+- **Depends on:** T028, T023
+- **Labels:** R-01 · R-02 · R-03 · build check required
 
-### T030 — feat(trabaja-conmigo): `CollaborationForm`
+### T030 — feat(trabaja-conmigo): `CollaborationForm` (same states)
 - **Layer:** client leaf
 - **Files:** `features/sobre-mi/components/forms/collaboration-form.tsx` (`'use client'`), `features/sobre-mi/components/trabaja-conmigo-page.tsx`, `features/sobre-mi/__tests__/collaboration-form.test.tsx`
 - **Acceptance:**
-  - Fields in `[md]` order (Nombre | Empresa o marca; tipo | Email; Contame tu idea); button "Agendemos un cafecito". **AC 33, 37**
-  - The same behaviors as T029 for errors, pending, success ("…para agendar el cafecito.") and failed. **AC 38, 39, 41, 42, 43**
+  - Fields in `[md]` order (Nombre | Empresa o marca; tipo | Email; Contame tu idea), button "Agendemos un cafecito", no helper line, and the no-JS sibling. **AC 33, 37**
+  - The same behaviors and checks as T029 for Field error, Not configured, storage, the button type and no network. **AC 38, 39, 41, 42; R-01, R-02, R-03, R-06**
+  - If the two leaves now duplicate their state logic, extract a `useUiOnlyForm(schema)` hook in the refactor step (in `features/sobre-mi/hooks/`).
 - **Test type:** component
 - **Citations:** as T029
 - **Depends on:** T029, T020
-- **Labels:** Pre-Contract · build check required
+- **Labels:** R-01 · R-02 · R-03 · build check required
 
-### T031 — test(e2e): form round trips against the mock delivery server (both pages)
+### T031 — Form round trips against the mock delivery server
+- **Status:** **Deferred (backend).** No delivery to mock. The UI-only e2e is T044
+
+### T044 — test(e2e): form states and R-01 no-leak (both pages) (new)
 - **Layer:** e2e
-- **Files:** `tests/fixtures/delivery/mock-server.ts` (`node:http`, same `scenarios.ts`), `playwright.config.ts` (`webServer` array: mock on :3199; `next start -p 3100` with `FORMS_API_BASE_URL=http://127.0.0.1:3199` and `FORMS_API_TIMEOUT_MS=1500`; `next start -p 3101` **without** the var), `.github/workflows/ci.yml` (env if needed; DevOps review), `tests/e2e/sobre-mi/forms.spec.ts`
+- **Files:** `tests/e2e/sobre-mi/forms.spec.ts`
 - **Acceptance:**
-  - On `/contacto` and `/trabaja-conmigo`: valid data → "Enviando…" → "¡Recibido!" with the typed email and focus on the H2; `falla@`/`limite@`/`lento@` → Failed banner (connection copy) with values kept; `invalido@` → field error on email. **AC 41, 42, 43**
-  - Against :3101 (unset): valid data → Failed with "Por ahora, escribime a hola@vamosany.com." and never the connection copy; the mock server receives 0 requests. **AC 44**
-  - axe shows no serious or critical violations in the field error, submitting (route delay), success and failed states. Landing e2e still passes. **AC 45**
+  - On `/contacto` and `/trabaja-conmigo`, with a request listener over **every** request: empty submit → field errors with focus on the first invalid field; malformed email → the malformed copy, cleared while typing; valid submit → one banner, focused, values kept, URL unchanged; second valid submit → still one banner. **AC 38–42**
+  - The page text and the page's loaded JS responses contain none of the 4 connected-release strings. **AC 43**
+  - **R-01:** (a) context `javaScriptEnabled: false`: no field is visible or in the accessibility tree; the no-JS block and a `mailto:hola@vamosany.com` link are visible. (b) Pre-hydration: hold every `/_next/static/chunks/**` response with `page.route` (the server HTML renders), fill the fields with synthetic values (e.g. `sintetico-7f3a@ejemplo.test`) through `page.fill`, click the button, wait 1 s, then release the chunks. Assert that the URL is unchanged, there was no navigation, and no request URL or post body contains any of the values. **AC 44; R-01**
+  - axe shows no serious or critical violations in the Idle, Field error, Not configured and No-JS states, on both pages. **AC 45**
 - **Test type:** e2e
-- **Citations:** Q§ Framework Defaults, Q§ Test Data Fixtures (synthetic data); A§ Engineering Workflow (Pre-Contract); contract-request.md § Mock
+- **Citations:** Q§ Accessibility & Performance Gates; Q§ Test Data Fixtures (synthetic data); G1 R-01
 - **Depends on:** T030
-- **Labels:** Pre-Contract · build check required · QA-owned shared fixture (QA reviews `mock-server.ts`/`scenarios.ts`)
+- **Labels:** R-01 · QA reviews the spec (shared journey file)
 
-### G2 — Security gate: code review of the form surfaces
+### G2 — Security gate: light code review of the forms and the feature's client surfaces
 - **Owner:** Frontend Security Engineer
-- **Scope:** T025–T031 commits plus any G1-derived tasks; CI bundle grep for `FORMS_`
-- **Blocks:** merging M3
+- **Checklist** (G1 § 5):
+  1. `npm run build`; grep `.next/static` for secret prefixes and env names; confirm no server-action entries for the five routes (R-03).
+  2. R-01 end to end: JS disabled + pre-hydration submit → no request carries field values; URL unchanged (T044 as evidence, plus a manual check).
+  3. XSS payloads in every field across Field error and Not-configured states, motion on and off (R-06); no `dangerouslySetInnerHTML` in the feature.
+  4. No storage APIs in the form leaves (R-02).
+  5. FaqDeepLink hostile hashes (R-04); ExternalLink `rel` and `https:` only (R-05).
+  6. `curl -I` on the preview for the five routes: same header set as `/`.
+  7. `npm audit --omit=dev --audit-level=high` clean (R-07 is moot: T001 was skipped).
+- **Blocks:** merging M3. **Re-run item 3 after T039** (motion on).
 
 ---
 
-## M4 — Motion (DDR-0004; all values from `lib/motion.ts`)
+## M4 — Motion (DDR-0004; 0 bytes on `/`)
 
-### T032 — feat(motion): Sobre mí headless controller, gate and nav `is-scrolled` parity
-- **Layer:** motion
-- **Files:** `features/sobre-mi/components/cuaderno-motion.tsx` (`'use client'`, `next/dynamic` `ssr:false`), `features/sobre-mi/motion/cuaderno-scroll-effects.tsx`, `features/sobre-mi/motion/scenes/nav-scrolled.ts`, the 5 page components (mount `<CuadernoMotion/>` and `data-sm-scene`), `tests/e2e/sobre-mi/motion.spec.ts`
+"Unchanged from v1" below refers to the v1 task text in commit `eec9605` (`git show eec9605:docs/specs/sobre-mi/tasks.md`), and to the motion table in `docs/tech-design/sobre-mi.md` § 4.2.
+
+Binding for every M4 task (plan § 0.2–0.3):
+- **Don't edit** `components/layout/navbar.tsx`, `nav-config.ts`, `lib/gsap.ts`, `lib/gsap-ease.ts`, `lib/motion.ts`, `lib/utils.ts` or `app/layout.tsx`.
+- **No new motion values.** If one is needed, stop and route it to the Architect.
+- Every commit quotes the `scripts/check-first-load.mjs` output.
+
+### T043 — ci: guard `/` First Load JS at 0 bytes of growth (new)
+- **Owner:** Frontend Engineer (the script) + Frontend DevOps Engineer (the CI step)
+- **Files:** `scripts/check-first-load.mjs`, `perf/first-load.json` (the baseline measured on this branch after M3), `package.json` (`"check:first-load"`), `.github/workflows/ci.yml` (step after `npm run build`)
 - **Acceptance:**
-  - Reduced motion (`reducedMotion:'reduce'`) and JS disabled: on all 5 pages, `html` has no `.gsap`, every `[data-sm-*]` target has `opacity: 1` and no transform, `--train` is `0%`, and there is no `[data-reading-bar]` box. **AC 16**
-  - Motion on: after scrolling 80px, `[data-nav]` has `.is-scrolled`; navigating client-side `/sobre-mi` → `/colaboraciones` leaves no ScrollTrigger from the previous page (`ScrollTrigger.getAll()` targets are all in the current DOM); no "GSAP target" console warnings.
+  - After `npm run build`, the script computes the gzip First Load JS of `/` from `.next` manifests (the same files `next build` reports for the route) and prints it. It exits non-zero if the value is **greater than** `perf/first-load.json["/"]` or greater than 180 kB.
+  - A self-test proves the check fails when a byte is added to a module `/` ships (e.g. a temporary string in `nav-config.ts`, reverted in the same test run), and passes on the clean build.
+- **Test type:** script + CI
+- **Citations:** A§ Performance Budgets; plan § 0.3
+- **Depends on:** T044
+- **Labels:** build check required
+
+### T032 — feat(motion): headless controller mount + `data-sm-scene` (same commit), gate, nav `is-scrolled` parity
+- **Layer:** motion
+- **Files:** `features/sobre-mi/components/cuaderno-motion.tsx` (`'use client'`, `next/dynamic` `ssr:false`), `features/sobre-mi/motion/cuaderno-scroll-effects.tsx`, `features/sobre-mi/motion/scenes/nav-scrolled.ts`, the 5 page components (**mount `<CuadernoMotion/>` and add `data-sm-scene="<page>"` to the page root in this same commit**), `tests/e2e/sobre-mi/motion.spec.ts`
+- **Acceptance:**
+  - Reduced motion and JS disabled, on all 5 pages: `html` has no `.gsap`, every `[data-sm-*]` target has opacity 1 and no transform, `--train` is `0%`, there is no `[data-reading-bar]` element, and the form area follows F2. **AC 16**
+  - Motion on: every page root has `data-sm-scene`, and every hidden target ends visible after a full scroll (proving the gate and the controller shipped together, plan § 0.2 E1). `[data-nav]` gets `.is-scrolled` after 80px. Client navigation `/sobre-mi` → `/colaboraciones` leaves no ScrollTrigger pointing at detached nodes. No "GSAP target" console warnings.
+  - `npm run check:first-load` passes (0 bytes on `/`).
 - **Test type:** e2e
-- **Citations:** ADR-0002, ADR-0003; A§ Animation (useGSAP only, gate); TDD § 4.1
-- **Depends on:** T004, T006, T024
+- **Citations:** ADR-0002, ADR-0003; A§ Animation; plan § 0.2 E1, § 0.3
+- **Depends on:** T043
 - **Labels:** DDR-0004 · build check required
 
 ### T033 — feat(motion): M1 heading entrance and the "20" count-up
-- **Layer:** motion
-- **Files:** `features/sobre-mi/motion/scenes/entrance.ts`, `tests/e2e/sobre-mi/motion.spec.ts`
-- **Acceptance:**
-  - Motion on: the label, then words, then train, then dek run in sequence (sampled: at t≈0.9 s the dek has started and `--train` is not yet `0%`). At the end the H1's visual copy is one text node run (no SplitText wrappers), with `--train: 0%` and opacity 1. **AC 15**
-  - The H1's accessible name equals the title at every sample (`getByRole('heading',{level:1,name})` throughout). On `/sobre-mi` the visual "20" counts from 0 during the entrance, and the accessibility tree exposes only "20". **AC 14, 21**
-- **Test type:** e2e
-- **Citations:** spec M1; A§ Animation; plan § 8.5–8.6
+- **Status:** Open. Unchanged from v1 (acceptance: AC 14, 15, 21), plus `check:first-load` passes
 - **Depends on:** T032
-- **Labels:** DDR-0004
 
 ### T034 — feat(motion): M2 shared reveals (notes, prose, figures, closing, form fields)
-- **Layer:** motion
-- **Files:** `features/sobre-mi/motion/scenes/reveals.ts`, `tests/e2e/sobre-mi/motion.spec.ts`
-- **Acceptance:**
-  - Scrolling to each notes column, paragraph, figure, closing row and form reveals it (opacity → 1, y → 0); scrolling back up and down again does not replay it (`once`). The pull lines and the signature are excluded from the prose reveal. **AC 17**
-- **Test type:** e2e
-- **Citations:** spec M2; A§ Animation (`once: true`)
+- **Status:** Open. Unchanged from v1 (AC 17), with one addition: form-field reveals target the `[data-sm-field]` wrappers of the **JS form only**; the no-JS block is never animated. `check:first-load` passes
 - **Depends on:** T032
-- **Labels:** DDR-0004
 
 ### T035 — feat(motion): M3 Sobre mí scenes (pull-line train, parallax, signature, timeline)
-- **Layer:** motion
-- **Files:** `features/sobre-mi/motion/scenes/sobre-mi.ts`, `tests/e2e/sobre-mi/motion.spec.ts`
-- **Acceptance:**
-  - The pull-line `--train` goes 100% → 0% when it enters view; the photo `img` transform changes with scroll while its box's `getBoundingClientRect()` relative to the document is unchanged; the signature's `clip-path` ends at `none`/`inset(0)`. **AC 22, 23, 24**
-  - The rail's `scaleY` grows with scroll (sampled at 3 positions, monotonic), and the rows end at x 0 with opacity 1; at 360 the tag sits under the line. Reduced: rail full, rows in place, photo still. **AC 25**
-  - The Layout Instability API reports 0 shifts from these elements during the scroll. **AC 19**
-- **Test type:** e2e
-- **Citations:** spec M3; A§ Animation (transform/opacity/clip-path); A§ Performance Budgets (CLS)
-- **Depends on:** T034, T018
-- **Labels:** DDR-0004
-
-### T036 — feat(motion): M4 Colaboraciones (year tick, partner/body, quote train, navbar reading bar)
-- **Layer:** motion
-- **Files:** `features/sobre-mi/motion/scenes/colaboraciones.ts`, `components/layout/navbar.tsx` (renders `<span aria-hidden data-reading-bar>` only when `READING_BAR_ROUTES` includes the pathname), `tests/e2e/sobre-mi/motion.spec.ts`
-- **Acceptance:**
-  - Each 4-digit year ticks from the previous row's year (the first from 2021) to its own when the row enters; "2024–25" fades in; rows with the same year don't tick; assistive tech reads only the final year. **AC 29**
-  - On `/colaboraciones` the 3px bar's `scaleX` is 0 before the ledger, grows through it and is 1 after it. It is not rendered on any other route or under reduced motion. **AC 30**
-  - The Efe Hus quote's train sweeps on scroll. The landing and `navbar.spec.ts` snapshots show diff 0. **AC 27, 51**
-- **Test type:** e2e
-- **Citations:** spec M4; DDR-0004 (reading bar is the one page-level navbar touch); ADR-0006
+- **Status:** Open. Unchanged from v1 (AC 19, 22–25), plus `check:first-load` passes. Scene selectors are scoped to `[data-sm-scene="sobre-mi"]` (plan § 0.2 E2: no `main > section` assumptions)
 - **Depends on:** T034
-- **Labels:** DDR-0004 · build check required · Render-Preserving (landing)
+
+### T036 — feat(motion): M4 Colaboraciones (year tick, partner/body, quote train, reading bar created by the scene)
+- **Layer:** motion
+- **Files:** `features/sobre-mi/motion/scenes/colaboraciones.ts`, `tests/e2e/sobre-mi/motion.spec.ts`. **v1.1: `components/layout/navbar.tsx` is not touched**
+- **Acceptance:**
+  - Year tick and fade as in v1; assistive tech reads only the final year. **AC 29**
+  - With motion on, on `/colaboraciones` only, the scene appends `<span aria-hidden="true" data-reading-bar>` to `[data-nav] .nav-capsule`. Its `scaleX` is 0 before the ledger, grows through it and is 1 after it. The span is removed on unmount: after client navigation to another page, no `[data-reading-bar]` remains. Reduced motion or no JS: never created. **AC 30**
+  - Efe Hus quote train sweeps. `navbar.spec.ts` and the landing snapshots show diff 0; `check:first-load` passes. **AC 27, 51**
+- **Test type:** e2e
+- **Citations:** spec M4; DDR-0004; ADR-0006; plan § 0.3 item 3
+- **Depends on:** T034
+- **Labels:** DDR-0004 · Render-Preserving (landing)
 
 ### T037 — feat(motion): M5 audience rules and M6 contact channels
-- **Layer:** motion
-- **Files:** `features/sobre-mi/motion/scenes/{trabaja-conmigo,contacto}.ts`, `tests/e2e/sobre-mi/motion.spec.ts`
-- **Acceptance:**
-  - Each audience row's rule goes `scaleX` 0 → 1, then its H2 and text rise, when the row reaches `top 90%`; at 768 and 1280 the H2 and text sit side by side, at 360 they are stacked. **AC 32**
-  - The three contact lines slide in about 0.9 s after load without scrolling; reduced: in place. **AC 35**
-- **Test type:** e2e
-- **Citations:** spec M5, M6
+- **Status:** Open. Unchanged from v1 (AC 32, 35), plus `check:first-load` passes. Rows breakpoint per the `@container/screen` / component containers as implemented in T020
 - **Depends on:** T034
-- **Labels:** DDR-0004
 
 ### T038 — feat(motion): M7 FAQ row reveal and animated open/close
-- **Layer:** motion
-- **Files:** `features/sobre-mi/motion/scenes/faq.ts`, `features/sobre-mi/components/faq-item.tsx` (`data-sm-faq-answer` wrapper, `data-closing` hook for the glyph), `tests/e2e/sobre-mi/faq.spec.ts`
-- **Acceptance:**
-  - Rows rise group by group on scroll. Click, Enter or Space on a question opens it: the answer height animates from 0 to its content height, the content fades up and "+" becomes "×"; several can be open; closing animates to 0 and then `details.open === false`. A click during the animation retargets without getting stuck. **AC 47**
-  - Reduced motion: open and close are instant (native). The deep link still opens without animation. Focus stays on the `summary`. **AC 47, 48**
-- **Test type:** e2e
-- **Citations:** spec M7; **ADR-0007**; A§ Animation
-- **Depends on:** T034, T022, **ADR-0007 Accepted**
-- **Labels:** ADR-0007 · DDR-0004
+- **Status:** Open. **ADR-0007 Accepted (2026-09-26), no longer blocked.** Acceptance unchanged from v1 (AC 47, 48), plus `check:first-load` passes
+- **Depends on:** T034, T022
 
-### T039 — feat(motion): M8 form feedback (shake, banner, success train)
+### T039 — feat(motion): M8 form feedback in the controller (shake + banner entrance; no success)
 - **Layer:** motion
-- **Files:** `features/sobre-mi/components/forms/{contact-form,collaboration-form,form-banner,form-success}.tsx` (`useGSAP({ scope })` + `contextSafe`), `features/sobre-mi/__tests__/form-motion.test.tsx`, `tests/e2e/sobre-mi/forms.spec.ts`
+- **Files:** `features/sobre-mi/motion/scenes/form-feedback.ts` (listens for `sm:field-errors` / `sm:banner` on `[data-sm-form]` via `contextSafe`), `tests/e2e/sobre-mi/forms.spec.ts`. **The form leaves are not edited except, if needed, to add `data-sm-form`**
 - **Acceptance:**
-  - Motion on: a submit with errors shakes each invalid field once (x keyframes from `MOTION.form.shake`); typing does not shake. The banner enters from y −8; on success the "¡Recibido!" train sweeps and the lines rise. **AC 38, 42, 43**
-  - Reduced (no `.gsap`): no shake, and the banner and success show immediately and statically; the error texts still show. The form is never blocked by motion (the second submit is still controlled only by `isPending`).
-- **Test type:** component (the gate branch) + e2e
-- **Citations:** spec M8; A§ Animation (useGSAP scope, reduced branch); D§ Motion Principles (feedback paired with text)
-- **Depends on:** T031, T032
-- **Labels:** DDR-0004 · Pre-Contract · build check required
+  - Motion on: a submit with errors shakes each invalid field's `[data-sm-field]` wrapper once (`MOTION.form.shake`); typing doesn't shake. The not-configured banner enters from y −8 (`MOTION.form.banner`), and a repeat valid submit replays the entrance on the single banner. **AC 38, 41, 42 (motion part)**
+  - Reduced / no `.gsap`: no listener is attached, and errors and the banner appear statically at once. Focus behavior is identical with motion on and off. **AC 38, 41**
+  - The tweens target wrappers only; an XSS string in a field is still literal text with motion on (no element created). **R-06**
+  - The form route chunks gain no GSAP import (build output), and `check:first-load` passes. `MOTION.form.success` stays unused in this release.
+- **Test type:** e2e
+- **Citations:** spec M8 v1.1; A§ Animation (useGSAP, reduced branch); plan § 0.1 F8; G1 R-06
+- **Depends on:** T034, T044
+- **Labels:** DDR-0004 · R-06
 
 ---
 
 ## M5 — Baselines, performance, handoff
 
+### T003 — ci: scoped desktop snapshot update (DevOps)
+- **Status:** **Open. Must land before T040** (and before any regeneration of the 6 landing desktop files). Definition unchanged (M0 above)
+
 ### T040 — test(e2e): visual baselines for the 5 pages and the landing regression check
-- **Layer:** e2e
-- **Files:** `tests/e2e/sobre-mi/visual.spec.ts`, `tests/e2e/sobre-mi/visual.spec.ts-snapshots/` (bot)
-- **Acceptance:**
-  - Per page at 360/768/1280: idle (motion), after a full scroll, and full-page reduced. Form pages also get the field error, failed and success states (mock server). Generated by the bot.
-  - Landing: the 12 phone/tablet files are unchanged since `main`; the 6 desktop files changed only in the navbar band (compared by the Reviewer with the diff images). `navbar.spec.ts` diffs are exactly the plan § 12 list. **AC 51**
-- **Test type:** e2e
-- **Citations:** Q§ Visual Regression Scope; ADR-0006 § 2–3
-- **Depends on:** T033–T039
-- **Labels:** —
+- **Status:** Open. As in v1, with the form states changed to **Idle, Field error, Not configured, No JS** (instead of field error / failed / success). Landing check unchanged (**AC 51**; only the 6 desktop files may change, via the T003 label)
+- **Depends on:** T003, T033–T039
 
 ### T041 — perf: First Load JS per route, LCP and CLS on the preview
-- **Layer:** performance
-- **Files:** `docs/specs/sobre-mi/plan.md` (§ 11 filled with the measured numbers, as an Architect-approved edit), `lighthouserc.json` (add the 5 routes, DevOps)
-- **Acceptance:**
-  - `npm run build`: each new route ≤ 180 kB First Load JS; the landing unchanged (± 1 kB) compared with `main`.
-  - Lighthouse (mobile) on the preview for `/sobre-mi` and `/contacto`: LCP ≤ 2.5 s, CLS ≤ 0.1. A breach → the Architect picks a mitigation from TDD § 5 before merge.
-- **Test type:** Lighthouse CI + build output
-- **Citations:** A§ Performance Budgets; Q§ Accessibility & Performance Gates
+- **Status:** Open. As in v1, plus: `/` must equal `perf/first-load.json` exactly (T043); every new route ≤ 180 kB
 - **Depends on:** T040
-- **Labels:** build check required
 
 ### T042 — docs: QA handoff (E2E journey scope)
-- **Layer:** handoff
-- **Files:** none (PR description / chat), per A§ Engineering Workflow › QA handoff
-- **Content for the Frontend QA Engineer:**
-  - **Routes:** `/sobre-mi`, `/colaboraciones`, `/trabaja-conmigo`, `/contacto`, `/preguntas-frecuentes`, plus `/` (navbar and landing regression).
-  - **States:** static success at 320/360/768/1280; motion on / reduced / no-JS; FAQ closed, open, deep link (group + question) and unknown hash; forms idle, field error (client and server 422), submitting, success, failed (unavailable) and failed (not configured, :3101); navbar closed, each panel, marker hover and focus, current page, drawer and current dot.
-  - **AC to cover in E2E:** 1–10 (navbar), 11–20 (shared), 21–26 (Sobre mí), 27–31 (Colaboraciones), 32–33 (Trabajá), 34–36 (Contacto), 37–45 (forms, run on both pages), 46–50 (FAQ), 51 (landing regression).
-  - **Manual:** a keyboard pass on the menu path and both forms; a check that a fast pointer sweep across a panel doesn't feel busy (DDR-0003 consequence); a screen-reader spot check of the H1 names, counters and years.
-  - **Open labels to report:** Pre-Contract (T025–T031, T039), ADR-0007 (T038), Needs-Approval (T006, if still open).
-  - **Commands:** `npm run build && npm run test:e2e -- --grep @feature-sobre-mi`, plus the full `npm run test:e2e` for the landing regression. Environment: local and the Vercel preview (`FORMS_API_BASE_URL` unset on preview → the not-configured path is the expected preview behavior).
-- **Depends on:** T041
-- **Labels:** —
+- **Status:** Open. As in v1, with these v1.1 changes:
+  - **Form states:** Idle, Field error, Not configured, No JS, Before hydration (the **R-01** no-leak check), on both pages.
+  - **AC for forms:** 37–45 as rewritten in spec v1.1.
+  - **Open labels:** none Pre-Contract (T026/T027/T031 Deferred (backend)).
+  - **Environment:** local and preview. No env vars are involved.
+- **Depends on:** T041, G2
 
 ---
 
-## First task for the Engineer
+## Remaining work, in order
 
-**T001** (`chore: add msw and server-only; wire MSW into Vitest`), on the new branch `feat/sobre-mi-pages`. T002 (the navbar characterization baseline) must land, with its bot-generated snapshots committed, **before any change to `components/layout/navbar.tsx`**.
+T003 (DevOps, in parallel), T025, T028, T029, T030, T044, **G2**, T043, T032, T033, T034, T035, T036, T037, T038, T039, T040, T041, T042.
+
+**Next task for the Engineer:** T025.

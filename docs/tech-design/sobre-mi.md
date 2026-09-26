@@ -39,6 +39,8 @@ What crosses the server/client boundary:
 
 ## 3. Data flow
 
+> **v1.1 (2026-09-26): the forms are UI-only.** There is no Server Action and no request. Client zod validation leads to Field error or the Not-configured banner; with no JS, the `noscript:` block; before hydration, the button is `type="button"` and the inputs have no `name`. M8 runs in the lazy controller through `CustomEvent`s. See plan § 0.1. The delivery flow below is **Deferred (backend)**.
+
 - **Reads:** none at runtime. The content is typed TS/TSX modules in `features/sobre-mi/content/`, compiled into static HTML. All five routes are prerendered (`○` in the build output).
 - **Writes:** two Server Actions (`features/sobre-mi/actions.ts`) → `lib/api/forms.ts` (`server-only`) → `POST {FORMS_API_BASE_URL}/v1/...`. See `contract-request.md`.
 
@@ -88,14 +90,14 @@ What crosses the server/client boundary:
 | M3 | Signature write-on (`clip-path`) | `[data-sm-signature]` | `top 92%`, once | `MOTION.sobreMi.signature` |
 | M3 | Timeline rail `scaleY`, scrubbed | `[data-sm-rail]` | list `top 80%` → `bottom 55%`, scrub 0.4 | `MOTION.sobreMi.rail` |
 | M3 | Timeline rows | `[data-sm-timeline] li` | `top 88%`, once | `MOTION.sobreMi.timelineRows` |
-| M4 | Reading bar `scaleX`, scrubbed | `[data-reading-bar]` (inside navbar capsule) | ledger `top 70%` → `bottom 60%`, scrub 0.3 | `MOTION.colaboraciones.readingBar` |
+| M4 | Reading bar `scaleX`, scrubbed | `[data-reading-bar]` (v1.1: created by the scene inside the navbar capsule; the navbar is not edited) | ledger `top 70%` → `bottom 60%`, scrub 0.3 | `MOTION.colaboraciones.readingBar` |
 | M4 | Year tick (4-digit; prev → own; first from 2021) or fade | `[data-sm-year]` (aria-hidden twin) | row `top 82%`, once | `MOTION.colaboraciones.yearTick` |
 | M4 | Partner line, row body | `[data-sm-partner]`, `[data-sm-row-body] > *` | same row timeline (at 0.1 / 0.05) | `MOTION.colaboraciones.{partner,body}` |
 | M5 | Audience rule `scaleX`, then H2 + text | `[data-sm-audience] [data-sm-rule]` | row `top 90%`, once | `MOTION.trabajaConmigo` |
 | M6 | Contact channels | `[data-sm-channels] li` | load + delay 0.9 | `MOTION.contacto.channels` |
 | M7 | FAQ rows per group | `[data-sm-faq-group] details` | group `top 88%`, once | `MOTION.faq.rows` |
 | M7 | Open / close (user action) | `[data-sm-faq-answer]` | click on `summary` | `MOTION.faq.{open,close}` (ADR-0007) |
-| M8 | Shake / banner / success sweep + lines | form leaf refs | submit result | `MOTION.form` |
+| M8 | v1.1: shake + not-configured banner (no success) | `[data-sm-field]`, `[data-sm-banner]` via `sm:*` events | form events | `MOTION.form.{shake,banner}` |
 | M9 | Menu highlight + dot | `[data-nav-item]` in open panel | pointerover / focusin / pointerleave | `MOTION.menuMarker` |
 | — | Nav `is-scrolled` shadow (parity with the landing) | `[data-nav]` | `MOTION.nav.start` | existing `MOTION.nav` |
 

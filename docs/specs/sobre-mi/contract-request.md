@@ -1,11 +1,13 @@
 # Contract Request: public contact forms (Contacto, Trabajá conmigo) — Pre-Contract v1
 
+> **FUTURE WORK. Not in the current release (spec v1.1, 2026-09-26).** The forms ship UI-only and send nothing; **do not forward this to the backend team yet.** It is reactivated by the spec amendment for § When the Backend Is Connected, together with a new plan revision and Security threat model v2. When reactivated, apply G1 § 6 (`docs/security/threat-models/2026-09-26_sobre-mi-forms_v1.md`): fail-closed activation (base URL **and** an S2S token), `lib/env.server.ts`, outbound hardening, honeypot, edge rate limit, a privacy notice, and no auto-reply to the submitted address.
+
 - **Date:** 2026-09-26
 - **From:** Frontend Architect (vamosany-front-end), via the user
 - **To:** backend team (`vamosany-back`)
 - **Spec:** `docs/specs/sobre-mi/spec.md` § Data Dependencies, § Form States, AC 41–45
 - **Plan:** `docs/specs/sobre-mi/plan.md` § Data writes
-- **Status:** Proposed. The frontend ships against this shape now (mocked). The backend adopts it or sends a replacement, and the frontend reconciles when it lands.
+- **Status:** Future work (parked 2026-09-26). Originally: Proposed; the frontend was to ship against this shape (mocked). The backend adopts it or sends a replacement, and the frontend reconciles when it lands.
 
 ## How the frontend calls it
 
