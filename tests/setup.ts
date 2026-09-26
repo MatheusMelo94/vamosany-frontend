@@ -15,3 +15,14 @@ if (typeof window !== "undefined" && !window.matchMedia) {
     dispatchEvent: () => false,
   });
 }
+
+// next/font is a build-time transform (SWC); outside `next build` the loader
+// functions don't exist. Components only read className/style/variable.
+vi.mock("next/font/google", () => {
+  const font = () => ({
+    className: "",
+    variable: "",
+    style: { fontFamily: "" },
+  });
+  return { Courier_Prime: font };
+});
