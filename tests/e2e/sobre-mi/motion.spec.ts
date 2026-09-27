@@ -492,8 +492,9 @@ test.describe("M2 shared reveals (T034) @feature-sobre-mi", () => {
         "1",
       );
       // Whether the target starts below the reveal line depends on font
-      // metrics (CI renders real Arial, shorter than the fallback), so the
-      // premise is measured, not assumed. Reveal start is "top 88%".
+      // metrics (body text is Montserrat, DDR-0005; wrapping still varies
+      // with rasterization and viewport), so the premise is measured, not
+      // assumed. Reveal start is "top 88%".
       const startRatio = await page
         .locator(selector)
         .nth(index)

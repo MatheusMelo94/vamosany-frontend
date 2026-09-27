@@ -1,17 +1,8 @@
 import type { Metadata } from "next";
 import type { JSX, ReactNode } from "react";
-import { Courier_Prime } from "next/font/google";
 import "./globals.css";
 import { env } from "@/lib/env";
-
-/* Display face for the system's mechanical / typewriter voice.
-   Body type is Arial per the spec, so no second webfont. */
-const courierPrime = Courier_Prime({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-courier-prime",
-  display: "swap",
-});
+import { courierPrime, montserrat } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
@@ -24,7 +15,10 @@ type Props = { children: ReactNode };
 
 export default function RootLayout({ children }: Props): JSX.Element {
   return (
-    <html lang="en" className={courierPrime.variable}>
+    <html
+      lang="en"
+      className={`${courierPrime.variable} ${montserrat.variable}`}
+    >
       <head>
         {/* Runs before first paint: opts the page into scroll motion only
             when JS is available and motion is not reduced. */}

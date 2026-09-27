@@ -203,7 +203,7 @@ Existing tokens and utilities cover color, radius, display type, `body-lg`, `cap
 
 | Proposed token | Value | Used by | Why a token |
 |---|---|---|---|
-| `@utility body-prose` | Arial 1.0625rem / 1.7 | Prose paragraphs (spec § Shared Page Structure: "17px / 1.7") | no existing step is 17/1.7 |
+| `@utility body-prose` | Montserrat (DDR-0005) 1.0625rem / 1.7 | Prose paragraphs (spec § Shared Page Structure: "17px / 1.7") | no existing step is 17/1.7 |
 | `@utility display-pull` | display, 700, uppercase, `clamp(1.375rem, 3.4cqi, 2rem)`, lh 1.2, ls .02em | Pull lines (Sobre mí, Efe Hus quote) | new display step |
 | `--container-gutter: 53.75rem` | 860px | `NotesLayout`, FAQ groups, ledger (Tailwind 4 container variant `@gutter:`) | container-query breakpoint used 4× |
 | `--container-rows: 47.5rem` | 760px | Audience rows two-column | spec breakpoint |

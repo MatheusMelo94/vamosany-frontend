@@ -14,9 +14,11 @@ test.describe("signature italic (plan D7) @feature-sobre-mi", () => {
     page,
   }) => {
     const landing = await fontPreloads(page, "/");
+    // Courier Prime 400 + 700, and the Montserrat latin variable file (DDR-0005).
     expect(landing).toEqual([
       "/_next/static/media/111c93f1bc244164-s.p.woff2",
       "/_next/static/media/828e2958d60bafae-s.p.woff2",
+      "/_next/static/media/904be59b21bd51cb-s.p.woff2",
     ]);
     expect(await fontPreloads(page, "/sobre-mi")).toEqual(landing);
   });

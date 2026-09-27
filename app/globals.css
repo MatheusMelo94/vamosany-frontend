@@ -15,7 +15,7 @@
      `transparent`, `current` e `inherit` sao keywords e continuam disponiveis. */
   --color-*: initial;
 
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: var(--font-montserrat), Arial, Helvetica, sans-serif;
   --font-display: var(--font-courier-prime), "Roboto Slab", Rockwell, serif;
   --font-mono: var(--font-courier-prime), ui-monospace, "SF Mono", monospace;
 
