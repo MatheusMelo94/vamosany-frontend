@@ -114,104 +114,117 @@ export function MobileDrawer({
           <nav>, not <div> (RV-0015): the drawer is its own labelled
           navigation landmark. It can't sit inside the capsule's <nav>: the
           capsule's backdrop-filter would become its containing block and
-          move the fixed panel. Same box and classes, so pixels are unchanged. */}
+          move the fixed panel. A flex column: the list scrolls, the footer
+          is pinned. From 640 the panel is 420px, right-aligned with the
+          capsule (right-6 = the header's sm:px-6; the capsule's max width
+          is wider than any sub-1024 viewport). */}
       <nav
         ref={panelRef}
         id={drawerId}
         aria-label="Menú"
         // Can't take focus while it closes (spec § Motion Intent, M7).
         inert={!open}
-        className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto overscroll-contain rounded-3xl border px-5 pt-4 pb-8 lg:hidden"
+        className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 flex flex-col overflow-hidden rounded-3xl border sm:right-6 sm:left-auto sm:w-105 lg:hidden"
       >
-        <ul className="divide-hairline divide-y">
-          {NAV.map((group) => (
-            <li key={group.label} className="py-5">
-              <p className="card-title text-ink">{group.label}</p>
-              {group.columns.map((column) => (
-                <div key={column.heading} className="mt-4">
-                  <p className="eyebrow">{column.heading}</p>
-                  <ul className="mt-2 space-y-2">
-                    {column.items.map((item) => {
-                      const current = isCurrentHref(item.href, pathname);
-                      return (
-                        <li key={item.title}>
-                          <Link
-                            href={itemHref(item)}
-                            aria-current={current ? "page" : undefined}
-                            onClick={onClose}
-                            className={cn(
-                              "body-sm text-ink-subtle flex items-center justify-between gap-3",
-                              // Coarse pointers: the hit area fills the item's slot, half of the
-                              // 8px gap above and below (invisible; QA-0004). 44px exclusive
-                              // targets don't fit the frozen 30px pitch.
-                              "pointer-coarse:relative pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1",
-                            )}
-                          >
-                            {item.title}
-                            {item.price ? (
-                              <span className="caption text-ink font-semibold">
-                                {item.price}
-                              </span>
-                            ) : null}
-                            {/* Static "you are here" dot, the same as the
+        <div
+          data-drawer-list
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-4 pb-4"
+        >
+          <ul className="divide-hairline divide-y">
+            {NAV.map((group) => (
+              <li key={group.label} className="py-5">
+                <p className="card-title text-ink">{group.label}</p>
+                {group.columns.map((column) => (
+                  <div key={column.heading} className="mt-4">
+                    <p className="eyebrow">{column.heading}</p>
+                    <ul className="mt-2 space-y-2">
+                      {column.items.map((item) => {
+                        const current = isCurrentHref(item.href, pathname);
+                        return (
+                          <li key={item.title}>
+                            <Link
+                              href={itemHref(item)}
+                              aria-current={current ? "page" : undefined}
+                              onClick={onClose}
+                              className={cn(
+                                "body-sm text-ink-subtle flex items-center justify-between gap-3",
+                                // Coarse pointers: the hit area fills the item's slot, half of the
+                                // 8px gap above and below (invisible; QA-0004). 44px exclusive
+                                // targets don't fit the frozen 30px pitch.
+                                "pointer-coarse:relative pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1",
+                              )}
+                            >
+                              {item.title}
+                              {item.price ? (
+                                <span className="caption text-ink font-semibold">
+                                  {item.price}
+                                </span>
+                              ) : null}
+                              {/* Static "you are here" dot, the same as the
                                 language menu's selected dot (DDR-0003). */}
-                            {current ? (
-                              <span
-                                data-current-dot
-                                aria-hidden
-                                className="bg-brand size-1.5 rounded-full"
-                              />
-                            ) : null}
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-            </li>
-          ))}
-        </ul>
-        <div className="border-hairline mt-6 flex items-center justify-between border-t pt-5">
-          <span className="body-sm text-ink flex items-center gap-2 font-semibold">
-            <GlobeIcon className="size-4" />
-            Language
-          </span>
-          <div className="flex gap-1.5" role="listbox" aria-label="Language">
-            {LANGUAGES.map((l) => (
-              <button
-                key={l.code}
-                type="button"
-                role="option"
-                aria-selected={lang === l.code}
-                onClick={() => onLang(l.code)}
-                className={cn(
-                  "label-button rounded-full border-2 px-3 py-1.5 transition-colors",
-                  lang === l.code
-                    ? "border-ink bg-ink text-inverse-ink"
-                    : "border-hairline text-ink",
-                )}
-              >
-                {l.code}
-              </button>
+                              {current ? (
+                                <span
+                                  data-current-dot
+                                  aria-hidden
+                                  className="bg-brand size-1.5 rounded-full"
+                                />
+                              ) : null}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
-        <div className="mt-5 flex flex-col gap-3">
-          <Link
-            href="#signup"
-            onClick={onClose}
-            className="label-button bg-ink/5 text-ink hover:bg-ink/10 flex min-h-12 items-center justify-center rounded-full px-6 transition-colors"
-          >
-            Sign up
-          </Link>
-          <Link
-            href="#login"
-            onClick={onClose}
-            className="label-button bg-ink/5 text-ink hover:bg-ink/10 flex min-h-12 items-center justify-center rounded-full px-6 transition-colors"
-          >
-            Log in
-          </Link>
+        <div
+          data-drawer-footer
+          className="border-hairline bg-canvas flex flex-col gap-3 border-t px-4 pt-3 pb-4"
+        >
+          <div className="flex items-center justify-between">
+            <span className="body-sm text-ink flex items-center gap-2 font-semibold">
+              <GlobeIcon className="size-4" />
+              Language
+            </span>
+            <div className="flex gap-1.5" role="listbox" aria-label="Language">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  role="option"
+                  aria-selected={lang === l.code}
+                  onClick={() => onLang(l.code)}
+                  className={cn(
+                    "label-button rounded-full border-2 px-3 py-1.5 transition-colors",
+                    lang === l.code
+                      ? "border-ink bg-ink text-inverse-ink"
+                      : "border-hairline text-ink",
+                  )}
+                >
+                  {l.code}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Link
+              href="#signup"
+              onClick={onClose}
+              className="label-button bg-ink/5 text-ink hover:bg-ink/10 flex min-h-12 items-center justify-center rounded-full px-6 transition-colors"
+            >
+              Sign up
+            </Link>
+            <Link
+              href="#login"
+              onClick={onClose}
+              className="label-button bg-ink/5 text-ink hover:bg-ink/10 flex min-h-12 items-center justify-center rounded-full px-6 transition-colors"
+            >
+              Log in
+            </Link>
+          </div>
         </div>
       </nav>
     </>

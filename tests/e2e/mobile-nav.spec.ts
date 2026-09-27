@@ -195,3 +195,98 @@ test.describe("drawer focus (AC 25, 28, 29, 32, 33) @feature-mobile-nav", () => 
     });
   }
 });
+
+test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  async function openAt(page: Page, width: number, height: number) {
+    await page.setViewportSize({ width, height });
+    await openLanding(page);
+    const drawer = await openDrawer(page);
+    const b = await drawer.boundingBox();
+    if (!b) throw new Error("no panel box");
+    return { drawer, b };
+  }
+
+  test("phone: 16px insets, under the capsule, 24px radius, veil over the viewport", async ({
+    page,
+  }) => {
+    const { drawer, b } = await openAt(page, 360, 780);
+    expect(b.x).toBeCloseTo(16, 0);
+    expect(360 - (b.x + b.width)).toBeCloseTo(16, 0);
+    expect(b.y).toBeCloseTo(80, 0);
+    expect(780 - (b.y + b.height)).toBeCloseTo(16, 0);
+    expect(
+      await drawer.evaluate((el) => getComputedStyle(el).borderTopLeftRadius),
+    ).toBe("24px");
+    const veil = drawer.locator("xpath=preceding-sibling::div[1]");
+    expect(await veil.boundingBox()).toEqual({
+      x: 0,
+      y: 0,
+      width: 360,
+      height: 780,
+    });
+  });
+
+  test("tablet: 420px wide, right edge on the capsule's right edge", async ({
+    page,
+  }) => {
+    const { b } = await openAt(page, 768, 1024);
+    const capsule = await header(page).locator(".nav-capsule").boundingBox();
+    if (!capsule) throw new Error("no capsule box");
+    expect(Math.abs(b.width - 420)).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(b.x + b.width - (capsule.x + capsule.width)),
+    ).toBeLessThanOrEqual(1);
+  });
+
+  test("the 420px cap starts at 640", async ({ page }) => {
+    const narrow = await openAt(page, 639, 900);
+    expect(narrow.b.x).toBeCloseTo(16, 0);
+    expect(narrow.b.width).toBeCloseTo(639 - 32, 0);
+    await page.setViewportSize({ width: 640, height: 900 });
+    await expect
+      .poll(async () => (await narrow.drawer.boundingBox())?.width)
+      .toBeCloseTo(420, 0);
+  });
+
+  test("320: no horizontal overflow in the panel", async ({ page }) => {
+    const { drawer } = await openAt(page, 320, 780);
+    const overflow = await drawer.evaluate((el) =>
+      [el, ...el.querySelectorAll("*")].some(
+        (n) =>
+          n.scrollWidth > n.clientWidth &&
+          getComputedStyle(n).overflowX !== "visible",
+      ),
+    );
+    expect(overflow).toBe(false);
+    expect(
+      await drawer.evaluate((el) => el.scrollWidth <= el.clientWidth),
+    ).toBe(true);
+  });
+
+  test("the list scrolls inside the panel; the footer stays pinned", async ({
+    page,
+  }) => {
+    const { drawer, b } = await openAt(page, 360, 640);
+    const list = drawer.locator("[data-drawer-list]");
+    const footer = drawer.locator("[data-drawer-footer]");
+    const scroll = await list.evaluate((el) => ({
+      overflowing: el.scrollHeight > el.clientHeight,
+      panelScrolls: el.parentElement
+        ? el.parentElement.scrollHeight > el.parentElement.clientHeight
+        : true,
+    }));
+    expect(scroll).toEqual({ overflowing: true, panelScrolls: false });
+    const before = await footer.boundingBox();
+    await list.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    const after = await footer.boundingBox();
+    expect(after).toEqual(before);
+    if (!after) throw new Error("no footer box");
+    expect(after.y + after.height).toBeLessThanOrEqual(b.y + b.height);
+  });
+});
