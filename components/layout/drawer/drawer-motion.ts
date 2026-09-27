@@ -49,15 +49,21 @@ export function animates(): boolean {
   return !reduced;
 }
 
-/** `inset()` with the panel's radius token (--radius-3xl = rounded-3xl). */
-function clip(bottom: "0%" | "100%"): string {
-  const radius = getComputedStyle(document.documentElement)
-    .getPropertyValue("--radius-3xl")
-    .trim();
-  const from = O.panel.clipFrom;
-  const shape = radius ? from.replace("24px", radius) : from;
-  return bottom === "100%" ? shape : shape.replace("100%", "0%");
+/**
+ * The panel's `clip-path` (ADR-0010): an `inset()` open by `bottom`% from the
+ * bottom edge, rounded with the panel's radius token (--radius-3xl =
+ * rounded-3xl). The one place the shape is built.
+ */
+export function panelClip(bottom: number): string {
+  const radius =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--radius-3xl")
+      .trim() || O.panel.clip.radiusFallback;
+  return `inset(0% 0% ${bottom}% 0% round ${radius})`;
 }
+
+const clip = (edge: "from" | "to"): string =>
+  panelClip(edge === "from" ? O.panel.clip.bottomFrom : O.panel.clip.bottomTo);
 
 /**
  * Removes the panel's inline transform without `clearProps`. GSAP re-parses
@@ -107,9 +113,9 @@ export function playOpen(t: DrawerTargets): gsap.core.Timeline | null {
     );
   tl.fromTo(
     t.panel,
-    { clipPath: clip("100%"), y: O.panel.y },
+    { clipPath: clip("from"), y: O.panel.y },
     {
-      clipPath: clip("0%"),
+      clipPath: clip("to"),
       y: 0,
       duration: O.panel.duration,
       ease: arrive,
@@ -194,7 +200,7 @@ export function playClose(
     return null;
   }
   // A settled panel has no clip: give it the full one to roll up from.
-  if (!t.panel.style.clipPath) gsap.set(t.panel, { clipPath: clip("0%") });
+  if (!t.panel.style.clipPath) gsap.set(t.panel, { clipPath: clip("to") });
   const tl = gsap.timeline({
     onComplete: () => {
       settleIcon(t.icon);
@@ -204,7 +210,7 @@ export function playClose(
   tl.to(
     t.panel,
     {
-      clipPath: clip("100%"),
+      clipPath: clip("from"),
       y: C.panel.y,
       duration: C.panel.duration,
       ease: C.panel.ease,
@@ -245,7 +251,7 @@ export function playReopen(t: DrawerTargets): gsap.core.Timeline | null {
   tl.to(
     t.panel,
     {
-      clipPath: clip("0%"),
+      clipPath: clip("to"),
       y: 0,
       duration: O.panel.duration,
       ease: arrive,

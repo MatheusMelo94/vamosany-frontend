@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   keepInView,
+  panelClip,
   playClose,
   playOpen,
   playReopen,
@@ -12,6 +13,25 @@ import {
   toggleBody,
   type DrawerTargets,
 } from "../drawer-motion";
+
+/** The panel fully clipped from the bottom, jsdom's radius fallback (M3). */
+const CLOSED_CLIP = "inset(0% 0% 100% 0% round 24px)";
+
+describe("panelClip (RV-0022)", () => {
+  afterEach(() => {
+    document.documentElement.style.removeProperty("--radius-3xl");
+  });
+
+  it("builds the inset from the bottom percentage and the radius token", () => {
+    document.documentElement.style.setProperty("--radius-3xl", "1.5rem");
+    expect(panelClip(100)).toBe("inset(0% 0% 100% 0% round 1.5rem)");
+    expect(panelClip(0)).toBe("inset(0% 0% 0% 0% round 1.5rem)");
+  });
+
+  it("falls back to 24px when the token isn't readable", () => {
+    expect(panelClip(100)).toBe(CLOSED_CLIP);
+  });
+});
 
 const O = DRAWER_MOTION.open;
 const A = DRAWER_MOTION.accordion;
@@ -90,7 +110,7 @@ describe("playOpen, the unfold (M1–M6)", () => {
     expect(panel.startTime()).toBe(0);
     expect(panel.duration()).toBe(O.panel.duration);
     expect(panel.vars.ease).toBe(getEases().arrive);
-    expect(t.panel.style.clipPath).toBe(O.panel.clipFrom);
+    expect(t.panel.style.clipPath).toBe(CLOSED_CLIP);
     expect(gsap.getProperty(t.panel, "y")).toBe(O.panel.y);
     tl.progress(1);
     expect(t.panel.style.clipPath).toBe("");
@@ -208,7 +228,7 @@ describe("playClose, the roll-up (M7–M9)", () => {
     expect(panel.startTime()).toBe(0);
     expect(panel.duration()).toBe(C.panel.duration);
     expect(panel.vars.ease).toBe(C.panel.ease);
-    expect(panel.vars.clipPath).toBe(O.panel.clipFrom);
+    expect(panel.vars.clipPath).toBe(CLOSED_CLIP);
     expect(panel.vars.y).toBe(C.panel.y);
     const veil = tweenOf(tl, t.veil);
     expect(veil.startTime()).toBeCloseTo(C.veil.at);
@@ -225,7 +245,7 @@ describe("playClose, the roll-up (M7–M9)", () => {
     const clipNow = t.panel.style.clipPath;
     const tl = playClose(t, vi.fn())!.pause();
     tl.progress(0.001);
-    expect(t.panel.style.clipPath).not.toBe(O.panel.clipFrom);
+    expect(t.panel.style.clipPath).not.toBe(CLOSED_CLIP);
     expect(clipNow).not.toBe("");
   });
 

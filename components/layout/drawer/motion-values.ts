@@ -19,9 +19,10 @@ export const DRAWER_MOTION = {
   open: {
     veil: { duration: 0.25, ease: "power1.out" },
     icon: { rotate: -90, scale: 0.6, duration: 0.35 },
-    /** 24px = --radius-3xl (the panel's rounded-3xl); the builder reads the token, the literal is the jsdom fallback */
     panel: {
-      clipFrom: "inset(0% 0% 100% 0% round 24px)",
+      /** clip-path: inset(0% 0% bottom% 0% round radius). panelClip() reads
+          --radius-3xl (the panel's rounded-3xl); 24px is its jsdom fallback. */
+      clip: { bottomFrom: 100, bottomTo: 0, radiusFallback: "24px" },
       y: -10,
       duration: 0.55,
     },

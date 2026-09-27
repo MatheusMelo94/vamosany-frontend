@@ -10,7 +10,8 @@ describe("drawer motion values (plan § 7.1, DDR-0006; moved from lib/motion.ts 
       veil: { duration: 0.25, ease: "power1.out" },
       icon: { rotate: -90, scale: 0.6, duration: 0.35 },
       panel: {
-        clipFrom: "inset(0% 0% 100% 0% round 24px)",
+        /** clip-path: inset(0% 0% bottom% 0% round radius); 24px = --radius-3xl fallback */
+        clip: { bottomFrom: 100, bottomTo: 0, radiusFallback: "24px" },
         y: -10,
         duration: 0.55,
       },
