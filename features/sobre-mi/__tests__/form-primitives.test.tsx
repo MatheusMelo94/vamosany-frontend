@@ -154,9 +154,10 @@ describe("SubmitRow (AC 37, 43, 44; R-01)", () => {
 });
 
 describe("NotConfiguredBanner (AC 41)", () => {
-  it("says to write by email, keeps the typed text, and is a focusable status", () => {
-    render(<NotConfiguredBanner />);
-    const banner = screen.getByRole("status");
+  it("says to write by email, keeps the typed text, and takes focus (the live region is the shell's, RV-0012)", () => {
+    const { container } = render(<NotConfiguredBanner />);
+    expect(screen.queryByRole("status")).toBeNull();
+    const banner = container.firstElementChild as HTMLElement;
     expect(banner).toHaveTextContent(
       "Por ahora, escribime a hola@vamosany.com. Lo que escribiste sigue acá.",
     );

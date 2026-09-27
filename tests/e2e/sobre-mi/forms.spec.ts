@@ -77,6 +77,9 @@ const BANNER =
 const NO_JS =
   "Para escribirme, mandame un mail a hola@vamosany.com. Te respondo yo.";
 
+/** The banner: inside the persistent live region, the element that takes focus (RV-0012). */
+const banner = (page: Page) => page.locator("main [data-sm-banner]");
+
 /** Scoped to <main>: the footer has its own "Email address" field. */
 const field = (page: Page, label: string) =>
   page.locator("main").getByLabel(label, { exact: true });
@@ -228,17 +231,18 @@ for (const form of PAGES) {
       await fill(page, form);
       const before = requests.length;
       await page.getByRole("button", { name: form.button }).click();
-      const banner = page.getByRole("status");
-      await expect(banner).toHaveText(BANNER);
-      await expect(banner).toBeFocused();
+      const region = page.locator("main").getByRole("status");
+      await expect(region).toHaveText(BANNER);
+      await expect(banner(page)).toBeFocused();
       await expect(
-        banner.getByRole("link", { name: "hola@vamosany.com" }),
+        region.getByRole("link", { name: "hola@vamosany.com" }),
       ).toHaveAttribute("href", "mailto:hola@vamosany.com");
       expect(await axeSerious(page)).toEqual([]);
 
       await page.getByRole("button", { name: form.button }).click();
-      await expect(page.getByRole("status")).toHaveCount(1);
-      await expect(page.getByRole("status")).toBeFocused();
+      await expect(page.locator("main").getByRole("status")).toHaveCount(1);
+      await expect(banner(page)).toHaveCount(1);
+      await expect(banner(page)).toBeFocused();
       for (const [label, value] of Object.entries(form.text)) {
         await expect(field(page, label)).toHaveValue(value);
       }
@@ -250,7 +254,8 @@ for (const form of PAGES) {
       // A later submit with an error removes the banner (AC 42).
       await field(page, "Nombre").fill("");
       await page.getByRole("button", { name: form.button }).click();
-      await expect(page.getByRole("status")).toHaveCount(0);
+      await expect(banner(page)).toHaveCount(0);
+      await expect(page.locator("main").getByRole("status")).toHaveText("");
       await expect(field(page, "Nombre")).toBeFocused();
     });
 
@@ -455,15 +460,15 @@ for (const form of PAGES) {
       await recordFeedback(page);
       for (let round = 0; round < 2; round++) {
         await page.getByRole("button", { name: form.button }).click();
-        await expect(page.getByRole("status")).toBeFocused();
+        await expect(banner(page)).toBeFocused();
         // The entrance starts on the next frame; idle = it has ended.
         await waitForGsapIdle(page);
         const frames = (await feedback(page)).filter((f) => f.banner);
         expect(frames.some((f) => (f.banner?.y ?? 0) < 0)).toBe(true);
         expect(frames.some((f) => (f.banner?.opacity ?? 1) < 1)).toBe(true);
         expect(frames.at(-1)?.banner).toEqual({ y: 0, opacity: 1 });
-        await expect(page.getByRole("status")).toHaveCount(1);
-        await expect(page.getByRole("status")).toBeFocused();
+        await expect(banner(page)).toHaveCount(1);
+        await expect(banner(page)).toBeFocused();
       }
     });
 
@@ -536,7 +541,7 @@ for (const form of PAGES) {
         await fill(page, form);
         await feedback(page);
         await page.getByRole("button", { name: form.button }).click();
-        await expect(page.getByRole("status")).toBeFocused();
+        await expect(banner(page)).toBeFocused();
         await nextFrames(page, 4);
         const bannerFrames = (await feedback(page)).filter((f) => f.banner);
         expect(bannerFrames.length).toBeGreaterThan(0);
@@ -545,7 +550,7 @@ for (const form of PAGES) {
             (f) => f.banner?.y === 0 && f.banner?.opacity === 1,
           ),
         ).toBe(true);
-        await expect(page.getByRole("status")).toBeFocused();
+        await expect(banner(page)).toBeFocused();
       });
     });
   });

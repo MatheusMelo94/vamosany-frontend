@@ -4,6 +4,13 @@ import { renderToString } from "react-dom/server";
 import { ContactForm } from "@/features/sobre-mi/components/forms/contact-form";
 
 /** Synthetic values only (frontend-qa-conventions § Test Data Fixtures). */
+/** The banner inside the persistent live region: the element that takes focus. */
+function bannerIn(region: HTMLElement): HTMLElement {
+  const el = region.querySelector<HTMLElement>("[data-sm-banner]");
+  if (!el) throw new Error("no banner in the live region");
+  return el;
+}
+
 const VALID = {
   Nombre: "Persona Sintética",
   Email: "sintetico-7f3a@ejemplo.test",
@@ -106,7 +113,7 @@ describe("ContactForm — Field error (AC 38, 39, 40)", () => {
         },
       ],
     ]);
-    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });
 
   it("keeps what was typed and clears an error as soon as the value is valid", async () => {
@@ -142,10 +149,11 @@ describe("ContactForm — Not configured (AC 41, 42; R-01, R-03)", () => {
     await fillValid();
     await submit();
 
-    const banner = screen.getByRole("status");
-    expect(banner).toHaveTextContent(
+    const region = screen.getByRole("status");
+    expect(region).toHaveTextContent(
       "Por ahora, escribime a hola@vamosany.com. Lo que escribiste sigue acá.",
     );
+    const banner = bannerIn(region);
     expect(banner).toHaveFocus();
     expect(
       banner.compareDocumentPosition(root.querySelector("form") as Node),
@@ -162,16 +170,18 @@ describe("ContactForm — Not configured (AC 41, 42; R-01, R-03)", () => {
     xhrOpen.mockRestore();
   });
 
-  it("keeps exactly one banner on a second valid submit, re-mounted to re-announce", async () => {
+  it("keeps one live region mounted and re-mounts only the banner inside it to re-announce (RV-0012)", async () => {
     const { submit, fillValid, events } = setup();
+    const region = screen.getByRole("status");
+    expect(region).toBeEmptyDOMElement();
     await fillValid();
     await submit();
-    const first = screen.getByRole("status");
+    const first = bannerIn(region);
     await submit();
-    const banners = screen.getAllByRole("status");
-    expect(banners).toHaveLength(1);
-    expect(banners[0]).not.toBe(first);
-    expect(banners[0]).toHaveFocus();
+    expect(screen.getAllByRole("status")).toEqual([region]);
+    const second = bannerIn(region);
+    expect(second).not.toBe(first);
+    expect(second).toHaveFocus();
     expect(events.map((e) => e.type)).toEqual(["sm:banner", "sm:banner"]);
   });
 
@@ -179,9 +189,11 @@ describe("ContactForm — Not configured (AC 41, 42; R-01, R-03)", () => {
     const { submit, fillValid, user } = setup();
     await fillValid();
     await submit();
+    const region = screen.getByRole("status");
     await user.clear(screen.getByLabelText("Nombre"));
     await submit();
-    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByRole("status")).toBe(region);
+    expect(region).toBeEmptyDOMElement();
     expect(screen.getByLabelText("Nombre")).toHaveFocus();
   });
 });
@@ -221,7 +233,7 @@ describe("ContactForm — storage, hydration and markup (R-01, R-02, R-06)", () 
     );
     await user.type(screen.getByLabelText("Mensaje"), "<b>y</b>");
     await submit();
-    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByRole("status")).not.toBeEmptyDOMElement();
     expect(container.querySelector("b")).toBeNull();
   });
 });

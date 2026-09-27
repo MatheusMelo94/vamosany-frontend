@@ -4,17 +4,18 @@ import { sm } from "@/features/sobre-mi/motion/attributes";
 
 /**
  * Not configured (spec v1.1 § Form States): shown above the form after a
- * valid submit, since nothing is sent in this release. A polite status the
- * form focuses (tabIndex -1); M8 animates its wrapper (`data-sm-banner`).
+ * valid submit, since nothing is sent in this release. Rendered inside the
+ * shell's persistent polite status region (RV-0012); the form focuses it
+ * (tabIndex -1); M8 animates it (`data-sm-banner`). `mb-4.5` is the gap to
+ * the form, which the shell no longer puts between region and form.
  */
 export function NotConfiguredBanner(): JSX.Element {
   const { before, email, after } = FORM_COPY.notConfigured;
   return (
     <div
-      role="status"
       tabIndex={-1}
       {...sm("banner")}
-      className="border-ink body-base text-ink rounded-sm border-2 px-4 py-3.5"
+      className="border-ink body-base text-ink mb-4.5 rounded-sm border-2 px-4 py-3.5"
     >
       {before}
       <a

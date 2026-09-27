@@ -4,6 +4,13 @@ import { renderToString } from "react-dom/server";
 import { CollaborationForm } from "@/features/sobre-mi/components/forms/collaboration-form";
 
 /** Synthetic values only (frontend-qa-conventions § Test Data Fixtures). */
+/** The banner inside the persistent live region: the element that takes focus. */
+function bannerIn(region: HTMLElement): HTMLElement {
+  const el = region.querySelector<HTMLElement>("[data-sm-banner]");
+  if (!el) throw new Error("no banner in the live region");
+  return el;
+}
+
 const VALID = {
   Nombre: "Persona Sintética",
   "Empresa o marca": "Estudio Ejemplo",
@@ -118,15 +125,16 @@ describe("CollaborationForm — Not configured (AC 41, 42; R-01, R-03)", () => {
     });
     const href = window.location.href;
     const { submit, fillValid, events } = setup();
+    const region = screen.getByRole("status");
     await fillValid();
     await submit();
-    const first = screen.getByRole("status");
+    const first = bannerIn(region);
     expect(first).toHaveFocus();
     await submit();
-    const banners = screen.getAllByRole("status");
-    expect(banners).toHaveLength(1);
-    expect(banners[0]).not.toBe(first);
-    expect(banners[0]).toHaveFocus();
+    expect(screen.getAllByRole("status")).toEqual([region]);
+    const second = bannerIn(region);
+    expect(second).not.toBe(first);
+    expect(second).toHaveFocus();
     for (const [label, value] of Object.entries(VALID)) {
       expect(screen.getByLabelText(label)).toHaveValue(value);
     }

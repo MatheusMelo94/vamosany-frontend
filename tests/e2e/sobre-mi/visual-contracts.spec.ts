@@ -113,6 +113,10 @@ test.describe("Sobre mí visual contracts (RV-0008) @feature-sobre-mi", () => {
   }) => {
     await page.goto("/contacto");
     const main = page.locator("main");
+    // Before any submit the (persistent, empty) live region takes no space.
+    const root = (await main.locator("[data-sm-form]").boundingBox())!;
+    const form = (await main.locator("[data-sm-form] form").boundingBox())!;
+    expect(form.y).toBeCloseTo(root.y, 0);
     await expect(
       page.getByRole("button", { name: "Enviar mensaje" }),
     ).toHaveAttribute("type", "submit");
@@ -125,8 +129,13 @@ test.describe("Sobre mí visual contracts (RV-0008) @feature-sobre-mi", () => {
       .selectOption("consultoria");
     await main.getByLabel("Mensaje", { exact: true }).fill("mensaje-7f3a");
     await page.getByRole("button", { name: "Enviar mensaje" }).click();
-    const banner = page.getByRole("status");
+    const banner = page.locator("main [data-sm-banner]");
     await expect(banner).toBeFocused();
+    // Same rhythm as before the live region became persistent (RV-0012):
+    // banner, 18px, form.
+    const bannerBox = (await banner.boundingBox())!;
+    const formBox = (await main.locator("[data-sm-form] form").boundingBox())!;
+    expect(formBox.y - (bannerBox.y + bannerBox.height)).toBeCloseTo(18, 0);
     const ink = await resolve(page, "color", "var(--color-ink)");
     const mono = await resolve(page, "font-family", "var(--font-mono)");
     expect(await css(banner, "border-top-width")).toBe("2px");
