@@ -24,5 +24,5 @@ vi.mock("next/font/google", () => {
     variable: "",
     style: { fontFamily: "" },
   });
-  return { Courier_Prime: font };
+  return { Courier_Prime: font, Montserrat: font };
 });

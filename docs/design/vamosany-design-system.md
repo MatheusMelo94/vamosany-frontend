@@ -76,8 +76,10 @@ The design uses a bold, retro, mechanical display style that feels inspired by:
 
 ```css
 --font-display: "Courier Prime", "Roboto Slab", Rockwell, serif;
---font-body: Arial, Helvetica, sans-serif;
+--font-body: Montserrat, Arial, Helvetica, sans-serif;
 ```
+
+Body type is **Montserrat** (DDR-0005, accepted 2026-09-27), replacing Arial. It is self-hosted via `next/font` (variable font, `latin` subset, `display: swap`), and the weights in use are 400, 600 and 700, all upright. Arial and Helvetica remain only as system fallbacks. Courier Prime is unchanged for display, labels and buttons.
 
 ### Type Scale
 
@@ -657,7 +659,7 @@ export default {
 
       fontFamily: {
         display: ["Courier Prime", "Roboto Slab", "serif"],
-        body: ["Arial", "Helvetica", "sans-serif"],
+        body: ["Montserrat", "Arial", "Helvetica", "sans-serif"], // DDR-0005
       },
 
       maxWidth: {
@@ -700,7 +702,7 @@ export default {
 
   /* Fonts */
   --font-display: "Courier Prime", "Roboto Slab", Rockwell, serif;
-  --font-body: Arial, Helvetica, sans-serif;
+  --font-body: Montserrat, Arial, Helvetica, sans-serif; /* DDR-0005 */
 
   /* Layout */
   --container-xl: 1200px;

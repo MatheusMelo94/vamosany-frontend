@@ -146,7 +146,9 @@ export const NAV: NavGroup[] = [
         heading: "One to one",
         items: [
           {
-            title: "Custom itinerary with Belén",
+            // Non-breaking space: Montserrat is wider than Arial, and at 1280 the
+            // title wrapped leaving "Belén" alone on a line (DDR-0005).
+            title: "Custom itinerary with\u00a0Belén",
             blurb: "A call, your dates and pace, a plan built just for you.",
             price: "€149",
             tag: "Most popular",

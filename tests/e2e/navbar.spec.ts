@@ -316,7 +316,7 @@ test.describe("navbar pointer path @feature-sobre-mi", () => {
       });
       await trigger.hover();
       await megaPanel(page)
-        .getByRole("link", { name: /Custom itinerary with Belén/ })
+        .getByRole("link", { name: /Custom itinerary with\sBelén/ })
         .click();
       await expect(page).toHaveURL(/\/#services$/);
       // Smooth scroll (CSS) settles the section at the top of the viewport.
