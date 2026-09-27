@@ -123,13 +123,18 @@ export function DrawerGroup({
                         aria-current={current ? "page" : undefined}
                         onClick={onNavigate}
                         className={cn(
-                          "group/row border-surface-1 flex min-h-11 items-center gap-2 border-b py-1",
+                          "group/row border-surface-1 flex min-h-11 flex-wrap items-center gap-2 border-b py-1",
                           FOCUS_RING,
                         )}
                       >
+                        {/* The row wraps only when even the title's narrowest
+                          form can't sit beside the tag and price (200% text,
+                          QA-0007): the line break uses its min-content basis,
+                          and it grows back to its natural width otherwise.
+                          Arbitrary value: a sizing keyword, no token exists. */}
                         <span
                           data-row-title
-                          className="body-sm text-ink min-w-0 font-semibold underline-offset-4 group-hover/row:underline"
+                          className="body-sm text-ink max-w-max min-w-0 grow basis-[min-content] font-semibold underline-offset-4 group-hover/row:underline"
                         >
                           {item.title}
                         </span>

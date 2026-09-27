@@ -274,6 +274,63 @@ test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
     ).toBe(true);
   });
 
+  // QA-0007: a plain (non-emulated) window, where the layout viewport stays
+  // 360 even though the landing overflows at 2× text (isMobile would widen it).
+  for (const width of [360, 390]) {
+    test(`${width} at 200% text: every row fits the list, no sideways scroll, prices right-aligned (QA-0007)`, async ({
+      browser,
+    }) => {
+      test.skip(
+        test.info().project.name !== "tablet-768",
+        "one plain Chromium context is enough",
+      );
+      const context = await browser.newContext({
+        viewport: { width, height: 780 },
+        reducedMotion: "reduce",
+      });
+      const page = await context.newPage();
+      await page.goto("/");
+      await page.addStyleTag({
+        content: "html { font-size: 200% !important; }",
+      });
+      await burger(page).click();
+      const drawer = panel(page);
+      await expect(drawer).toBeVisible();
+      for (const label of ["Itineraries", "Guides", "Blog", "Services"]) {
+        const h = drawer.getByRole("button", { name: label, exact: true });
+        if ((await h.getAttribute("aria-expanded")) !== "true") await h.click();
+        const report = await drawer.evaluate((n) => {
+          const list = n.querySelector("[data-drawer-list]") as HTMLElement;
+          const limit = list.getBoundingClientRect().right - 20 + 0.5;
+          const rows = [
+            ...n.querySelectorAll("[data-drawer-body]:not([hidden]) a"),
+          ];
+          return {
+            scrollX: list.scrollWidth - list.clientWidth,
+            over: rows.flatMap((a) =>
+              [...a.querySelectorAll("span")]
+                .filter((s) => s.getBoundingClientRect().right > limit)
+                .map((s) => s.textContent?.trim()),
+            ),
+            misaligned: rows
+              .map((a) => [a, a.querySelector("[data-row-price]")] as const)
+              .filter(
+                ([a, price]) =>
+                  price &&
+                  Math.abs(
+                    a.getBoundingClientRect().right -
+                      price.getBoundingClientRect().right,
+                  ) > 1,
+              )
+              .map(([a]) => a.textContent?.trim()),
+          };
+        });
+        expect(report, label).toEqual({ scrollX: 0, over: [], misaligned: [] });
+      }
+      await context.close();
+    });
+  }
+
   test("the list scrolls inside the panel; the footer stays pinned", async ({
     page,
   }) => {
