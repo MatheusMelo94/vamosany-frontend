@@ -5,6 +5,7 @@ import {
   waitForGsapIdle,
   waitForLandingMotion,
 } from "./support/motion";
+import { diffPixels } from "./support/pixels";
 
 /**
  * Behavioral checks of the phone menu "Índice" (mobile-navigation spec;
@@ -1182,6 +1183,9 @@ test.describe("drawer motion: the unfold and the roll-up (AC 41–43, 45, 47) @f
 });
 
 /** Frame right after each tap = the settled frame (AC 46, open and close). */
+/** Antialiasing budget for a closed-header compare across an overlay cycle. */
+const MAX_AA_PIXELS = 10;
+
 async function instantOpenClose(page: Page) {
   await page.addStyleTag({ content: ISOLATE });
   await page.mouse.move(1, 1);
@@ -1199,8 +1203,16 @@ async function instantOpenClose(page: Page) {
   expect(await panel(page).count()).toBe(0);
   await page.mouse.move(1, 1);
   await page.evaluate(() => (document.activeElement as HTMLElement).blur());
-  expect(await header(page).screenshot({ animations: "disabled" })).toEqual(
-    closed,
+  // A pixel budget, not byte equality (RV-0019, QA-0009): after any overlay
+  // cycle, Chromium may re-rasterize the capsule's backdrop-filtered rounded
+  // corner with ~4 antialiasing pixels a few levels apart, drawer or not.
+  // Anything the drawer could leave behind (the X, a hover fill, a focus
+  // ring, a moved capsule) changes far more than 10 pixels.
+  const after = await header(page).screenshot({ animations: "disabled" });
+  const diff = await diffPixels(page, closed, after);
+  expect(diff.sameSize).toBe(true);
+  expect(diff.count, JSON.stringify(diff.box)).toBeLessThanOrEqual(
+    MAX_AA_PIXELS,
   );
 }
 

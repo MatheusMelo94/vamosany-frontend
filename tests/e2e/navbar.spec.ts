@@ -203,6 +203,8 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     await header(page).getByRole("button", { name: "Abrir menú" }).click();
     let drawer = header(page).getByRole("navigation", { name: "Menú" });
     await expect(drawer).toBeVisible();
+    // Pointer off the X: the drawer baselines hold no frozen-navbar hover (QA-0009).
+    await page.mouse.move(1, 1);
     await isolate(page);
     await waitForGsapIdle(page);
     await expect(page).toHaveScreenshot("drawer-top.png", {
@@ -219,6 +221,7 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     await drawer.locator("[data-drawer-list]").evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
+    await page.mouse.move(1, 1);
     await isolate(page);
     await waitForGsapIdle(page);
     await expect(page).toHaveScreenshot("drawer-last-group.png", {
