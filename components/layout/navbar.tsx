@@ -28,6 +28,8 @@ type Drawer = ComponentType<DrawerProps>;
    One load is shared by every caller; a failure clears it, so the next call
    imports again, and no error boundary is involved (plan § 9). */
 let drawerLoad: Promise<Drawer> | null = null;
+/** The drawer's own close query (AC 30); the deferred open checks the same. */
+const DESKTOP = "(min-width: 1024px)";
 function requestDrawer(): Promise<Drawer> {
   drawerLoad ??= loadDrawer().then(
     (m) => m.MobileDrawer,
@@ -65,8 +67,13 @@ export function Navbar(): JSX.Element {
       setDrawerOpen(true);
     };
     if (MobileDrawer) show();
-    // A failed load leaves the burger closed; the next tap retries.
-    else void warmDrawer().then((loaded) => loaded && show());
+    // A failed load leaves the burger closed; the next tap retries. A chunk
+    // that arrives once the viewport is 1024 or wider opens nothing: the
+    // burger is gone (RV-0024, AC 30).
+    else
+      void warmDrawer().then(
+        (loaded) => loaded && !window.matchMedia(DESKTOP).matches && show(),
+      );
   }, [MobileDrawer, warmDrawer]);
   const drawerId = useId();
   const burgerRef = useRef<HTMLButtonElement>(null);

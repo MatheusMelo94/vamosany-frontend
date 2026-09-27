@@ -12,6 +12,7 @@ import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { NAV } from "@/components/layout/nav-config";
+import { fakeViewport } from "@/tests/support/viewport";
 
 vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => "/") }));
 
@@ -565,5 +566,73 @@ describe("Navbar first open (QA-0006, RV-0023)", () => {
     expect(burger).toHaveAccessibleName("Cerrar menú");
     expect(burger).toHaveAttribute("aria-controls", menu?.id);
     expect(menu).toContainElement(document.activeElement as HTMLElement);
+  });
+});
+
+describe("Navbar cold open after the viewport widens (RV-0024, AC 30)", () => {
+  const LOADER = "@/components/layout/drawer/load-drawer";
+  let viewport: ReturnType<typeof fakeViewport>;
+
+  beforeEach(() => {
+    viewport = fakeViewport(360);
+  });
+
+  afterEach(() => {
+    viewport.restore();
+    vi.doUnmock(LOADER);
+    vi.resetModules();
+  });
+
+  it("doesn't open when the chunk arrives at 1024 or wider: burger closed, page neither inert nor scroll-locked", async () => {
+    vi.resetModules();
+    const actual =
+      await vi.importActual<typeof import("../drawer/load-drawer")>(LOADER);
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const loadDrawer = vi.fn(() => gate.then(actual.loadDrawer));
+    vi.doMock(LOADER, () => ({ loadDrawer }));
+    const { Navbar: FreshNavbar } = await import("@/components/layout/navbar");
+    const user = userEvent.setup();
+    render(<FreshNavbar />);
+
+    // Any panel mounted at all, even one closed right away, is a failure:
+    // it would have made the page inert and moved focus for a frame.
+    let mounted = false;
+    const watch = new MutationObserver((records) => {
+      for (const { addedNodes } of records)
+        for (const node of addedNodes)
+          if (
+            node instanceof Element &&
+            (node.matches('nav[aria-label="Menú"]') ||
+              node.querySelector('nav[aria-label="Menú"]'))
+          )
+            mounted = true;
+    });
+    watch.observe(document.body, { childList: true, subtree: true });
+
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    act(() => viewport.resize(1280));
+    await act(async () => release());
+    await act(async () => {
+      await gate.then(actual.loadDrawer);
+    });
+    watch.disconnect();
+    expect(mounted).toBe(false);
+
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+    expect(document.querySelector("[inert]")).toBeNull();
+    expect(document.body.style.overflow).toBe("");
+
+    // Back below 1024, the warm chunk opens on the next tap as usual.
+    act(() => viewport.resize(360));
+    await user.click(burger);
+    expect(
+      await screen.findByRole("navigation", { name: "Menú" }),
+    ).toBeInTheDocument();
   });
 });

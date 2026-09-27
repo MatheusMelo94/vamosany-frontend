@@ -4,6 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { focusables, wrapTab } from "../modal";
+import { MobileDrawer } from "../mobile-drawer";
+import { fakeViewport } from "@/tests/support/viewport";
+import { useRef } from "react";
 
 vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => "/") }));
 
@@ -454,5 +457,39 @@ describe("MobileDrawer motion (AC 41–43, 46; plan § 7)", () => {
     html.classList.remove("gsap");
     await user.click(burger);
     expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+  });
+});
+
+describe("MobileDrawer breakpoint on mount (RV-0024, AC 30)", () => {
+  it("closes silently (onClose, onExited) when it mounts at 1024 or wider", () => {
+    const viewport = fakeViewport(1280);
+    const onClose = vi.fn();
+    const onExited = vi.fn();
+    function Host() {
+      const burgerRef = useRef<HTMLButtonElement>(null);
+      return (
+        <>
+          <button ref={burgerRef} type="button">
+            Cerrar menú
+          </button>
+          <MobileDrawer
+            open
+            drawerId="drawer"
+            burgerRef={burgerRef}
+            lang="ES"
+            onLang={() => undefined}
+            onClose={onClose}
+            onExited={onExited}
+          />
+        </>
+      );
+    }
+    try {
+      render(<Host />);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onExited).toHaveBeenCalledTimes(1);
+    } finally {
+      viewport.restore();
+    }
   });
 });

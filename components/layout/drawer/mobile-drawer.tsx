@@ -123,6 +123,8 @@ export function MobileDrawer({
   }, [open, dismiss, burgerRef]);
 
   // Reaching 1024 while open closes silently: the burger is gone (AC 30).
+  // Checked on mount too: a chunk can arrive after the viewport widened
+  // (RV-0024).
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 1024px)");
     const onChange = () => {
@@ -130,6 +132,7 @@ export function MobileDrawer({
       onClose();
       onExited();
     };
+    onChange();
     desktop.addEventListener("change", onChange);
     return () => desktop.removeEventListener("change", onChange);
   }, [onClose, onExited]);

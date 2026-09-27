@@ -328,6 +328,46 @@ test.describe("drawer first open (QA-0006, RV-0023) @feature-mobile-nav", () => 
     const flips = samples.filter((s, i) => i > 0 && s.x !== samples[i - 1].x);
     expect(flips).toHaveLength(1);
   });
+
+  test("cold chunk that arrives after the viewport reached 1024: nothing opens, the page stays usable (RV-0024, AC 30)", async ({
+    page,
+  }) => {
+    const { width, height } = page.viewportSize() ?? { width: 0, height: 0 };
+    await page.setViewportSize({ width: 1280, height });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForLoadState("networkidle");
+    await page.setViewportSize({ width, height });
+    let requested = 0;
+    let served = 0;
+    await page.route("**/_next/static/chunks/**", async (route) => {
+      requested += 1;
+      await new Promise((r) => setTimeout(r, 1500));
+      await route.continue();
+      served += 1;
+    });
+
+    await burger(page).click();
+    await expect.poll(() => requested).toBeGreaterThan(0);
+    // A rotation on a slow network: 1024+ before the chunk arrives.
+    await page.setViewportSize({ width: 1280, height });
+    await expect.poll(() => served, { timeout: 5000 }).toBe(requested);
+    await page.waitForTimeout(300);
+
+    await expect(panel(page)).toHaveCount(0);
+    await expect(page.locator("[inert]")).toHaveCount(0);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
+    const before = await page.evaluate(() => window.scrollY);
+    await page.mouse.move(640, height / 2);
+    await page.mouse.wheel(0, 600);
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY))
+      .toBeGreaterThan(before);
+
+    await page.setViewportSize({ width, height });
+    await expect(burger(page)).toHaveAccessibleName("Abrir menú");
+    await expect(burger(page)).toHaveAttribute("aria-expanded", "false");
+  });
 });
 
 test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
