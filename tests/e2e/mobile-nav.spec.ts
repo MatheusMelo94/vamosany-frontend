@@ -1,6 +1,10 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { waitForGsapIdle, waitForLandingMotion } from "./support/motion";
+import {
+  gsapPending,
+  waitForGsapIdle,
+  waitForLandingMotion,
+} from "./support/motion";
 
 /**
  * Behavioral checks of the phone menu "Índice" (mobile-navigation spec;
@@ -21,9 +25,11 @@ async function openLanding(page: Page) {
   await waitForLandingMotion(page);
 }
 
+/** Opens the drawer and waits for the unfold to settle (plan § 7.2). */
 async function openDrawer(page: Page): Promise<Locator> {
   await burger(page).click();
   await expect(panel(page)).toBeVisible();
+  await waitForGsapIdle(page);
   return panel(page);
 }
 
@@ -764,4 +770,266 @@ test.describe("drawer accessibility audit (AC 40) @feature-mobile-nav", () => {
       expect(checked).toBe(true);
     });
   }
+});
+
+/* ---- Motion (T011, T012): time-sampled with page.clock (plan § 12) ---- */
+
+// Removes <main> and <footer> so the landing's loops can't differ between
+// two frames; the header and the fixed drawer don't move (navbar.spec.ts).
+const ISOLATE = "main, footer { display: none !important; }";
+
+/** Loads `path` with a fake clock, lets it settle, then stops time. */
+async function pausedAt(page: Page, path: string) {
+  await page.clock.install();
+  await page.goto(path);
+  await page.evaluate(() => document.fonts.ready);
+  if (path === "/") await waitForLandingMotion(page);
+  await waitForGsapIdle(page);
+  // Resolve the lazy chunk first: its first mount suspends, and React's
+  // Suspense reveal is throttled on setTimeout, which a paused clock stops.
+  await openDrawer(page);
+  await burger(page).click();
+  await expect(panel(page)).toHaveCount(0);
+  await waitForGsapIdle(page);
+  const now = await page.evaluate(() => Date.now());
+  await page.clock.pauseAt(now + 1000);
+}
+
+/** Taps the burger and waits for the lazy chunk to mount the panel (t = 0). */
+async function tapOpen(page: Page) {
+  await burger(page).click();
+  await expect(panel(page)).toBeAttached();
+}
+
+type Frame = {
+  /** Bottom inset of the panel's clip-path in %, or null without a clip. */
+  clipBottom: number | null;
+  panelY: number;
+  veil: number | null;
+  icon: { angle: number; scale: number; opacity: number };
+  groups: number[];
+  footer: number;
+  headerDot: number | null;
+  rowDot: { width: number; transform: string } | null;
+  capsule: number[];
+  main: number[];
+};
+
+/** Reads the drawer's motion state from computed styles, in the page. */
+function frame(page: Page): Promise<Frame> {
+  return page.evaluate(() => {
+    const nav = document.querySelector<HTMLElement>(
+      'header[data-nav] nav[aria-label="Menú"]',
+    );
+    const veil = nav?.previousElementSibling ?? null;
+    const svg = document.querySelector(
+      'header[data-nav] button[aria-label$="menú"] svg',
+    );
+    const matrix = (el: Element) => {
+      const t = getComputedStyle(el).transform;
+      return new DOMMatrixReadOnly(t === "none" ? undefined : t);
+    };
+    const opacity = (el: Element | null) =>
+      el ? Number(getComputedStyle(el).opacity) : 0;
+    const rect = (el: Element | null) => {
+      const r = el?.getBoundingClientRect();
+      return r ? [r.x, r.y, r.width, r.height] : [];
+    };
+    const clip = nav ? getComputedStyle(nav).clipPath : "none";
+    let clipBottom: number | null = null;
+    if (clip.startsWith("inset(")) {
+      const v = (clip.slice(6).split("round")[0] ?? "")
+        .trim()
+        .split(/\s+/)
+        .map((x) => Number.parseFloat(x));
+      clipBottom = v.length >= 3 ? (v[2] ?? 0) : (v[0] ?? 0);
+    }
+    const m = svg ? matrix(svg) : new DOMMatrixReadOnly();
+    const hd = nav?.querySelector("[data-header-dot]");
+    const rd = nav?.querySelector("[data-current-dot]");
+    return {
+      clipBottom,
+      panelY: nav ? matrix(nav).f : 0,
+      veil: veil ? opacity(veil) : null,
+      icon: {
+        angle: (Math.atan2(m.b, m.a) * 180) / Math.PI,
+        scale: Math.hypot(m.a, m.b),
+        opacity: svg ? opacity(svg) : 0,
+      },
+      groups: [...(nav?.querySelectorAll("[data-drawer-group]") ?? [])].map(
+        opacity,
+      ),
+      footer: opacity(nav?.querySelector("[data-drawer-footer]") ?? null),
+      headerDot: hd ? matrix(hd).a : null,
+      rowDot: rd
+        ? {
+            width: rd.getBoundingClientRect().width,
+            transform: getComputedStyle(rd).transform,
+          }
+        : null,
+      capsule: rect(document.querySelector(".nav-capsule")),
+      main: rect(document.querySelector("main h1, main h2")),
+    };
+  });
+}
+
+test.describe("drawer motion: the unfold and the roll-up (AC 41–43, 45, 47) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  test("opening unfolds: clipped at 0.1s, settled by 0.9s; the capsule and page never move", async ({
+    page,
+  }) => {
+    await pausedAt(page, "/");
+    const before = await frame(page);
+    await tapOpen(page);
+    const start = await frame(page);
+    await page.clock.runFor(100);
+    const early = await frame(page);
+    expect(early.clipBottom).not.toBeNull();
+    expect(early.clipBottom!).toBeGreaterThan(0);
+    expect(early.clipBottom!).toBeLessThan(100);
+    expect(early.icon.angle).toBeGreaterThan(-90);
+    expect(early.icon.angle).toBeLessThan(-0.5);
+    expect(early.veil!).toBeGreaterThan(0);
+    expect(early.veil!).toBeLessThan(1);
+
+    await page.clock.runFor(800);
+    const settled = await frame(page);
+    expect(settled.clipBottom).toBeNull();
+    expect(settled.panelY).toBe(0);
+    expect(settled.icon).toEqual({ angle: 0, scale: 1, opacity: 1 });
+    expect(settled.veil).toBe(1);
+    expect(settled.groups).toEqual([1, 1, 1, 1, 1]);
+    expect(settled.footer).toBe(1);
+    expect(await gsapPending(page)).toBe(0);
+
+    // AC 47: only the icon moves inside the capsule; nothing on the page.
+    for (const f of [start, early, settled]) {
+      expect(f.capsule).toEqual(before.capsule);
+      expect(f.main).toEqual(before.main);
+    }
+  });
+
+  test("the frame at 0.9s is the settled drawer", async ({ page }) => {
+    await pausedAt(page, "/");
+    await page.addStyleTag({ content: ISOLATE });
+    await tapOpen(page);
+    await page.clock.runFor(900);
+    const at900 = await page.screenshot();
+    await page.clock.runFor(2000);
+    expect(await page.screenshot()).toEqual(at900);
+  });
+
+  test("on a Sobre mí route only the header dot pops; the row dot is full size from the first frame (AC 45)", async ({
+    page,
+  }) => {
+    await pausedAt(page, "/sobre-mi");
+    await tapOpen(page);
+    const start = await frame(page);
+    expect(start.headerDot).toBe(0);
+    expect(start.rowDot).toEqual({ width: 6, transform: "none" });
+    await page.clock.runFor(300);
+    expect((await frame(page)).headerDot).toBe(0);
+    await page.clock.runFor(600);
+    const settled = await frame(page);
+    expect(settled.headerDot).toBe(1);
+    expect(settled.rowDot).toEqual({ width: 6, transform: "none" });
+  });
+
+  test("during the unfold a header tap opens its group, Tab moves inside and reveals, the X rolls up from where it is (AC 43)", async ({
+    page,
+  }) => {
+    await pausedAt(page, "/");
+    await tapOpen(page);
+    await page.clock.runFor(200);
+    const drawer = panel(page);
+
+    await page.keyboard.press("Tab");
+    const guides = drawer.getByRole("button", { name: "Guides" });
+    await expect(guides).toBeFocused();
+    const mid = await frame(page);
+    expect(mid.groups[1]).toBe(1);
+    expect(mid.groups[3]).toBeLessThan(1);
+
+    await guides.click();
+    await expect(guides).toHaveAttribute("aria-expanded", "true");
+
+    await page.clock.runFor(50);
+    const beforeClose = await frame(page);
+    await burger(page).click();
+    await page.clock.runFor(16);
+    const closing = await frame(page);
+    expect(closing.clipBottom!).toBeGreaterThanOrEqual(
+      (beforeClose.clipBottom ?? 0) - 0.5,
+    );
+    expect(closing.clipBottom!).toBeLessThan(
+      (beforeClose.clipBottom ?? 0) + 20,
+    );
+    await page.clock.runFor(350);
+    await expect(panel(page)).toHaveCount(0);
+  });
+
+  test("closing rolls up and fades the veil; both are gone by 0.35s and the burger is back (AC 42)", async ({
+    page,
+  }) => {
+    await pausedAt(page, "/");
+    await tapOpen(page);
+    await page.clock.runFor(1000);
+    await burger(page).click();
+    await expect(burger(page)).toHaveAccessibleName("Abrir menú");
+    await page.clock.runFor(100);
+    const rolling = await frame(page);
+    expect(rolling.clipBottom!).toBeGreaterThan(0);
+    expect(rolling.veil!).toBeLessThan(1);
+    await expect(panel(page)).toBeAttached();
+    await page.clock.runFor(250);
+    await expect(panel(page)).toHaveCount(0);
+    await expect(header(page).locator(".fixed.inset-0")).toHaveCount(0);
+    // No inline declaration left on the icon (an empty style="" is fine).
+    expect(
+      (await burger(page).locator("svg").getAttribute("style")) ?? "",
+    ).toBe("");
+  });
+});
+
+/** Frame right after each tap = the settled frame (AC 46, open and close). */
+async function instantOpenClose(page: Page) {
+  await page.addStyleTag({ content: ISOLATE });
+  await page.mouse.move(1, 1);
+  const closed = await header(page).screenshot({ animations: "disabled" });
+  await burger(page).click();
+  await expect(panel(page)).toBeAttached();
+  const opened = await page.screenshot();
+  await page.waitForTimeout(1000);
+  expect(await page.screenshot()).toEqual(opened);
+  await burger(page).click();
+  expect(await panel(page).count()).toBe(0);
+  await page.mouse.move(1, 1);
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+  expect(await header(page).screenshot({ animations: "disabled" })).toEqual(
+    closed,
+  );
+}
+
+test.describe("drawer motion off: reduced motion (AC 46) @feature-mobile-nav", () => {
+  test.use({ reducedMotion: "reduce" });
+  test("open and close are instant", async ({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await openLanding(page);
+    await expect(page.locator("html")).not.toHaveClass(/gsap/);
+    await instantOpenClose(page);
+  });
+});
+
+test.describe("drawer motion off: no .gsap gate (AC 46) @feature-mobile-nav", () => {
+  test("open and close are instant", async ({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await openLanding(page);
+    await page.evaluate(() =>
+      document.documentElement.classList.remove("gsap"),
+    );
+    await instantOpenClose(page);
+  });
 });

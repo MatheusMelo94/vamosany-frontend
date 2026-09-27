@@ -9,11 +9,19 @@ import {
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
+import { useGSAP } from "@/lib/gsap";
 import { NAV, type Lang } from "@/components/layout/nav-config";
 import { defaultOpenGroup, groupHasCurrent } from "./nav-model";
 import { DrawerGroup } from "./drawer-group";
 import { DrawerFooter } from "./drawer-footer";
 import { focusables, inertOutside, wrapTab } from "./modal";
+import {
+  playClose,
+  playOpen,
+  playReopen,
+  revealFocused,
+  type DrawerTargets,
+} from "./drawer-motion";
 
 export type DrawerProps = {
   /** Logical state: false starts the close; the Navbar unmounts on onExited. */
@@ -106,10 +114,62 @@ export function MobileDrawer({
     return () => desktop.removeEventListener("change", onChange);
   }, [onClose, onExited]);
 
-  // No close motion yet: the close finishes at once, before paint.
-  useLayoutEffect(() => {
-    if (!open) onExited();
-  }, [open, onExited]);
+  // Motion (plan § 7): the unfold on open, the roll-up on close (unmount
+  // when it ends, M9), and a reopen during the close goes back to the
+  // defaults. Layout-effect timing: the start state is set before paint.
+  // Declared after the modality effect: the t = 0 focus isn't a Tab.
+  const motion = useRef<gsap.core.Timeline | null>(null);
+  const opened = useRef(false);
+  const exited = useRef(onExited);
+  exited.current = onExited;
+  useGSAP(
+    () => {
+      const veil = veilRef.current;
+      const panel = panelRef.current;
+      if (!veil || !panel) return;
+      const t: DrawerTargets = {
+        veil,
+        panel,
+        icon: burgerRef.current?.querySelector("svg") ?? null,
+        groups: [
+          ...panel.querySelectorAll<HTMLElement>("[data-drawer-group]"),
+        ],
+        footer: panel.querySelector<HTMLElement>("[data-drawer-footer]"),
+        dot: panel.querySelector<HTMLElement>("[data-header-dot]"),
+      };
+      motion.current?.kill();
+      motion.current = null;
+      if (!open) {
+        motion.current = playClose(t, () => exited.current());
+      } else if (!opened.current) {
+        opened.current = true;
+        motion.current = playOpen(t);
+      } else {
+        // Every open starts from the default state, list at the top (AC 24).
+        setExpanded(defaultOpenGroup(NAV, pathname));
+        const list = panel.querySelector("[data-drawer-list]");
+        if (list) list.scrollTop = 0;
+        motion.current = playReopen(t);
+      }
+    },
+    { scope: panelRef, dependencies: [open] },
+  );
+
+  // The focus safeguard (ADR-0008): Tab onto a still-rising control
+  // completes its reveal.
+  useGSAP(
+    (_context, contextSafe) => {
+      const panel = panelRef.current;
+      if (!panel || !contextSafe) return;
+      const onFocusIn = contextSafe((e: FocusEvent) => {
+        if (motion.current && e.target instanceof Element)
+          revealFocused(motion.current, e.target);
+      });
+      panel.addEventListener("focusin", onFocusIn);
+      return () => panel.removeEventListener("focusin", onFocusIn);
+    },
+    { scope: panelRef },
+  );
 
   return (
     <>

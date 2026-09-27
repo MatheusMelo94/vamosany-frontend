@@ -120,6 +120,28 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     });
   });
 
+  // mobile-navigation AC 42: the roll-up ends in today's closed navbar.
+  test("drawer close rolls up and leaves the closed navbar (mobile-navigation AC 42) @feature-mobile-nav", async ({
+    page,
+  }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await open(page);
+    const burger = header(page).getByRole("button", { name: "Abrir menú" });
+    await burger.click();
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
+    await expect(drawer).toBeVisible();
+    await waitForGsapIdle(page);
+    await header(page).getByRole("button", { name: "Cerrar menú" }).click();
+    await expect(drawer).toHaveCount(0);
+    await page.mouse.move(1, 1);
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await isolate(page);
+    await expect(page).toHaveScreenshot("navbar-closed.png", {
+      clip: await box(header(page)),
+      animations: "disabled",
+    });
+  });
+
   test.describe("reduced motion", () => {
     test.use({ reducedMotion: "reduce" });
 

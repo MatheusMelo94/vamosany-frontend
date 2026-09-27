@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { gsap } from "@/lib/gsap";
 import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
@@ -303,5 +304,95 @@ describe("MobileDrawer language and keyboard cycle (AC 2, 27, 33)", () => {
       back.push(name());
     }
     expect(back).toEqual([...order].reverse().slice(1).concat("Itineraries"));
+  });
+});
+
+describe("MobileDrawer motion (AC 41–43, 46; plan § 7)", () => {
+  const html = document.documentElement;
+  /** Runs every GSAP animation to its end (jsdom has no reliable ticker). */
+  const finishMotion = () =>
+    act(() => {
+      for (const a of gsap.globalTimeline.getChildren(false, true, true))
+        a.progress(1);
+    });
+
+  // Time stands still: GSAP's ticker is re-woken on a fake rAF that never
+  // fires, so only finishMotion() moves an animation.
+  const restartTicker = () => {
+    gsap.ticker.sleep();
+    gsap.ticker.wake();
+  };
+  beforeEach(() => {
+    html.classList.add("gsap");
+    vi.useFakeTimers({
+      toFake: ["requestAnimationFrame", "cancelAnimationFrame"],
+    });
+    restartTicker();
+  });
+  afterEach(() => {
+    html.classList.remove("gsap");
+    gsap.globalTimeline.clear();
+    vi.useRealTimers();
+    restartTicker();
+    vi.mocked(usePathname).mockReturnValue("/");
+  });
+
+  it("starts the unfold on open: the panel is clipped and the groups are transparent", async () => {
+    const { panel } = await openDrawer();
+    expect(panel.style.clipPath).toContain("inset(");
+    const groups = panel.querySelectorAll<HTMLElement>("[data-drawer-group]");
+    expect(groups[1]?.style.opacity).toBe("0");
+    finishMotion();
+    expect(panel.getAttribute("style") ?? "").toBe("");
+    expect(groups[1]?.getAttribute("style") ?? "").toBe("");
+  });
+
+  it("keeps the panel mounted and inert while it rolls up, then unmounts it", async () => {
+    const { user, panel, burger } = await openDrawer();
+    finishMotion();
+    await user.click(burger);
+    expect(panel).toBeInTheDocument();
+    expect(panel).toHaveAttribute("inert");
+    expect(burger).toHaveAccessibleName("Abrir menú");
+    expect(burger).toHaveFocus();
+    finishMotion();
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+    expect(burger.querySelector("svg")?.getAttribute("style") ?? "").toBe("");
+  });
+
+  // Focused directly: in jsdom GSAP re-parents a box-less element to read
+  // its transform, which drops focus; the Tab path is in mobile-nav.spec.ts.
+  it("completes a group's reveal when focus reaches it mid-unfold", async () => {
+    const { panel } = await openDrawer();
+    const guides = panel.querySelectorAll<HTMLElement>("[data-drawer-group]")[1];
+    expect(guides?.style.opacity).toBe("0");
+    within(panel).getByRole("button", { name: "Guides" }).focus();
+    expect(guides?.style.opacity).toBe("");
+  });
+
+  it("a reopen during the close restores the default group, the list's top and the panel", async () => {
+    vi.mocked(usePathname).mockReturnValue("/sobre-mi");
+    const { user, panel, burger } = await openDrawer();
+    finishMotion();
+    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    const list = panel.querySelector("[data-drawer-list]");
+    if (list) list.scrollTop = 120;
+    await user.click(burger);
+    expect(panel).toBeInTheDocument();
+    await user.click(burger);
+    expect(screen.getByRole("navigation", { name: "Menú" })).toBe(panel);
+    expect(panel).not.toHaveAttribute("inert");
+    expect(expandedLabels(panel)).toEqual(["Sobre mí"]);
+    expect(list?.scrollTop).toBe(0);
+    finishMotion();
+    expect(screen.getByRole("navigation", { name: "Menú" })).toBe(panel);
+    expect(panel.getAttribute("style") ?? "").toBe("");
+  });
+
+  it("closes at once when the gate is removed while open (checked at call time)", async () => {
+    const { user, burger } = await openDrawer();
+    html.classList.remove("gsap");
+    await user.click(burger);
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
   });
 });
