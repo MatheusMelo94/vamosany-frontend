@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { waitForLandingMotion } from "./support/motion";
+import AxeBuilder from "@axe-core/playwright";
+import { waitForGsapIdle, waitForLandingMotion } from "./support/motion";
 
 /**
  * Behavioral checks of the phone menu "Índice" (mobile-navigation spec;
@@ -731,4 +732,36 @@ test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav",
       });
     }
   });
+});
+
+test.describe("drawer accessibility audit (AC 40) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  const states: Array<[string, string, string | null]> = [
+    ["S2 on /", "/", null],
+    ["S3 (Itineraries open) on /", "/", "Itineraries"],
+    ["S5 on /sobre-mi", "/sobre-mi", null],
+  ];
+
+  for (const [name, path, group] of states) {
+    test(`axe: 0 violations on the open drawer, ${name}`, async ({ page }) => {
+      if (path === "/") await openLanding(page);
+      else await page.goto(path);
+      const drawer = await openDrawer(page);
+      if (group)
+        await drawer.getByRole("button", { name: group, exact: true }).click();
+      await waitForGsapIdle(page);
+      const results = await new AxeBuilder({ page })
+        .include('header[data-nav] nav[aria-label="Menú"]')
+        .analyze();
+      expect(results.violations).toEqual([]);
+      // The audit covered the scent lines' and headings' contrast.
+      const checked = [...results.passes, ...results.incomplete].some(
+        (r) => r.id === "color-contrast",
+      );
+      expect(checked).toBe(true);
+    });
+  }
 });

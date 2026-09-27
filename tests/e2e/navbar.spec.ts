@@ -169,21 +169,65 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     });
   });
 
-  test("drawer: top and last group", async ({ page }) => {
+  // Redefined by mobile-navigation T010 (plan § 12; DDR-0006 › Baselines):
+  // same names, new content. drawer-top = S2 on "/" (the first level, list
+  // at the top); drawer-last-group = S5 on /sobre-mi (the last group open
+  // by default, with the header dot, the row dot and the pinned footer, list
+  // scrolled to its end). GSAP is idle before each capture:
+  // `animations: "disabled"` doesn't stop GSAP.
+  test("drawer: top and last group @feature-mobile-nav", async ({ page }) => {
     test.skip(isDesktop(page), "drawer exists below 1024 only");
     await open(page);
     await header(page).getByRole("button", { name: "Abrir menú" }).click();
-    const drawer = header(page).getByRole("navigation", { name: "Menú" });
+    let drawer = header(page).getByRole("navigation", { name: "Menú" });
     await expect(drawer).toBeVisible();
     await isolate(page);
+    await waitForGsapIdle(page);
     await expect(page).toHaveScreenshot("drawer-top.png", {
       animations: "disabled",
     });
-    await drawer.evaluate((el) => {
+
+    await page.goto("/sobre-mi");
+    await page.evaluate(() => document.fonts.ready);
+    await header(page).getByRole("button", { name: "Abrir menú" }).click();
+    drawer = header(page).getByRole("navigation", { name: "Menú" });
+    await expect(
+      drawer.getByRole("button", { name: "Sobre mí", exact: true }),
+    ).toHaveAttribute("aria-expanded", "true");
+    await drawer.locator("[data-drawer-list]").evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
+    await isolate(page);
+    await waitForGsapIdle(page);
     await expect(page).toHaveScreenshot("drawer-last-group.png", {
       animations: "disabled",
+    });
+  });
+
+  // mobile-navigation AC 52: with JavaScript off the drawer can't open (a
+  // pre-existing gap, spec S7), and the closed navbar is still today's.
+  // The isolation style is injected into the HTML response: no scripts run.
+  test.describe("no JavaScript", () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("closed navbar matches its baseline (mobile-navigation AC 52) @feature-mobile-nav", async ({
+      page,
+    }) => {
+      await page.route("**/*", async (route) => {
+        if (route.request().resourceType() !== "document")
+          return route.continue();
+        const response = await route.fetch();
+        const html = (await response.text()).replace(
+          "</head>",
+          `<style>${ISOLATE}</style></head>`,
+        );
+        await route.fulfill({ response, body: html });
+      });
+      await page.goto("/");
+      await expect(page).toHaveScreenshot("navbar-closed.png", {
+        clip: await box(header(page)),
+        animations: "disabled",
+      });
     });
   });
 });
