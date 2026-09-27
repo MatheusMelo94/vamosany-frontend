@@ -1,6 +1,7 @@
-# Spec: vamosany-front-end — Mobile navigation "Índice" (drawer below 1024px) v1
+# Spec: vamosany-front-end — Mobile navigation "Índice" (drawer below 1024px) v1.1
 
 - **Status:** Ready for /plan
+- **Amended:** v1.1, 2026-09-27: the drawer uses exactly the desktop menu's fonts (user decision; § Amendment Log).
 - **Date:** 2026-09-27
 - **Owner:** Matheus Melo
 - **Constitution reference:** serves the **Visitor** (constitution § Users, frontend addition: pre-customer, "majoritariamente no celular") on a **360 phone, one hand**, with 768 best-effort. The constitution's public site has **no countable v1 metric yet** (§ Success Criteria), and this spec doesn't add one. Its observable proxies, which QA measures: the first level fits one panel with no scroll at 360 × 780; every menu target is ≥44px on its visible box; any item is ≤2 taps from opening the menu; and a keyboard-only path through the menu exists, with Esc and focus return. It honors Non-Goal 1 through DDR-0006, and the Experience Principles (WCAG 2.2 AA floor, reduced motion mandatory, es > pt > en).
@@ -100,7 +101,7 @@ The menu reads static, bundled config and does no I/O. The data states are there
 
 ## Content & Copy
 
-All menu text is **verbatim** from `components/layout/nav-config.ts` and `features/sobre-mi/content/nav.ts`. Nothing is renamed (DDR-0002; labels belong to the i18n work). `—` is an em dash. The group labels render in the card-title style (uppercase through CSS; the source text stays as below).
+All menu text is **verbatim** from `components/layout/nav-config.ts` and `features/sobre-mi/content/nav.ts`. Nothing is renamed (DDR-0002; labels belong to the i18n work). `—` is an em dash. The group labels, item titles, tags, language codes and Log in / Sign up render in **Montserrat, as written (sentence case, no CSS uppercase)**. Only the column headings, the scent lines and the prices use Courier Prime (§ Responsive Behavior › Typography).
 
 ### Group headers and scent lines (the column headings joined with " · ", verbatim)
 
@@ -223,10 +224,23 @@ The whole open sequence settles by about 0.85s. The row dot (on the current item
 | **Landscape phone** (for example 780 × 360) | Tablet rule (≥640 wide), about 264px tall | Scrolls | Pinned | Best-effort. The list must stay reachable. |
 | **≥1024** | The drawer doesn't render. If it was open when the viewport crossed 1024, it closes. | — | — | Desktop pixel-identical to its baselines |
 
+**Typography (v1.1: exactly the desktop menu's fonts):**
+
+| Element | Style | Desktop reference |
+|---|---|---|
+| Group name (header label) | Montserrat bold, sentence case: `body-lg font-bold`, `ink` | the desktop triggers |
+| Item title | Montserrat: `body-sm font-semibold`, `ink` | the desktop item title |
+| Tag | Montserrat: `caption font-semibold` on the yellow pill | the desktop tags |
+| Blurb | Montserrat, if ever shown (not shown on mobile in this spec) | the desktop blurb |
+| Language segments | Montserrat: `body-sm font-semibold`, codes as written ("ES", "PT", "EN") | the desktop language button (`textLink`) |
+| Log in / Sign up | Montserrat: `body-sm font-semibold`, sentence case ("Log in", "Sign up") | the desktop `textLink` |
+| Column heading, scent line | Courier Prime: `eyebrow` in `ink-muted` | the desktop column heading |
+| Price | Courier Prime bold at the `body-sm` size, in the config's own case | the desktop price |
+
 **Layout values (existing tokens only; no token additions):**
-- **Header row:** min-height 56px (it grows when the scent line wraps). The label uses `card-title`, with the 6px dot 8px after the label when applicable. The scent line uses `eyebrow` in `ink-muted` and may wrap to two lines. The 12px chevron (the desktop path, stroke 1.5) is right-aligned and centred on the row. Text inset from the panel edge is 20px, as today. There is a 1px `hairline` above the first header and below every group.
+- **Header row:** min-height 56px (it grows when the scent line wraps). The label uses the group-name style above (`body-lg font-bold`), with the 6px dot 8px after the label when applicable. The scent line uses `eyebrow` in `ink-muted` and may wrap to two lines. The 12px chevron (the desktop path, stroke 1.5) is right-aligned and centred on the row. Text inset from the panel edge is 20px, as today. There is a 1px `hairline` above the first header and below every group.
 - **Open body:** column heading (`eyebrow`, `ink-muted`) with 12px above and 4px below. Rows are min-height 44px, `body-sm` semibold `ink`, with a 1px `surface-1` rule below each. The tag is the desktop `caption` semibold yellow pill, 8px after the title. The price is right-aligned in Courier Prime bold at the `body-sm` size, in the config's own case ("from €25", not uppercased). The dot sits at the row end, after the price, and never overlaps the title, tag or price (DDR-0003). The body has 12px of bottom padding.
-- **Footer:** white, 1px `hairline` top border, 12px / 16px / 16px padding, 12px between its two rows. Row 1 is the globe (16px) plus the segmented control: a 48px track with a 2px `hairline` border, fully rounded, three equal segments in `label-button`. Row 2 is two 48px `label-button` pills, fully rounded, equal width, with 12px between them.
+- **Footer:** white, 1px `hairline` top border, 12px / 16px / 16px padding, 12px between its two rows. Row 1 is the globe (16px) plus the segmented control: a 48px track with a 2px `hairline` border, fully rounded, three equal segments in the language-segment style above. Row 2 is two 48px pills in the Log in / Sign up style above, fully rounded, equal width, with 12px between them.
 
 ## Accessibility Acceptance
 
@@ -295,11 +309,11 @@ Unless stated otherwise, each AC runs on **phone-360** (360 × 780) and **tablet
 5. Tapping the burger shows the veil and the panel. The burger then shows the X, is named "Cerrar menú", has `aria-expanded="true"`, and its `aria-controls` references the panel. The page has a navigation landmark named "Menú".
 
 **First level (S2)**
-6. On `/`, the panel shows exactly five group headers in this order: Itineraries, Guides, Blog, Services, Sobre mí. All have `aria-expanded="false"`, and no item link is visible or exposed to assistive tech.
+6. On `/`, the panel shows exactly five group headers in this order: Itineraries, Guides, Blog, Services, Sobre mí, in Montserrat bold and sentence case (computed `font-family` starts with Montserrat, `text-transform: none`). All have `aria-expanded="false"`, and no item link is visible or exposed to assistive tech.
 7. Each header's scent line equals the verbatim text in § Content & Copy.
 8. At 360 × 780 and 390 × 844, the list area in S2 has no scroll overflow (`scrollHeight ≤ clientHeight`).
 9. At 360, the panel's box is inset 16px left, right and bottom and 80px from the top, with a 24px radius (the same box as today). The veil covers the viewport behind it.
-10. The footer shows the globe and a control named "Idioma" with segments ES, PT, EN in that order and ES selected. Below it, Log in (left) and Sign up (right) sit side by side, each 48px tall.
+10. The footer shows the globe and a control named "Idioma" with segments ES, PT, EN in that order and ES selected. Below it, Log in (left) and Sign up (right) sit side by side, each 48px tall. The segments, Log in and Sign up render in Montserrat semibold, sentence case (`text-transform: none`). Column headings, scent lines and prices are the only Courier Prime text in the panel.
 11. Services is closed by default on every route (`/` and all five Sobre mí routes).
 
 **One group open (S3)**
@@ -363,7 +377,7 @@ Unless stated otherwise, each AC runs on **phone-360** (360 × 780) and **tablet
 |---|---|---|
 | Scent lines and column headings in `ink-tertiary` (#A8A8A4) | `ink-muted` (#484846) | #A8A8A4 on white is about 2.4:1, below the constitution's WCAG 2.2 AA floor for new text (4.5:1). |
 | Scent line at about 10.5px, tracking 0.1em | the existing `eyebrow` utility (12px, 0.14em); may wrap to two lines | 10.5px isn't a token, and the conventions don't let raw values in through a spec. If the user wants the smaller, one-line look, that is a token proposal (`eyebrow-sm`) for a later DDR. |
-| Group label at about 17.6px | `card-title` (19px), as today's drawer | An existing utility. It is the same style as today's group titles. |
+| Group label at about 17.6px, Montserrat bold, sentence case (v1.1 mockup) | `body-lg font-bold` (18px), Montserrat, sentence case | The closest existing utility to 1.1rem; no raw value. (v1 said `card-title`; superseded by v1.1.) |
 | Group headers wrapped in `h3`; column headings as `p` | Headers in `h2`, column headings in `h3` | A heading outline inside the menu. The coordinator asked for column headings as `h3` eyebrows. |
 | Dot with a 1px ink 25% ring | 6px yellow dot with no ring, the same as today's drawer and the language menu | DDR-0003 keeps the drawer's static dot unchanged. The ring was mockup illustration. |
 | Pills 46px | 48px | Today's pill height; the coordinator asked for 48px. |
@@ -388,8 +402,16 @@ Unless stated otherwise, each AC runs on **phone-360** (360 × 780) and **tablet
 3. **States matrix:** § States Matrix (S1–S8, the data states as N/A with reasons, and the component states).
 4. **Copy deck:** § Content & Copy (verbatim menu text, scent lines, footer, the new accessible names).
 5. **Motion intent and reduced motion:** § Motion Intent (M1–M13, plus the new named values).
-6. **Token additions:** **none in `app/globals.css`.** New *named motion values* go in `lib/motion.ts` (§ Motion Intent › New named values, including `EASE.pop`). Otherwise only existing tokens and utilities are used (`card-title`, `eyebrow`, `body-sm`, `caption`, `label-button`, `ink`, `ink-muted`, `surface-1`, `hairline`, `brand`, `--shadow-drawer`, `--duration-*`, `--ease-default`). One optional future proposal, not adopted: `eyebrow-sm`.
+6. **Token additions:** **none in `app/globals.css`.** New *named motion values* go in `lib/motion.ts` (§ Motion Intent › New named values, including `EASE.pop`). Otherwise only existing tokens and utilities are used (`body-lg`, `eyebrow`, `body-sm`, `caption`, `ink`, `ink-muted`, `surface-1`, `hairline`, `brand`, `--shadow-drawer`, `--duration-*`, `--ease-default`). One optional future proposal, not adopted: `eyebrow-sm`.
 7. **Accepted DDRs:** DDR-0006 (implemented here), DDR-0002 (amended), DDR-0003 (extended), DDR-0005.
+
+## Amendment Log
+
+| Version | Date | Change | Decided by | Sections updated |
+|---|---|---|---|---|
+| v1.1 | 2026-09-27 | The drawer uses **exactly the desktop menu's fonts**. Montserrat for group names (sentence case, `body-lg font-bold`), item titles, tags, blurbs (if ever shown), the language control and Log in / Sign up (sentence case). Courier Prime only for column headings, the scent lines built from them, and prices. Matches the updated mockup (its "fonts match the desktop menu exactly" CSS block) and `plan.md` § 0.2. | Matheus Melo (user decision, relayed by the coordinator) | Content & Copy (intro), Responsive Behavior › Typography and Layout values, Where This Spec and the Mockup Differ, AC 6 and AC 10 (count unchanged: 52) |
+
+**Pointer to DDR-0006 (Accepted, not edited):** DDR-0006 § Decision item 6 says the group label uses the "card-title style". **For the typeface, this amendment supersedes that phrase.** Group names are Montserrat bold in sentence case, not Courier caps. Everything else in DDR-0006 stands, including Courier Prime prices (item 7, Q5) and the uppercase Courier scent lines (item 22).
 
 ## Open Clarifications
 
