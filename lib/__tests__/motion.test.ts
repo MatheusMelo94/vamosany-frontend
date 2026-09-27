@@ -10,12 +10,10 @@ const NEW_KEYS = [
   "contacto",
   "faq",
   "form",
-  /* Mobile drawer "Índice" (mobile-navigation plan § 7.1, DDR-0006) */
-  "drawer",
 ] as const;
 
 /** EASE keys added after the freeze; every other key is pinned below. */
-const NEW_EASE_KEYS = ["pop"] as const;
+const NEW_EASE_KEYS: readonly string[] = [];
 
 function without(
   record: Record<string, unknown>,
@@ -229,55 +227,9 @@ describe("lib/motion.ts Sobre mí additions (plan § 8.4, DDR-0003, DDR-0004)", 
   });
 });
 
-describe("lib/motion.ts mobile drawer additions (plan § 7.1, DDR-0006)", () => {
-  it("adds the pop ease for the header dot (M6)", () => {
-    expect(EASE.pop).toBe("back.out(3)");
-  });
-
-  it("adds the open unfold values (M1–M6)", () => {
-    expect(MOTION.drawer.open).toEqual({
-      veil: { duration: 0.25, ease: "power1.out" },
-      icon: { rotate: -90, scale: 0.6, duration: 0.35 },
-      panel: {
-        clipFrom: "inset(0% 0% 100% 0% round 24px)",
-        y: -10,
-        duration: 0.55,
-      },
-      rows: {
-        y: 14,
-        duration: 0.35,
-        stagger: 0.05,
-        at: 0.15,
-        ease: "power2.out",
-      },
-      footer: { y: 24, duration: 0.4, at: 0.3 },
-      dot: { duration: 0.4, at: 0.45 },
-    });
-  });
-
-  it("adds the close roll-up values (M7–M8)", () => {
-    expect(MOTION.drawer.close).toEqual({
-      panel: { y: -6, duration: 0.25, ease: "power2.in" },
-      veil: { duration: 0.2, at: 0.05 },
-    });
-  });
-
-  it("adds the accordion values (M10–M13)", () => {
-    expect(MOTION.drawer.accordion).toEqual({
-      expand: { duration: 0.3, ease: "power2.out" },
-      collapse: { duration: 0.18, ease: "power2.in" },
-      rows: { y: 6, duration: 0.18, stagger: 0.03, at: 0.05, maxStart: 0.25 },
-      chevron: 0.2,
-    });
-  });
-
-  it("keeps the accordion's worst-case swap within 500ms (AC 44)", () => {
-    const { expand, collapse, rows } = MOTION.drawer.accordion;
-    const worst = Math.max(
-      expand.duration,
-      rows.at + rows.maxStart + rows.duration,
-      collapse.duration,
-    );
-    expect(worst).toBeLessThanOrEqual(0.5);
+describe("lib/motion.ts holds no drawer-only values (RV-0018)", () => {
+  it("leaves the drawer's values to the lazy chunk's own module", () => {
+    expect(MOTION).not.toHaveProperty("drawer");
+    expect(EASE).not.toHaveProperty("pop");
   });
 });

@@ -1,6 +1,6 @@
 import { gsap } from "@/lib/gsap";
 import { getEases } from "@/lib/gsap-ease";
-import { EASE, MOTION } from "@/lib/motion";
+import { DRAWER_EASE, DRAWER_MOTION } from "../motion-values";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
@@ -13,9 +13,9 @@ import {
   type DrawerTargets,
 } from "../drawer-motion";
 
-const O = MOTION.drawer.open;
-const A = MOTION.drawer.accordion;
-const C = MOTION.drawer.close;
+const O = DRAWER_MOTION.open;
+const A = DRAWER_MOTION.accordion;
+const C = DRAWER_MOTION.close;
 
 /** The drawer's animated nodes, as MobileDrawer passes them. */
 function targets(withDot = true): DrawerTargets {
@@ -144,13 +144,13 @@ describe("playOpen, the unfold (M1–M6)", () => {
     expect(gsap.getProperty(t.footer!, "y")).toBe(O.footer.y);
   });
 
-  it("pops the header dot from scale 0 at 0.45s with EASE.pop (M6)", () => {
+  it("pops the header dot from scale 0 at 0.45s with DRAWER_EASE.pop (M6)", () => {
     const t = targets();
     const tl = playOpen(t)!.pause();
     const dot = tweenOf(tl, t.dot);
     expect(dot.startTime()).toBeCloseTo(O.dot.at);
     expect(dot.duration()).toBe(O.dot.duration);
-    expect(dot.vars.ease).toBe(EASE.pop);
+    expect(dot.vars.ease).toBe(DRAWER_EASE.pop);
     expect(gsap.getProperty(t.dot!, "scale")).toBe(0);
   });
 

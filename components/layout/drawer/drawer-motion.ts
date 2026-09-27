@@ -1,6 +1,6 @@
 import { gsap, motionEnabled } from "@/lib/gsap";
 import { getEases } from "@/lib/gsap-ease";
-import { EASE, MOTION } from "@/lib/motion";
+import { DRAWER_EASE, DRAWER_MOTION } from "./motion-values";
 
 /**
  * The phone drawer's motion builders (mobile-navigation plan § 7; spec
@@ -28,9 +28,9 @@ export type DrawerTargets = {
   dot: HTMLElement | null;
 };
 
-const O = MOTION.drawer.open;
-const C = MOTION.drawer.close;
-const A = MOTION.drawer.accordion;
+const O = DRAWER_MOTION.open;
+const C = DRAWER_MOTION.close;
+const A = DRAWER_MOTION.accordion;
 const REVEALED = "[data-drawer-group], [data-drawer-footer]";
 const ROW = "[data-drawer-body] li";
 
@@ -151,7 +151,7 @@ export function playOpen(t: DrawerTargets): gsap.core.Timeline | null {
       {
         scale: 0,
         duration: O.dot.duration,
-        ease: EASE.pop,
+        ease: DRAWER_EASE.pop,
         clearProps: "transform",
       },
       O.dot.at,
