@@ -188,6 +188,17 @@ describe("Navbar", () => {
     }
   });
 
+  it("puts the phone drawer's links inside a labelled navigation landmark (RV-0015)", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    const menu = screen.getByRole("navigation", { name: "Menu" });
+    for (const [title] of SOBRE_MI_ITEMS) {
+      expect(within(menu).getByRole("link", { name: title })).toBeVisible();
+    }
+    expect(within(menu).getByRole("link", { name: "Log in" })).toBeVisible();
+  });
+
   it("mirrors the Sobre mí group in the drawer; tapping an item closes it (AC 3)", async () => {
     const user = userEvent.setup();
     render(<Navbar />);

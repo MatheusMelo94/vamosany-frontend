@@ -380,7 +380,14 @@ export function Navbar(): JSX.Element {
       ) : null}
       {mobileOpen ? (
         // arbitrary: drawer abaixo da capsula = margem + altura da capsula + folga
-        <div className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto rounded-3xl border px-5 pt-4 pb-8 lg:hidden">
+        // <nav>, not <div> (RV-0015): the drawer is its own labelled
+        // navigation landmark. It can't sit inside the capsule's <nav>: the
+        // capsule's backdrop-filter would become its containing block and
+        // move the fixed panel. Same box and classes, so pixels are unchanged.
+        <nav
+          aria-label="Menu"
+          className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto rounded-3xl border px-5 pt-4 pb-8 lg:hidden"
+        >
           <ul className="divide-hairline divide-y">
             {NAV.map((group) => (
               <li key={group.label} className="py-5">
@@ -470,7 +477,7 @@ export function Navbar(): JSX.Element {
               Log in
             </Link>
           </div>
-        </div>
+        </nav>
       ) : null}
     </header>
   );
