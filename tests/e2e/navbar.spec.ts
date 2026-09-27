@@ -95,6 +95,31 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     });
   });
 
+  // Here, not in mobile-nav.spec.ts: toHaveScreenshot resolves "navbar-closed.png"
+  // per spec file, and this is the file that owns the committed baseline.
+  test("drawer closes silently at ≥ 1024 and leaves the closed navbar (mobile-navigation AC 30) @feature-mobile-nav", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "resizes from 768 to the desktop project");
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await open(page);
+    await header(page).getByRole("button", { name: "Abrir menú" }).click();
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
+    await expect(drawer).toBeVisible();
+    await expect(page.locator("[inert]").first()).toBeAttached();
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(drawer).toHaveCount(0);
+    await expect(header(page).locator(".fixed.inset-0")).toHaveCount(0);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
+    await expect(page.locator("[inert]")).toHaveCount(0);
+    await isolate(page);
+    await expect(page).toHaveScreenshot("navbar-closed.png", {
+      clip: await box(header(page)),
+      animations: "disabled",
+    });
+  });
+
   test.describe("reduced motion", () => {
     test.use({ reducedMotion: "reduce" });
 

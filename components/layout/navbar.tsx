@@ -73,6 +73,7 @@ export function Navbar(): JSX.Element {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMounted, setDrawerMounted] = useState(false);
   const drawerId = useId();
+  const burgerRef = useRef<HTMLButtonElement>(null);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const onDrawerExited = useCallback(() => setDrawerMounted(false), []);
   const [lang, setLang] = useState<Lang>("EN");
@@ -91,13 +92,6 @@ export function Navbar(): JSX.Element {
   useEffect(() => {
     openRef.current = open;
   }, [open]);
-
-  useEffect(() => {
-    document.body.style.overflow = drawerOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [drawerOpen]);
 
   /* Warm the drawer chunk on idle, only where the burger is visible. */
   useEffect(() => {
@@ -401,6 +395,7 @@ export function Navbar(): JSX.Element {
         </div>
 
         <button
+          ref={burgerRef}
           type="button"
           onClick={() => {
             if (!drawerOpen) setDrawerMounted(true);
@@ -437,6 +432,7 @@ export function Navbar(): JSX.Element {
         <MobileDrawer
           open={drawerOpen}
           drawerId={drawerId}
+          burgerRef={burgerRef}
           lang={lang}
           onLang={setLang}
           onClose={closeDrawer}

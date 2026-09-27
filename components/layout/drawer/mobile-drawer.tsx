@@ -1,19 +1,22 @@
 "use client";
 
-import type { JSX } from "react";
-import { useLayoutEffect } from "react";
+import type { JSX, RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GlobeIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { LANGUAGES, NAV, type Lang } from "@/components/layout/nav-config";
 import { isCurrentHref, itemHref } from "./nav-model";
+import { inertOutside } from "./modal";
 
 export type DrawerProps = {
   /** Logical state: false starts the close; the Navbar unmounts on onExited. */
   open: boolean;
   /** The panel landmark's id, which the burger's aria-controls points at. */
   drawerId: string;
+  /** The burger stays outside the inert page (it is the X, AC 33). */
+  burgerRef: RefObject<HTMLButtonElement | null>;
   lang: Lang;
   onLang: (lang: Lang) => void;
   onClose: () => void;
@@ -29,6 +32,7 @@ export type DrawerProps = {
 export function MobileDrawer({
   open,
   drawerId,
+  burgerRef,
   lang,
   onLang,
   onClose,
@@ -36,6 +40,36 @@ export function MobileDrawer({
 }: DrawerProps): JSX.Element {
   /* Current page is derived from the URL, never stored (DDR-0002/0003). */
   const pathname = usePathname();
+  const veilRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+
+  // Modality while open (AC 31, 34): the rest of the page is inert and
+  // doesn't scroll. Released when the close starts, not at unmount.
+  useLayoutEffect(() => {
+    const burger = burgerRef.current;
+    const veil = veilRef.current;
+    const panel = panelRef.current;
+    if (!open || !burger || !veil || !panel) return;
+    const restoreInert = inertOutside([burger, veil, panel]);
+    const { style } = document.body;
+    style.overflow = "hidden";
+    return () => {
+      restoreInert();
+      style.overflow = "";
+    };
+  }, [open, burgerRef]);
+
+  // Reaching 1024 while open closes silently: the burger is gone (AC 30).
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => {
+      if (!desktop.matches) return;
+      onClose();
+      onExited();
+    };
+    desktop.addEventListener("change", onChange);
+    return () => desktop.removeEventListener("change", onChange);
+  }, [onClose, onExited]);
 
   // No close motion yet: the close finishes at once, before paint.
   useLayoutEffect(() => {
@@ -46,9 +80,11 @@ export function MobileDrawer({
     <>
       {/* Mobile menu — a floating panel under the capsule, over a veil that
           hides the page beneath and closes the menu when tapped */}
-      <button
-        type="button"
-        aria-label="Close menu"
+      {/* Pointer-only (spec § Accessible names): the X and Esc cover the
+          keyboard and assistive tech. Same box and classes as before. */}
+      <div
+        ref={veilRef}
+        aria-hidden
         onClick={onClose}
         className="bg-canvas/75 pointer-events-auto fixed inset-0 -z-10 lg:hidden"
       />
@@ -58,9 +94,10 @@ export function MobileDrawer({
           capsule's backdrop-filter would become its containing block and
           move the fixed panel. Same box and classes, so pixels are unchanged. */}
       <nav
+        ref={panelRef}
         id={drawerId}
         aria-label="Menú"
-        className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto rounded-3xl border px-5 pt-4 pb-8 lg:hidden"
+        className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto overscroll-contain rounded-3xl border px-5 pt-4 pb-8 lg:hidden"
       >
         <ul className="divide-hairline divide-y">
           {NAV.map((group) => (
