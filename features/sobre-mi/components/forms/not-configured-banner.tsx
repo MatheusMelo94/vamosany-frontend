@@ -7,7 +7,8 @@ import { sm } from "@/features/sobre-mi/motion/attributes";
  * valid submit, since nothing is sent in this release. Rendered inside the
  * shell's persistent polite status region (RV-0012); the form focuses it
  * (tabIndex -1); M8 animates it (`data-sm-banner`). `mb-4.5` is the gap to
- * the form, which the shell no longer puts between region and form.
+ * the form, which the shell no longer puts between region and form;
+ * scroll-mt-24 keeps it below the sticky capsule when focused (RV-0013).
  */
 export function NotConfiguredBanner(): JSX.Element {
   const { before, email, after } = FORM_COPY.notConfigured;
@@ -15,7 +16,7 @@ export function NotConfiguredBanner(): JSX.Element {
     <div
       tabIndex={-1}
       {...sm("banner")}
-      className="border-ink body-base text-ink mb-4.5 rounded-sm border-2 px-4 py-3.5"
+      className="border-ink body-base text-ink mb-4.5 scroll-mt-24 rounded-sm border-2 px-4 py-3.5"
     >
       {before}
       <a

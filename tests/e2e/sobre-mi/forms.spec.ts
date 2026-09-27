@@ -555,3 +555,55 @@ for (const form of PAGES) {
     });
   });
 }
+
+/* ---- Focus not obscured by the sticky navbar (RV-0013; 2.4.11) ------- */
+
+for (const form of PAGES) {
+  test.describe(`${form.path} focus clears the sticky navbar (RV-0013) @feature-sobre-mi`, () => {
+    test.use({ reducedMotion: "reduce" });
+
+    /** Scrolls so `selector`'s top sits 30px from the viewport top, under the capsule. */
+    const park = (page: Page, selector: string) =>
+      page.locator(selector).evaluate((el) => {
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: top - 30, behavior: "instant" });
+      });
+    /** Submits without Playwright scrolling anything into view. */
+    const submit = (page: Page) =>
+      page
+        .getByRole("button", { name: form.button })
+        .evaluate((b) => (b as HTMLButtonElement).click());
+    const capsuleBottom = async (page: Page) => {
+      const box = (await page
+        .locator("[data-nav] .nav-capsule")
+        .first()
+        .boundingBox())!;
+      return box.y + box.height;
+    };
+
+    test("the focused banner lands below the capsule", async ({ page }) => {
+      await page.goto(form.path);
+      await hydrated(page, form);
+      await fill(page, form);
+      await park(page, "main [data-sm-form]");
+      await submit(page);
+      const banner = page.locator("main [data-sm-banner]");
+      await expect(banner).toBeFocused();
+      const top = (await banner.boundingBox())!.y;
+      expect(top).toBeGreaterThanOrEqual(await capsuleBottom(page));
+    });
+
+    test("the first invalid field lands below the capsule", async ({
+      page,
+    }) => {
+      await page.goto(form.path);
+      await hydrated(page, form);
+      const first = field(page, form.errors[0]?.[0] ?? "");
+      await park(page, `main #${await first.getAttribute("id")}`);
+      await submit(page);
+      await expect(first).toBeFocused();
+      const top = (await first.boundingBox())!.y;
+      expect(top).toBeGreaterThanOrEqual(await capsuleBottom(page));
+    });
+  });
+}
