@@ -77,6 +77,9 @@ export function Navbar(): JSX.Element {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const onDrawerExited = useCallback(() => setDrawerMounted(false), []);
   const [lang, setLang] = useState<Lang>("EN");
+  /* The drawer's own language (plan § 5): ES on first open, kept across
+     reopen; the desktop keeps `lang` (EN, frozen). */
+  const [drawerLang, setDrawerLang] = useState<Lang>("ES");
   const [langOpen, setLangOpen] = useState(false);
   /* Current page is derived from the URL, never stored (DDR-0002/0003). */
   const pathname = usePathname();
@@ -436,8 +439,8 @@ export function Navbar(): JSX.Element {
           open={drawerOpen}
           drawerId={drawerId}
           burgerRef={burgerRef}
-          lang={lang}
-          onLang={setLang}
+          lang={drawerLang}
+          onLang={setDrawerLang}
           onClose={closeDrawer}
           onExited={onDrawerExited}
         />

@@ -17,9 +17,14 @@ type Props = {
   onNavigate: () => void;
 };
 
-/** The 2px ink ring every drawer control shows from the keyboard (AC 38). */
+/**
+ * The 2px ink ring every drawer control shows from the keyboard (AC 38).
+ * The color is set unfocused too: `transition-colors` also transitions
+ * outline-color, and on an ink-filled control the ring would otherwise fade
+ * in from its white currentColor.
+ */
 export const FOCUS_RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+  "outline-ink focus-visible:outline-2 focus-visible:outline-offset-2";
 
 /**
  * One accordion group of the drawer "Índice" (plan § 1, § 8): an h2 header

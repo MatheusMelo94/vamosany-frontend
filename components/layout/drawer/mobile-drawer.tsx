@@ -8,13 +8,11 @@ import {
   useRef,
   useState,
 } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GlobeIcon } from "@/components/ui/icons";
-import { cn } from "@/lib/utils";
-import { LANGUAGES, NAV, type Lang } from "@/components/layout/nav-config";
+import { NAV, type Lang } from "@/components/layout/nav-config";
 import { defaultOpenGroup, groupHasCurrent } from "./nav-model";
 import { DrawerGroup } from "./drawer-group";
+import { DrawerFooter } from "./drawer-footer";
 import { focusables, inertOutside, wrapTab } from "./modal";
 
 export type DrawerProps = {
@@ -24,6 +22,7 @@ export type DrawerProps = {
   drawerId: string;
   /** The burger stays outside the inert page (it is the X, AC 33). */
   burgerRef: RefObject<HTMLButtonElement | null>;
+  /** The drawer-scoped language (default ES), separate from the desktop's. */
   lang: Lang;
   onLang: (lang: Lang) => void;
   onClose: () => void;
@@ -158,52 +157,7 @@ export function MobileDrawer({
             ))}
           </div>
         </div>
-        <div
-          data-drawer-footer
-          className="border-hairline bg-canvas flex flex-col gap-3 border-t px-4 pt-3 pb-4"
-        >
-          <div className="flex items-center justify-between">
-            <span className="body-sm text-ink flex items-center gap-2 font-semibold">
-              <GlobeIcon className="size-4" />
-              Language
-            </span>
-            <div className="flex gap-1.5" role="listbox" aria-label="Language">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  role="option"
-                  aria-selected={lang === l.code}
-                  onClick={() => onLang(l.code)}
-                  className={cn(
-                    "label-button rounded-full border-2 px-3 py-1.5 transition-colors",
-                    lang === l.code
-                      ? "border-ink bg-ink text-inverse-ink"
-                      : "border-hairline text-ink",
-                  )}
-                >
-                  {l.code}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <Link
-              href="#signup"
-              onClick={onClose}
-              className="label-button bg-ink/5 text-ink hover:bg-ink/10 flex min-h-12 items-center justify-center rounded-full px-6 transition-colors"
-            >
-              Sign up
-            </Link>
-            <Link
-              href="#login"
-              onClick={onClose}
-              className="label-button bg-ink/5 text-ink hover:bg-ink/10 flex min-h-12 items-center justify-center rounded-full px-6 transition-colors"
-            >
-              Log in
-            </Link>
-          </div>
-        </div>
+        <DrawerFooter lang={lang} onLang={onLang} onNavigate={onClose} />
       </nav>
     </>
   );

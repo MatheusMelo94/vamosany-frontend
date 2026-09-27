@@ -245,3 +245,63 @@ describe("MobileDrawer index (AC 6, 11, 13, 14, 20, 23, 24, 32, 35)", () => {
     expect(again.querySelector("[data-drawer-list]")?.scrollTop).toBe(0);
   });
 });
+
+describe("MobileDrawer language and keyboard cycle (AC 2, 27, 33)", () => {
+  it("starts on ES, keeps a choice across close and reopen, and leaves the desktop EN", async () => {
+    const { user, panel, burger } = await openDrawer();
+    const idioma = within(panel).getByRole("group", { name: "Idioma" });
+    expect(within(idioma).getByRole("button", { name: "ES" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await user.click(within(idioma).getByRole("button", { name: "PT" }));
+    expect(screen.getByRole("navigation", { name: "Menú" })).toBe(panel);
+    await user.click(burger);
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const again = await screen.findByRole("navigation", { name: "Menú" });
+    const pressed = within(again)
+      .getAllByRole("button", { pressed: true })
+      .map((b) => b.textContent);
+    expect(pressed).toEqual(["PT"]);
+    expect(
+      screen.getByRole("button", { name: "Change language" }),
+    ).toHaveTextContent("EN");
+  });
+
+  it("tabs from Itineraries through the index, the footer and the X, and back", async () => {
+    const { user } = await openDrawer();
+    const order = [
+      "Guides",
+      "Blog",
+      "Services",
+      "Sobre mí",
+      "ES",
+      "PT",
+      "EN",
+      "Log in",
+      "Sign up",
+      "Cerrar menú",
+      "Itineraries",
+    ];
+    const name = () =>
+      (document.activeElement as HTMLElement | null)?.getAttribute(
+        "aria-label",
+      ) ??
+      document.getElementById(
+        document.activeElement?.getAttribute("aria-labelledby") ?? "",
+      )?.textContent ??
+      document.activeElement?.textContent;
+    const seen: Array<string | null | undefined> = [];
+    for (let i = 0; i < order.length; i++) {
+      await user.tab();
+      seen.push(name());
+    }
+    expect(seen).toEqual(order);
+    const back: Array<string | null | undefined> = [];
+    for (let i = 0; i < order.length; i++) {
+      await user.tab({ shift: true });
+      back.push(name());
+    }
+    expect(back).toEqual([...order].reverse().slice(1).concat("Itineraries"));
+  });
+});

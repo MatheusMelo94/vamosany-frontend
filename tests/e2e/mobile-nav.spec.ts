@@ -562,3 +562,173 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
     expect(wrapped).toBeGreaterThan(0);
   });
 });
+
+test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav", () => {
+  test("desktop: no drawer, and the language button still reads EN", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "desktop project only");
+    await openLanding(page);
+    await expect(panel(page)).toHaveCount(0);
+    await expect(header(page).locator(".fixed.inset-0")).toHaveCount(0);
+    await expect(
+      header(page).getByRole("button", { name: "Change language" }),
+    ).toHaveText("EN");
+  });
+
+  test.describe("below 1024", () => {
+    test.beforeEach(({ page }) => {
+      test.skip(isDesktop(page), "drawer exists below 1024 only");
+    });
+
+    test("Idioma: ES, PT, EN with ES pressed; PT stays open, changes nothing, survives reopen", async ({
+      page,
+    }) => {
+      await openLanding(page);
+      const drawer = await openDrawer(page);
+      const idioma = drawer.getByRole("group", { name: "Idioma" });
+      const segs = idioma.getByRole("button");
+      await expect(segs).toHaveText(["ES", "PT", "EN"]);
+      await expect(idioma.getByRole("button", { pressed: true })).toHaveText(
+        "ES",
+      );
+      const url = page.url();
+      const text = await page.locator("main").innerText();
+      await segs.nth(1).click();
+      await expect(idioma.getByRole("button", { pressed: true })).toHaveText(
+        "PT",
+      );
+      await expect(panel(page)).toBeVisible();
+      expect(page.url()).toBe(url);
+      expect(await page.locator("main").innerText()).toBe(text);
+      await burger(page).click();
+      await expect(panel(page)).toHaveCount(0);
+      const again = await openDrawer(page);
+      await expect(
+        again
+          .getByRole("group", { name: "Idioma" })
+          .getByRole("button", { pressed: true }),
+      ).toHaveText("PT");
+    });
+
+    test("boxes and fonts: 48px pills side by side, ≥44 × 44 segments, Montserrat semibold", async ({
+      page,
+    }) => {
+      await openLanding(page);
+      const drawer = await openDrawer(page);
+      const login = drawer.getByRole("link", { name: "Log in", exact: true });
+      const signup = drawer.getByRole("link", { name: "Sign up", exact: true });
+      const l = await login.boundingBox();
+      const s = await signup.boundingBox();
+      if (!l || !s) throw new Error("no pill box");
+      expect(l.height).toBeCloseTo(48, 0);
+      expect(s.height).toBeCloseTo(48, 0);
+      expect(l.x + l.width).toBeLessThan(s.x);
+      expect(Math.abs(l.y - s.y)).toBeLessThanOrEqual(1);
+      for (const seg of await drawer
+        .getByRole("group", { name: "Idioma" })
+        .getByRole("button")
+        .all()) {
+        const b = await seg.boundingBox();
+        expect(b?.height ?? 0).toBeGreaterThanOrEqual(44);
+        expect(b?.width ?? 0).toBeGreaterThanOrEqual(44);
+      }
+      const fonts = await drawer
+        .locator("[data-drawer-footer] a, [data-drawer-footer] button")
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const cs = getComputedStyle(el);
+            return [cs.fontFamily, cs.fontWeight, cs.textTransform];
+          }),
+        );
+      expect(fonts).toHaveLength(5);
+      for (const [family, weight, transform] of fonts) {
+        expect(family).toMatch(/^"?_*Montserrat/);
+        expect([weight, transform]).toEqual(["600", "none"]);
+      }
+      // Only headings, scent lines and prices are Courier in the panel.
+      const courier = await drawer.evaluate((el) =>
+        [...el.querySelectorAll<HTMLElement>("*")]
+          .filter(
+            (n) =>
+              n.childElementCount === 0 &&
+              n.textContent?.trim() &&
+              /Courier/.test(getComputedStyle(n).fontFamily),
+          )
+          .every((n) => n.matches("[id$='-scent'], h3, [data-row-price]")),
+      );
+      expect(courier).toBe(true);
+    });
+
+    test("keyboard: the full cycle from Itineraries, both ways, with the ink focus ring", async ({
+      page,
+    }) => {
+      await openLanding(page);
+      await openDrawer(page);
+      const order = [
+        "Guides",
+        "Blog",
+        "Services",
+        "Sobre mí",
+        "ES",
+        "PT",
+        "EN",
+        "Log in",
+        "Sign up",
+        "Cerrar menú",
+        "Itineraries",
+      ];
+      const focused = () =>
+        page.evaluate(() => {
+          const el = document.activeElement as HTMLElement;
+          const cs = getComputedStyle(el);
+          const labelled = el.getAttribute("aria-labelledby");
+          return {
+            name:
+              el.getAttribute("aria-label") ??
+              (labelled
+                ? document.getElementById(labelled)?.textContent
+                : el.textContent?.trim()),
+            ring: [cs.outlineStyle, cs.outlineWidth, cs.outlineColor],
+          };
+        });
+      const names: string[] = [];
+      for (let i = 0; i < order.length; i++) {
+        await page.keyboard.press("Tab");
+        const f = await focused();
+        names.push(f.name ?? "");
+        if (f.name !== "Cerrar menú")
+          expect(f.ring, f.name ?? "").toEqual([
+            "solid",
+            "2px",
+            "rgb(8, 10, 11)",
+          ]);
+      }
+      expect(names).toEqual(order);
+      const back: string[] = [];
+      for (let i = 0; i < order.length; i++) {
+        await page.keyboard.press("Shift+Tab");
+        back.push((await focused()).name ?? "");
+      }
+      expect(back).toEqual([...order].reverse().slice(1).concat("Itineraries"));
+    });
+
+    for (const [w, h] of [
+      [360, 780],
+      [390, 844],
+    ] as const) {
+      test(`${w} × ${h}: the first level fits the list with no scroll (S2)`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width: w, height: h });
+        await openLanding(page);
+        const drawer = await openDrawer(page);
+        expect(
+          await drawer
+            .locator("[data-drawer-list]")
+            .evaluate((el) => el.scrollHeight <= el.clientHeight),
+        ).toBe(true);
+      });
+    }
+  });
+});
