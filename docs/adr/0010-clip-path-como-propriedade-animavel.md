@@ -1,6 +1,6 @@
 # ADR-0010: `clip-path: inset()` is an animatable paint property (amends `§ Animation (GSAP 3)`)
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-09-27, Matheus Melo)
 - **Date:** 2026-09-27
 - **Deciders:** Matheus Melo (sole approver). Drafted by the Frontend Architect.
 

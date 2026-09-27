@@ -160,6 +160,9 @@ No duplicated server data in client state. Derive, don't copy.
 - GSAP runs only in client components, only inside `useGSAP(() => { … }, { scope: containerRef, dependencies: [...] })`. Never `useEffect` + raw `gsap` calls.
 - Plugins register once in `lib/gsap.ts` (`gsap.registerPlugin(useGSAP, ScrollTrigger, …)`); client modules import `gsap` from there.
 - Animate `transform` and `opacity`; never animate `width`/`height`/`top`/`left`/`margin` — use Flip for layout changes (ADR-0008).
+- `clip-path: inset(…)` (optionally `round <radius token>`) is also allowed: it is paint-only, never layout. Use it for reveals and
+  highlights that change an element's visible extent (unfold, wipe, marker). End a full reveal with `clearProps: "clipPath"`;
+  never animate it on an element that has or contains `backdrop-filter`; other `clip-path` shapes need an ADR (ADR-0010).
   - **Entrance reveals of content that is, or contains, focusable or readable elements** (text, links, buttons, form fields) animate `opacity`, **not** `autoAlpha`: `autoAlpha`'s `visibility: hidden` removes not-yet-revealed content from the tab order and the accessibility tree, which breaks the keyboard path and screen-reader browsing.
   - Such reveals must never leave focus on an invisible element: the controller listens for `focusin` in its scope and completes the reveal of the focused target (or its revealed ancestor) at once.
   - Use `autoAlpha` for exits, closed overlays/menus/dialogs, decorative layers (`aria-hidden`), and content that must not be reachable until a user action reveals it.

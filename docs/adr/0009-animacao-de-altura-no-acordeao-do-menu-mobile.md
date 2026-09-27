@@ -1,6 +1,6 @@
 # ADR-0009: `height` animation on the mobile drawer accordion (extends ADR-0007's scope to the drawer's group bodies)
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-09-27, Matheus Melo)
 - **Date:** 2026-09-27
 - **Deciders:** Matheus Melo (sole approver). Drafted by the Frontend Architect.
 
