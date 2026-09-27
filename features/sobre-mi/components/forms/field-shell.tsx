@@ -33,7 +33,7 @@ export function FieldShell({
         {optional ? (
           <>
             {" "}
-            <small className="body-sm text-ink-muted font-normal tracking-normal normal-case">
+            <small className="body-sm text-ink-muted leading-0 font-normal tracking-normal normal-case">
               {FORM_COPY.optional}
             </small>
           </>

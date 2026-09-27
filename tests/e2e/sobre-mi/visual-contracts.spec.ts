@@ -145,6 +145,23 @@ test.describe("Sobre mí visual contracts (RV-0008) @feature-sobre-mi", () => {
     expect(await css(link, "font-family")).toBe(mono);
   });
 
+  test("an optional field's control lines up with its sibling's (RV-0014)", async ({
+    page,
+  }) => {
+    await page.goto("/contacto");
+    const main = page.locator("main");
+    const select = (await main
+      .getByLabel("¿Sobre qué me escribís?", { exact: true })
+      .boundingBox())!;
+    const date = (await main
+      .getByLabel("¿Cuándo viajás? (opcional)", { exact: true })
+      .boundingBox())!;
+    // Side by side at this width…
+    expect(Math.abs(date.x - select.x)).toBeGreaterThan(100);
+    // …with the controls on one line.
+    expect(Math.abs(date.y - select.y)).toBeLessThanOrEqual(0.5);
+  });
+
   test.describe("JavaScript disabled", () => {
     test.use({ javaScriptEnabled: false });
 
