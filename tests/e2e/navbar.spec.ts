@@ -113,6 +113,10 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     await expect(header(page).locator(".fixed.inset-0")).toHaveCount(0);
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
     await expect(page.locator("[inert]")).toHaveCount(0);
+    // The burger's tap point is over the desktop "Blog" trigger at 1280:
+    // move the pointer away, as AC 42 does, so the capture isn't hovered.
+    await page.mouse.move(1, 1);
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
     await isolate(page);
     await expect(page).toHaveScreenshot("navbar-closed.png", {
       clip: await box(header(page)),
