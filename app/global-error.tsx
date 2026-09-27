@@ -1,20 +1,27 @@
 "use client";
 
 import type { JSX } from "react";
+import { montserrat } from "@/lib/fonts";
 
 type Props = { error: Error & { digest?: string }; reset: () => void };
 
 /**
  * Boundary de ultimo recurso: substitui o root layout inteiro, por isso renderiza html/body
- * e nao depende de nada que possa ter falhado (fonts, tokens). Copy generica por design:
+ * e nao depende de nada que possa ter falhado (tokens, globals.css). Copy generica por design:
  * a mensagem real fica no log do servidor (frontend-architecture-conventions § Error Handling).
+ *
+ * Fonte (DDR-0005): a familia da instancia next/font de Montserrat vai inline, sem var() nem
+ * classe no <html>, seguida de Arial. Se o CSS/woff2 da fonte nao carregar, a familia nao
+ * resolve e o navegador cai em Arial: a pagina nunca depende da fonte para renderizar.
  */
+const FONT_FAMILY = `${montserrat.style.fontFamily}, Arial, sans-serif`;
+
 export default function GlobalError({ error, reset }: Props): JSX.Element {
   return (
     <html lang="en">
       <body
         style={{
-          fontFamily: "Arial, sans-serif",
+          fontFamily: FONT_FAMILY,
           margin: 0,
           padding: "4rem 1.5rem",
           color: "#080a0b",
