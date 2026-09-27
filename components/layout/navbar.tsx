@@ -397,7 +397,10 @@ export function Navbar(): JSX.Element {
         <button
           ref={burgerRef}
           type="button"
-          onClick={() => {
+          onClick={(e) => {
+            // The X keeps focus even where a click doesn't focus buttons
+            // (Safari); on open, the drawer moves focus in (AC 29, 32).
+            e.currentTarget.focus();
             if (!drawerOpen) setDrawerMounted(true);
             setDrawerOpen(!drawerOpen);
           }}

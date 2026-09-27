@@ -1,14 +1,14 @@
 "use client";
 
 import type { JSX, RefObject } from "react";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GlobeIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { LANGUAGES, NAV, type Lang } from "@/components/layout/nav-config";
 import { isCurrentHref, itemHref } from "./nav-model";
-import { inertOutside } from "./modal";
+import { focusables, inertOutside, wrapTab } from "./modal";
 
 export type DrawerProps = {
   /** Logical state: false starts the close; the Navbar unmounts on onExited. */
@@ -43,8 +43,15 @@ export function MobileDrawer({
   const veilRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
 
+  /** Veil and Esc: close and hand focus back to the burger (AC 29). */
+  const dismiss = useCallback(() => {
+    onClose();
+    burgerRef.current?.focus();
+  }, [onClose, burgerRef]);
+
   // Modality while open (AC 31, 34): the rest of the page is inert and
-  // doesn't scroll. Released when the close starts, not at unmount.
+  // doesn't scroll, and focus moves in at t = 0 (AC 32). Released when the
+  // close starts, not at unmount.
   useLayoutEffect(() => {
     const burger = burgerRef.current;
     const veil = veilRef.current;
@@ -53,11 +60,26 @@ export function MobileDrawer({
     const restoreInert = inertOutside([burger, veil, panel]);
     const { style } = document.body;
     style.overflow = "hidden";
+    focusables(panel)[0]?.focus({ preventScroll: true });
     return () => {
       restoreInert();
       style.overflow = "";
     };
   }, [open, burgerRef]);
+
+  // Keyboard while open: Esc closes from anywhere; Tab wraps between the
+  // last panel control and the burger, both ways (AC 29, 33).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return dismiss();
+      const burger = burgerRef.current;
+      const last = panelRef.current && focusables(panelRef.current).at(-1);
+      if (e.key === "Tab" && burger && last) wrapTab(e, burger, last);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, dismiss, burgerRef]);
 
   // Reaching 1024 while open closes silently: the burger is gone (AC 30).
   useEffect(() => {
@@ -85,7 +107,7 @@ export function MobileDrawer({
       <div
         ref={veilRef}
         aria-hidden
-        onClick={onClose}
+        onClick={dismiss}
         className="bg-canvas/75 pointer-events-auto fixed inset-0 -z-10 lg:hidden"
       />
       {/* arbitrary: drawer abaixo da capsula = margem + altura da capsula + folga
@@ -97,6 +119,8 @@ export function MobileDrawer({
         ref={panelRef}
         id={drawerId}
         aria-label="Menú"
+        // Can't take focus while it closes (spec § Motion Intent, M7).
+        inert={!open}
         className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto overscroll-contain rounded-3xl border px-5 pt-4 pb-8 lg:hidden"
       >
         <ul className="divide-hairline divide-y">

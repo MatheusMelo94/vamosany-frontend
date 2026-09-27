@@ -136,3 +136,62 @@ test.describe("drawer modality (AC 30, 31, 34) @feature-mobile-nav", () => {
     await expect(burger(page)).toHaveAttribute("aria-expanded", "false");
   });
 });
+
+test.describe("drawer focus (AC 25, 28, 29, 32, 33) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  const closedBurger = (page: Page) =>
+    header(page).getByRole("button", { name: "Abrir menú" });
+
+  test("focus moves to the panel's first control on open", async ({ page }) => {
+    await openLanding(page);
+    const drawer = await openDrawer(page);
+    await expect(drawer.locator("a[href], button").first()).toBeFocused();
+  });
+
+  const closers: Array<
+    [string, (page: Page, drawer: Locator) => Promise<void>]
+  > = [
+    ["the X", (page) => burger(page).click()],
+    [
+      "a veil tap",
+      async (page, drawer) => {
+        const b = await drawer.boundingBox();
+        if (!b) throw new Error("no panel box");
+        await page.mouse.click(b.x / 2, b.y + b.height / 2);
+      },
+    ],
+    [
+      "Escape from a panel control",
+      async (page, drawer) => {
+        await drawer.getByRole("link").nth(2).focus();
+        await page.keyboard.press("Escape");
+      },
+    ],
+  ];
+
+  for (const [name, close] of closers) {
+    test(`${name} closes and returns focus to the burger`, async ({ page }) => {
+      await openLanding(page);
+      const drawer = await openDrawer(page);
+      await close(page, drawer);
+      await expect(panel(page)).toHaveCount(0);
+      await expect(closedBurger(page)).toBeFocused();
+    });
+  }
+
+  for (const [name, href] of [
+    ["Log in", /#login$/],
+    ["Sign up", /#signup$/],
+  ] as const) {
+    test(`${name} closes the drawer and navigates`, async ({ page }) => {
+      await openLanding(page);
+      const drawer = await openDrawer(page);
+      await drawer.getByRole("link", { name, exact: true }).click();
+      await expect(page).toHaveURL(href);
+      await expect(panel(page)).toHaveCount(0);
+    });
+  }
+});
