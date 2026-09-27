@@ -380,7 +380,11 @@ async function dotRestsOn(panel: Locator, item: Locator): Promise<boolean> {
 
 /** Waits until the dot rests on `item`. */
 async function expectDotOn(panel: Locator, item: Locator, timeout = 15_000) {
-  await expect.poll(() => dotRestsOn(panel, item), { timeout }).toBe(true);
+  // Constant 50 ms polling: the default backoff (up to 1 s) would idle
+  // after the dot has landed, which adds up over a panel's 12+ items.
+  await expect
+    .poll(() => dotRestsOn(panel, item), { timeout, intervals: [50] })
+    .toBe(true);
 }
 
 /** The highlight's visible rect, from its clip-path inset against the marker root. */
@@ -484,6 +488,8 @@ test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
     test(`${label}: the dot never covers a title, tag or price (AC 7)`, async ({
       page,
     }) => {
+      // Hovers every item of the panel in turn: long under parallel load.
+      test.slow();
       await open(page);
       const panel = await openByHover(page, label);
       const items = panel.locator("[data-nav-item]");
