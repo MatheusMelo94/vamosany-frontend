@@ -42,7 +42,7 @@ export type DrawerProps = {
 
 /**
  * The phone drawer (below 1024px): veil plus panel. A lazy chunk, loaded
- * through next/dynamic by the Navbar (plan § 0.3), so none of it is in
+ * by the Navbar through load-drawer.ts (plan § 0.3), so none of it is in
  * First Load JS.
  */
 export function MobileDrawer({

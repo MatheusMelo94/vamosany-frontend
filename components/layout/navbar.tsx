@@ -10,7 +10,7 @@ import { BrandLogo } from "@/components/ui/brand-logo";
 import { cn } from "@/lib/utils";
 import { LANGUAGES, NAV, type Lang } from "@/components/layout/nav-config";
 import type { DrawerProps } from "./drawer/mobile-drawer";
-import { loadDrawer, prefetchDrawer } from "./drawer/load-drawer";
+import { loadDrawer } from "./drawer/load-drawer";
 
 /* Desktop-only, pointer/focus-driven: loaded on first panel open, never in
    First Load JS (plan § 11). Until it mounts, items keep their CSS hover. */
@@ -19,52 +19,25 @@ const NavMarker = dynamic(
   { ssr: false },
 );
 
-/** Set by the drawer loader's catch: the tap that hit the failure closes. */
-let drawerLoadFailed = false;
-
-/**
- * What next/dynamic renders once the drawer chunk failed to load (plan § 9):
- * no error boundary takes the page. React.lazy caches the loader's result, so
- * this fallback retries by itself: the failing tap closes the burger, and
- * every later tap imports the chunk again.
- */
-function DrawerRetry(props: DrawerProps): JSX.Element | null {
-  const { onClose, onExited } = props;
-  const [Loaded, setLoaded] = useState<ComponentType<DrawerProps> | null>(null);
-  useEffect(() => {
-    const giveUp = () => {
-      onClose();
-      onExited();
-    };
-    if (drawerLoadFailed) {
-      drawerLoadFailed = false;
-      giveUp();
-      return;
-    }
-    let live = true;
-    loadDrawer().then(
-      (m) => live && setLoaded(() => m.MobileDrawer),
-      () => live && giveUp(),
-    );
-    return () => {
-      live = false;
-    };
-  }, [onClose, onExited]);
-  return Loaded ? <Loaded {...props} /> : null;
-}
+type Drawer = ComponentType<DrawerProps>;
 
 /* The phone drawer: a lazy chunk, never in First Load JS (plan § 0.3),
-   prefetched on idle below 1024 and on the burger's pointerdown/focus. */
-const MobileDrawer = dynamic<DrawerProps>(
-  () =>
-    loadDrawer()
-      .then((m) => m.MobileDrawer)
-      .catch(() => {
-        drawerLoadFailed = true;
-        return DrawerRetry;
-      }),
-  { ssr: false },
-);
+   warmed on idle below 1024 and on the burger's pointerdown/focus. It is
+   resolved into state rather than rendered through next/dynamic, so the
+   first open never suspends (a Suspense reveal is throttled ~300ms: QA-0006).
+   One load is shared by every caller; a failure clears it, so the next call
+   imports again, and no error boundary is involved (plan § 9). */
+let drawerLoad: Promise<Drawer> | null = null;
+function requestDrawer(): Promise<Drawer> {
+  drawerLoad ??= loadDrawer().then(
+    (m) => m.MobileDrawer,
+    (error: unknown) => {
+      drawerLoad = null;
+      throw error;
+    },
+  );
+  return drawerLoad;
+}
 
 export function Navbar(): JSX.Element {
   const [open, setOpen] = useState<string | null>(null);
@@ -72,6 +45,29 @@ export function Navbar(): JSX.Element {
      drawerMounted keeps the chunk (and the X icon) until the close ends. */
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMounted, setDrawerMounted] = useState(false);
+  /* The loaded chunk. The burger claims "open" (name, X, aria-controls)
+     only in the render that mounts it (QA-0006, RV-0023). */
+  const [MobileDrawer, setMobileDrawer] = useState<Drawer | null>(null);
+  const warmDrawer = useCallback(
+    (): Promise<Drawer | null> =>
+      requestDrawer().then(
+        (loaded) => {
+          setMobileDrawer(() => loaded);
+          return loaded;
+        },
+        () => null,
+      ),
+    [],
+  );
+  const openDrawer = useCallback(() => {
+    const show = () => {
+      setDrawerMounted(true);
+      setDrawerOpen(true);
+    };
+    if (MobileDrawer) show();
+    // A failed load leaves the burger closed; the next tap retries.
+    else void warmDrawer().then((loaded) => loaded && show());
+  }, [MobileDrawer, warmDrawer]);
   const drawerId = useId();
   const burgerRef = useRef<HTMLButtonElement>(null);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
@@ -99,13 +95,14 @@ export function Navbar(): JSX.Element {
   /* Warm the drawer chunk on idle, only where the burger is visible. */
   useEffect(() => {
     if (!window.matchMedia("(max-width: 1023.98px)").matches) return;
+    const warm = () => void warmDrawer();
     if (typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(prefetchDrawer);
+      const id = window.requestIdleCallback(warm);
       return () => window.cancelIdleCallback(id);
     }
-    const id = window.setTimeout(prefetchDrawer, 1);
+    const id = window.setTimeout(warm, 1);
     return () => window.clearTimeout(id);
-  }, []);
+  }, [warmDrawer]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -404,11 +401,11 @@ export function Navbar(): JSX.Element {
             // The X keeps focus even where a click doesn't focus buttons
             // (Safari); on open, the drawer moves focus in (AC 29, 32).
             e.currentTarget.focus();
-            if (!drawerOpen) setDrawerMounted(true);
-            setDrawerOpen(!drawerOpen);
+            if (drawerOpen) setDrawerOpen(false);
+            else openDrawer();
           }}
-          onPointerDown={prefetchDrawer}
-          onFocus={prefetchDrawer}
+          onPointerDown={() => void warmDrawer()}
+          onFocus={() => void warmDrawer()}
           aria-label={drawerOpen ? "Cerrar menú" : "Abrir menú"}
           aria-expanded={drawerOpen}
           aria-controls={drawerMounted ? drawerId : undefined}
@@ -434,7 +431,7 @@ export function Navbar(): JSX.Element {
         </button>
       </nav>
 
-      {drawerMounted ? (
+      {drawerMounted && MobileDrawer ? (
         <MobileDrawer
           open={drawerOpen}
           drawerId={drawerId}

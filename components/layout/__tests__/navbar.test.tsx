@@ -1,6 +1,13 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
@@ -460,29 +467,28 @@ describe("Navbar drawer chunk failure (plan § 9)", () => {
     vi.resetModules();
   });
 
-  it("closes the burger when the chunk fails to load, and retries on the next tap", async () => {
+  it("leaves the burger closed when the chunk fails to load, and retries on the next tap", async () => {
     vi.resetModules();
     const actual =
       await vi.importActual<typeof import("../drawer/load-drawer")>(LOADER);
-    const loadDrawer = vi
-      .fn(actual.loadDrawer)
-      .mockRejectedValueOnce(new Error("ChunkLoadError"));
-    vi.doMock(LOADER, () => ({
-      loadDrawer,
-      prefetchDrawer: () => undefined,
-    }));
+    let offline = true;
+    const loadDrawer = vi.fn(() =>
+      offline
+        ? Promise.reject(new Error("ChunkLoadError"))
+        : actual.loadDrawer(),
+    );
+    vi.doMock(LOADER, () => ({ loadDrawer }));
     const { Navbar: FreshNavbar } = await import("@/components/layout/navbar");
     const user = userEvent.setup();
     render(<FreshNavbar />);
 
     await user.click(screen.getByRole("button", { name: "Abrir menú" }));
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Abrir menú" }),
-      ).toHaveAttribute("aria-expanded", "false"),
-    );
+    await waitFor(() => expect(loadDrawer).toHaveBeenCalled());
+    await act(async () => undefined);
     const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
     expect(burger).not.toHaveAttribute("aria-controls");
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
     // Nothing else unmounted: no error boundary replaced the page.
     expect(
       screen.getByRole("link", { name: "Vamos a NY — home" }),
@@ -491,10 +497,73 @@ describe("Navbar drawer chunk failure (plan § 9)", () => {
       screen.getByRole("button", { name: "Itineraries" }),
     ).toBeInTheDocument();
 
+    offline = false;
+    const failedCalls = loadDrawer.mock.calls.length;
     await user.click(burger);
     expect(
       await screen.findByRole("navigation", { name: "Menú" }),
     ).toBeInTheDocument();
-    expect(loadDrawer).toHaveBeenCalledTimes(2);
+    expect(loadDrawer.mock.calls.length).toBeGreaterThan(failedCalls);
+  });
+});
+
+describe("Navbar first open (QA-0006, RV-0023)", () => {
+  const LOADER = "@/components/layout/drawer/load-drawer";
+  const X_PATH = "m5 5 10 10M15 5 5 15";
+  const iconPath = (burger: HTMLElement) =>
+    burger.querySelector("path")?.getAttribute("d");
+
+  afterEach(() => {
+    vi.doUnmock(LOADER);
+    vi.resetModules();
+  });
+
+  it("with the chunk still loading, a tap claims nothing: no X, not expanded, no aria-controls; all flip with the panel", async () => {
+    vi.resetModules();
+    const actual =
+      await vi.importActual<typeof import("../drawer/load-drawer")>(LOADER);
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const loadDrawer = vi.fn(() => gate.then(actual.loadDrawer));
+    vi.doMock(LOADER, () => ({ loadDrawer }));
+    const { Navbar: FreshNavbar } = await import("@/components/layout/navbar");
+    const user = userEvent.setup();
+    render(<FreshNavbar />);
+
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+    expect(iconPath(burger)).not.toBe(X_PATH);
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+
+    await act(async () => release());
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    expect(burger).toHaveAccessibleName("Cerrar menú");
+    expect(burger).toHaveAttribute("aria-expanded", "true");
+    expect(burger).toHaveAttribute("aria-controls", menu.id);
+    expect(iconPath(burger)).toBe(X_PATH);
+    expect(menu).toContainElement(document.activeElement as HTMLElement);
+  });
+
+  it("once the chunk is warm, the first tap mounts the panel in the same render, with focus inside", async () => {
+    render(<Navbar />);
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    // Warm-up on focus, as a keyboard or pointer user would trigger it.
+    fireEvent.focus(burger);
+    await act(async () => {
+      await import("../drawer/mobile-drawer");
+    });
+
+    act(() => {
+      fireEvent.click(burger);
+    });
+    const menu = screen.queryByRole("navigation", { name: "Menú" });
+    expect(menu).not.toBeNull();
+    expect(burger).toHaveAccessibleName("Cerrar menú");
+    expect(burger).toHaveAttribute("aria-controls", menu?.id);
+    expect(menu).toContainElement(document.activeElement as HTMLElement);
   });
 });

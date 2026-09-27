@@ -203,6 +203,132 @@ test.describe("drawer focus (AC 25, 28, 29, 32, 33) @feature-mobile-nav", () => 
   }
 });
 
+type OpenSample = {
+  t: number;
+  claimsOpen: boolean;
+  x: boolean;
+  controlsMissing: boolean;
+  panel: boolean;
+  modal: boolean;
+};
+
+/**
+ * Taps the burger and samples every animation frame for `ms`: what the
+ * burger claims (name, X, aria-controls) next to what exists (panel,
+ * inert page, scroll lock).
+ */
+function sampleOpen(page: Page, ms: number): Promise<OpenSample[]> {
+  return page.evaluate(
+    (ms) =>
+      new Promise<OpenSample[]>((resolve) => {
+        const btn = document.querySelector<HTMLButtonElement>(
+          "header[data-nav] button[aria-label$='menú']",
+        );
+        if (!btn) throw new Error("no burger");
+        const out: OpenSample[] = [];
+        const t0 = performance.now();
+        const sample = () => {
+          const controls = btn.getAttribute("aria-controls");
+          const nav = document.querySelector(
+            "header[data-nav] nav[aria-label='Menú']",
+          );
+          out.push({
+            t: Math.round(performance.now() - t0),
+            claimsOpen:
+              btn.getAttribute("aria-label") === "Cerrar menú" ||
+              btn.getAttribute("aria-expanded") === "true",
+            x:
+              btn.querySelector("path")?.getAttribute("d") ===
+              "m5 5 10 10M15 5 5 15",
+            controlsMissing:
+              controls !== null && document.getElementById(controls) === null,
+            panel: nav !== null,
+            modal:
+              document.querySelectorAll("[inert]").length > 0 &&
+              document.body.style.overflow === "hidden",
+          });
+        };
+        btn.click();
+        sample();
+        const tick = () => {
+          sample();
+          if (performance.now() - t0 < ms) requestAnimationFrame(tick);
+          else resolve(out);
+        };
+        requestAnimationFrame(tick);
+      }),
+    ms,
+  );
+}
+
+/** Frames where the burger claims more than the page delivers. */
+const incoherent = (samples: OpenSample[]) =>
+  samples.filter(
+    (s) =>
+      s.controlsMissing || ((s.claimsOpen || s.x) && !(s.panel && s.modal)),
+  );
+
+test.describe("drawer first open (QA-0006, RV-0023) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  test("warm chunk: the first tap shows the panel, the inert page and the X in the same frame", async ({
+    page,
+  }) => {
+    await openLanding(page);
+    await page.waitForLoadState("networkidle");
+    const samples = await sampleOpen(page, 400);
+    expect(incoherent(samples)).toEqual([]);
+    // By the first frame after the tap (samples[0] is taken synchronously,
+    // before React's microtask flush): nothing waits for a Suspense reveal.
+    expect(samples[1]).toMatchObject({ claimsOpen: true, panel: true });
+  });
+
+  test("warm chunk: Enter then Tab at once stays inside the drawer", async ({
+    page,
+  }) => {
+    await openLanding(page);
+    await page.waitForLoadState("networkidle");
+    await burger(page).focus();
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Tab");
+    const inside = await page.evaluate(() => {
+      const nav = document.querySelector(
+        "header[data-nav] nav[aria-label='Menú']",
+      );
+      return !!nav && nav.contains(document.activeElement);
+    });
+    expect(inside).toBe(true);
+  });
+
+  test("cold chunk on a slow network: the burger claims nothing until the panel exists, and the X animates once", async ({
+    page,
+  }) => {
+    const { width, height } = page.viewportSize() ?? { width: 0, height: 0 };
+    // Load where the burger is hidden (no idle prefetch), then narrow it:
+    // the chunk is first requested by the tap itself.
+    await page.setViewportSize({ width: 1280, height });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForLoadState("networkidle");
+    await page.setViewportSize({ width, height });
+    let delayed = 0;
+    await page.route("**/_next/static/chunks/**", async (route) => {
+      delayed += 1;
+      await new Promise((r) => setTimeout(r, 1500));
+      await route.continue();
+    });
+    const samples = await sampleOpen(page, 2500);
+    expect(delayed).toBeGreaterThan(0);
+    expect(incoherent(samples)).toEqual([]);
+    expect(samples.at(-1)).toMatchObject({ claimsOpen: true, panel: true });
+    // The X appears once, with the panel: it never shows, vanishes, returns.
+    const flips = samples.filter((s, i) => i > 0 && s.x !== samples[i - 1].x);
+    expect(flips).toHaveLength(1);
+  });
+});
+
 test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
   test.beforeEach(({ page }) => {
     test.skip(isDesktop(page), "drawer exists below 1024 only");
@@ -846,8 +972,8 @@ async function pausedAt(page: Page, path: string) {
   await page.evaluate(() => document.fonts.ready);
   if (path === "/") await waitForLandingMotion(page);
   await waitForGsapIdle(page);
-  // Resolve the lazy chunk first: its first mount suspends, and React's
-  // Suspense reveal is throttled on setTimeout, which a paused clock stops.
+  // Load the lazy chunk first with one open/close cycle, so the measured tap
+  // mounts the panel in its own frame, whatever the network did.
   await openDrawer(page);
   await burger(page).click();
   await expect(panel(page)).toHaveCount(0);
@@ -1062,9 +1188,13 @@ async function instantOpenClose(page: Page) {
   const closed = await header(page).screenshot({ animations: "disabled" });
   await burger(page).click();
   await expect(panel(page)).toBeAttached();
-  const opened = await page.screenshot();
+  // The panel now mounts in the tap's own frame (QA-0006), while the frozen
+  // burger's CSS hover fill (transition-colors) is still fading in under the
+  // pointer. "disabled" ends CSS transitions only: any GSAP (inline-style)
+  // drawer motion would still show up in this byte-exact compare.
+  const opened = await page.screenshot({ animations: "disabled" });
   await page.waitForTimeout(1000);
-  expect(await page.screenshot()).toEqual(opened);
+  expect(await page.screenshot({ animations: "disabled" })).toEqual(opened);
   await burger(page).click();
   expect(await panel(page).count()).toBe(0);
   await page.mouse.move(1, 1);
