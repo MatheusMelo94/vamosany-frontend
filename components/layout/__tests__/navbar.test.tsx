@@ -238,7 +238,7 @@ describe("Navbar item destinations (RV-0010)", () => {
     }
     await openPanel("Services");
     expect(
-      screen.getByRole("link", { name: /Custom itinerary with Belén/ }),
+      screen.getByRole("link", { name: /Custom itinerary with\sBelén/ }),
     ).toHaveAttribute("href", "/#services");
   });
 
