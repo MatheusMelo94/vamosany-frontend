@@ -14,7 +14,7 @@ type Props = { rows: readonly { title: string; text: string }[] };
  */
 export function AudienceRows({ rows }: Props): JSX.Element {
   return (
-    <ul {...sm("audience")} className="@container mt-9">
+    <ul {...sm("audience")} className="mt-9">
       {rows.map((row, i) => (
         <li
           key={row.title}
