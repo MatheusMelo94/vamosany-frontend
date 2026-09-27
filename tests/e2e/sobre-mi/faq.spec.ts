@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { nextFrames, sampleFrames, waitForGsapIdle } from "../support/motion";
 
 test.describe("FAQ @feature-sobre-mi", () => {
   test("loads with all 14 questions closed (AC 47)", async ({ page }) => {
@@ -117,33 +118,34 @@ type AnswerState = {
   content: number;
 };
 
-/** One question's disclosure state: open, answer height, glyph angle, content opacity. */
-const answer = (page: Page, id: string) =>
-  page.locator(`#${id}`).evaluate((d): AnswerState => {
-    const wrap = d.querySelector("[data-sm-faq-answer]") as HTMLElement;
-    const glyph = d.querySelector(
-      "summary [aria-hidden='true']",
-    ) as HTMLElement;
-    // Tailwind 4's rotate-45 sets the individual `rotate` property.
-    const r = getComputedStyle(glyph).rotate;
-    const first = wrap.firstElementChild as HTMLElement | null;
-    return {
-      open: (d as HTMLDetailsElement).open,
-      height: Math.round(wrap.getBoundingClientRect().height),
-      inline: wrap.style.height,
-      glyph: r === "none" ? 0 : Math.round(parseFloat(r)),
-      content: first ? Number(getComputedStyle(first).opacity) : 0,
-    };
-  });
+/** One question's disclosure state: open, answer height, glyph angle, content opacity (runs in the page). */
+function answerInPage(id: string): AnswerState {
+  const d = document.getElementById(id) as HTMLDetailsElement;
+  const wrap = d.querySelector("[data-sm-faq-answer]") as HTMLElement;
+  const glyph = d.querySelector("summary [aria-hidden='true']") as HTMLElement;
+  const r = getComputedStyle(glyph).rotate;
+  const first = wrap.firstElementChild as HTMLElement | null;
+  return {
+    open: d.open,
+    height: Math.round(wrap.getBoundingClientRect().height),
+    inline: wrap.style.height,
+    glyph: r === "none" ? 0 : Math.round(parseFloat(r)),
+    content: first ? Number(getComputedStyle(first).opacity) : 0,
+  };
+}
 
-async function sampleAnswer(page: Page, id: string, ms: number) {
-  const out: AnswerState[] = [];
-  const end = Date.now() + ms;
-  while (Date.now() < end) {
-    out.push(await answer(page, id));
-    await page.waitForTimeout(20);
-  }
-  return out;
+const answer = (page: Page, id: string) => page.evaluate(answerInPage, id);
+
+/**
+ * Every rendered frame of one question, from now until the motion has
+ * settled (GSAP idle and at least `minFrames` frames, which also covers
+ * the glyph's CSS transition and the static reduced-motion case).
+ */
+async function sampleAnswer(page: Page, id: string, minFrames = 20) {
+  const sampler = await sampleFrames(page, answerInPage, id);
+  await nextFrames(page, minFrames);
+  await waitForGsapIdle(page);
+  return sampler.stop();
 }
 
 const Q1 = "que-es-un-itinerario-personalizado";
@@ -183,7 +185,7 @@ test.describe("FAQ motion (T038) @feature-sobre-mi", () => {
     await summary.scrollIntoViewIfNeeded();
     await expect(page.locator(`#${Q1}`)).toHaveCSS("opacity", "1");
     await summary.click();
-    const frames = await sampleAnswer(page, Q1, 700);
+    const frames = await sampleAnswer(page, Q1);
     const final = await answer(page, Q1);
     expect(final.open).toBe(true);
     expect(final.inline).toBe(""); // clearProps: no height left behind
@@ -212,7 +214,7 @@ test.describe("FAQ motion (T038) @feature-sobre-mi", () => {
     expect((await answer(page, Q2)).open).toBe(true);
     const open = await answer(page, Q1);
     await page.locator(`#${Q1} summary`).click();
-    const frames = await sampleAnswer(page, Q1, 500);
+    const frames = await sampleAnswer(page, Q1);
     // Still open while the height shrinks, and the glyph already turning
     // back to + (a 300 ms CSS transition, as long as the close itself).
     expect(
@@ -232,8 +234,22 @@ test.describe("FAQ motion (T038) @feature-sobre-mi", () => {
     await summary.scrollIntoViewIfNeeded();
     await expect(page.locator(`#${Q1}`)).toHaveCSS("opacity", "1");
     await summary.click();
-    await page.waitForTimeout(120);
-    await summary.click();
+    // Second click in the first frame where the answer is mid-opening.
+    await page.evaluate(
+      (id) =>
+        new Promise<void>((resolve) => {
+          const d = document.getElementById(id) as HTMLDetailsElement;
+          const wrap = d.querySelector("[data-sm-faq-answer]") as HTMLElement;
+          const tick = () => {
+            if (d.open && wrap.style.height !== "") {
+              d.querySelector("summary")?.click();
+              resolve();
+            } else requestAnimationFrame(tick);
+          };
+          tick();
+        }),
+      Q1,
+    );
     await expect.poll(async () => (await answer(page, Q1)).open).toBe(false);
     expect((await answer(page, Q1)).inline).toBe("");
     await summary.click();
@@ -267,7 +283,7 @@ test.describe("FAQ motion (T038) @feature-sobre-mi", () => {
     page,
   }) => {
     await page.goto(`/preguntas-frecuentes#${Q1}`);
-    const frames = await sampleAnswer(page, Q1, 400);
+    const frames = await sampleAnswer(page, Q1);
     const full = frames.at(-1)!;
     expect(full.open).toBe(true);
     expect(
@@ -283,7 +299,7 @@ test.describe("FAQ motion, reduced (T038) @feature-sobre-mi", () => {
     await page.goto("/preguntas-frecuentes");
     const summary = page.locator(`#${Q1} summary`);
     await summary.click();
-    const opened = await sampleAnswer(page, Q1, 300);
+    const opened = await sampleAnswer(page, Q1);
     expect(opened.every((f) => f.open && f.height === opened[0]!.height)).toBe(
       true,
     );

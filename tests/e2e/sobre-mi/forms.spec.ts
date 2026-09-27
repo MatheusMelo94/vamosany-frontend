@@ -1,6 +1,10 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { waitForMotionToSettle } from "../support/motion";
+import {
+  nextFrames,
+  waitForGsapIdle,
+  waitForMotionToSettle,
+} from "../support/motion";
 
 /**
  * The two UI-only forms (spec v1.1 § Form States; AC 38–45; Security G1
@@ -98,6 +102,22 @@ function recordRequests(page: Page) {
  * (Lazy images and prefetches the page loads while it scrolls are GETs
  * without a body; `leaks()` still checks their URLs for typed values.)
  */
+/**
+ * Request barrier: the page fetches a sentinel URL and we wait until
+ * Playwright has seen it, so every request the page started before now
+ * (a submit handler's, a native form navigation's) has been recorded. A
+ * condition instead of "wait N ms and hope it would have shown up". The
+ * sentinel is an empty GET, so `sends` and `leaks` never count it.
+ */
+async function requestBarrier(page: Page): Promise<void> {
+  const url = `/?e2e-barrier=${Math.random().toString(36).slice(2)}`;
+  const seen = page.waitForRequest((r) => r.url().endsWith(url));
+  await page.evaluate((u) => {
+    void fetch(u).catch(() => undefined);
+  }, url);
+  await seen;
+}
+
 const sends = (requests: Req[]) =>
   requests.filter((r) => r.method !== "GET" || r.body !== "");
 
@@ -124,6 +144,8 @@ async function fill(page: Page, form: FormPage) {
 
 /** Serious/critical axe violations, minus the frozen footer contrast (ADR-0006). */
 async function axeSerious(page: Page): Promise<string[]> {
+  // An axe run is heavy under parallel load: a longer ceiling, no sleep.
+  test.slow();
   // Audit the settled page: bring the form into view (its reveal fires)
   // and wait until nothing is mid-fade.
   const form = page.locator("main [data-sm-form]");
@@ -221,7 +243,7 @@ for (const form of PAGES) {
         await expect(field(page, label)).toHaveValue(value);
       }
       expect(page.url()).toBe(url);
-      await page.waitForTimeout(300);
+      await requestBarrier(page);
       expect(sends(requests.slice(before))).toEqual([]);
       expect(leaks(requests, Object.values(form.text))).toEqual([]);
 
@@ -315,10 +337,12 @@ for (const form of PAGES) {
       await expect(button).toHaveAttribute("type", "button");
       await fill(page, form);
       await button.click();
-      await page.waitForTimeout(1000);
+      // Anything the click started (a native submit would navigate) is on
+      // the wire before the chunks are released.
+      await requestBarrier(page);
       release();
       await hydrated(page, form);
-      await page.waitForTimeout(300);
+      await requestBarrier(page);
 
       expect(page.url()).toBe(url);
       // One document load (the goto); the router's same-document
@@ -402,7 +426,7 @@ for (const form of PAGES) {
       await formReady(page, form);
       await recordFeedback(page);
       await page.getByRole("button", { name: form.button }).click();
-      await page.waitForTimeout(700);
+      await waitForGsapIdle(page);
       const frames = await feedback(page);
       const invalid = form.errors.length;
       const fields = frames[0]?.x.length ?? 0;
@@ -417,7 +441,8 @@ for (const form of PAGES) {
       await expect(field(page, form.errors[0]?.[0] ?? "")).toBeFocused();
 
       await field(page, "Nombre").pressSequentially("Persona");
-      await page.waitForTimeout(300);
+      // A shake from typing would be a pending tween here.
+      await waitForGsapIdle(page);
       const typing = await feedback(page);
       expect(typing.every((f) => f.x.every((x) => x === 0))).toBe(true);
     });
@@ -430,7 +455,9 @@ for (const form of PAGES) {
       await recordFeedback(page);
       for (let round = 0; round < 2; round++) {
         await page.getByRole("button", { name: form.button }).click();
-        await page.waitForTimeout(600);
+        await expect(page.getByRole("status")).toBeFocused();
+        // The entrance starts on the next frame; idle = it has ended.
+        await waitForGsapIdle(page);
         const frames = (await feedback(page)).filter((f) => f.banner);
         expect(frames.some((f) => (f.banner?.y ?? 0) < 0)).toBe(true);
         expect(frames.some((f) => (f.banner?.opacity ?? 1) < 1)).toBe(true);
@@ -458,13 +485,18 @@ for (const form of PAGES) {
         }
       });
       const payload = '<b>x</b>"><img src=x onerror=alert(1)>';
+      const eventCount = () =>
+        page.evaluate(
+          () => (window as unknown as { __events: unknown[] }).__events.length,
+        );
       await field(page, "Nombre").fill(payload);
       await page.getByRole("button", { name: form.button }).click();
-      await page.waitForTimeout(500);
+      await expect.poll(eventCount).toBe(1);
       await fill(page, form);
       await field(page, "Nombre").fill(payload);
       await page.getByRole("button", { name: form.button }).click();
-      await page.waitForTimeout(500);
+      await expect.poll(eventCount).toBe(2);
+      await waitForGsapIdle(page);
       await expect(page.locator("main b, main img[src='x']")).toHaveCount(0);
       await expect(field(page, "Nombre")).toHaveValue(payload);
       const events = await page.evaluate(
@@ -496,14 +528,16 @@ for (const form of PAGES) {
         await hydrated(page, form);
         await recordFeedback(page);
         await page.getByRole("button", { name: form.button }).click();
-        await page.waitForTimeout(500);
+        await expect(field(page, form.errors[0]?.[0] ?? "")).toBeFocused();
+        await nextFrames(page, 4);
         const errorFrames = await feedback(page);
         expect(errorFrames.every((f) => f.x.every((x) => x === 0))).toBe(true);
         await expect(field(page, form.errors[0]?.[0] ?? "")).toBeFocused();
         await fill(page, form);
         await feedback(page);
         await page.getByRole("button", { name: form.button }).click();
-        await page.waitForTimeout(400);
+        await expect(page.getByRole("status")).toBeFocused();
+        await nextFrames(page, 4);
         const bannerFrames = (await feedback(page)).filter((f) => f.banner);
         expect(bannerFrames.length).toBeGreaterThan(0);
         expect(

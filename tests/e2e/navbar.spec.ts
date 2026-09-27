@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
+import { waitForGsapIdle, waitForLandingMotion } from "./support/motion";
 
 /**
  * Characterization of the navbar (ADR-0006 § 2 oracle; plan § 12). Written on
@@ -73,7 +74,7 @@ async function open(page: Page) {
   await page.evaluate(() => document.fonts.ready);
   // The hero timeline runs on load; the navbar itself does not animate, but
   // let the page settle so layout is final.
-  await page.waitForTimeout(1500);
+  await waitForLandingMotion(page);
 }
 
 const header = (page: Page) => page.locator("header[data-nav]");
@@ -378,7 +379,7 @@ async function dotRestsOn(panel: Locator, item: Locator): Promise<boolean> {
 }
 
 /** Waits until the dot rests on `item`. */
-async function expectDotOn(panel: Locator, item: Locator, timeout = 3000) {
+async function expectDotOn(panel: Locator, item: Locator, timeout = 15_000) {
   await expect.poll(() => dotRestsOn(panel, item), { timeout }).toBe(true);
 }
 
@@ -472,7 +473,8 @@ test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
     await items.nth(0).hover();
     await expectDotOn(panel, items.nth(0));
     await items.nth(11).hover();
-    await page.waitForTimeout(120);
+    // Retarget once the dot has left item 0 (in flight towards item 11).
+    await expect.poll(() => dotRestsOn(panel, items.nth(0))).toBe(false);
     await items.nth(5).hover();
     await expectDotOn(panel, items.nth(5));
     await expect(panel.locator("[data-marker-dot]")).toHaveCount(1);
@@ -514,7 +516,8 @@ test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
       const item = panel.locator("[data-nav-item]").nth(1);
       await item.hover();
       await expectDotOn(panel, item);
-      await page.waitForTimeout(400);
+      // The pill and fade tweens end too, not only the dot.
+      await waitForGsapIdle(page);
       await isolate(page);
       await expect(page).toHaveScreenshot(`navbar-panel-${slug}-hover.png`, {
         clip: union(await box(header(page)), await box(panel)),

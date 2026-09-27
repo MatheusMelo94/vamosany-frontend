@@ -1,5 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
-import { waitForMotionController } from "../support/motion";
+import {
+  gsapPending,
+  nextFrames,
+  sampleFrames,
+  waitForGsapIdle,
+  waitForMotionController,
+} from "../support/motion";
 
 /**
  * Motion on the Sobre mí pages (DDR-0004; plan § 0.2–0.3; TDD § 4).
@@ -82,16 +88,22 @@ const ALL_FINAL: FinalState = {
   clipped: [],
 };
 
-/** Scrolls the whole page in steps so every once-trigger fires, then waits. */
+/**
+ * Scrolls the whole page in steps so every once-trigger fires (two frames
+ * per step: ScrollTrigger reads the scroll on its next tick), then waits
+ * for GSAP to settle.
+ */
 async function scrollThrough(page: Page) {
   await page.evaluate(async () => {
+    const frame = () => new Promise((r) => requestAnimationFrame(r));
     const step = window.innerHeight / 2;
     for (let y = 0; y <= document.body.scrollHeight; y += step) {
       window.scrollTo(0, y);
-      await new Promise((r) => setTimeout(r, 80));
+      await frame();
+      await frame();
     }
   });
-  await page.waitForTimeout(2500);
+  await waitForGsapIdle(page);
 }
 
 /**
@@ -224,11 +236,17 @@ test.describe("Sobre mí motion: gate and controller (T032) @feature-sobre-mi", 
     await expect(
       page.locator('main [data-sm-scene="colaboraciones"]'),
     ).toHaveCount(1);
-    await page.waitForTimeout(1500);
-    const connected = await scrollTriggerTargets(page);
-    expect(connected).not.toBeNull();
-    expect(connected?.length).toBeGreaterThan(0);
-    expect(connected?.every(Boolean)).toBe(true);
+    await waitForMotionController(page);
+    // The old controller reverts and the new one registers: every trigger
+    // ends on a connected node (detached ones would never become connected).
+    await expect
+      .poll(async () => {
+        const connected = await scrollTriggerTargets(page);
+        return connected !== null && connected.length > 0
+          ? connected.every(Boolean)
+          : null;
+      })
+      .toBe(true);
   });
 
   for (const [label, options] of [
@@ -307,9 +325,24 @@ async function recordHeader(page: Page) {
           split: words.length,
         });
       }
-      if (performance.now() - t0 < 8000) requestAnimationFrame(tick);
+      if (performance.now() - t0 < 30_000) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
+    // Every value the controller writes into the "20" (not only the ones a
+    // sampled frame happens to catch).
+    const writes: string[] = [];
+    (window as unknown as { __countWrites: string[] }).__countWrites = writes;
+    document.addEventListener("DOMContentLoaded", () => {
+      const counter = document.querySelector("[data-sm-count]");
+      if (!counter) return;
+      new MutationObserver(() =>
+        writes.push(counter.textContent?.trim() ?? ""),
+      ).observe(counter, {
+        childList: true,
+        characterData: true,
+        subtree: true,
+      });
+    });
   });
 }
 
@@ -322,10 +355,8 @@ test.describe("M1 heading entrance (T033) @feature-sobre-mi", () => {
   }) => {
     await recordHeader(page);
     await page.goto("/sobre-mi");
-    await expect
-      .poll(async () => (await frames(page)).at(-1)?.train, { timeout: 8000 })
-      .toBe("0%");
-    await page.waitForTimeout(600);
+    await waitForMotionController(page);
+    await waitForGsapIdle(page);
     const f = await frames(page);
     const first = (pred: (x: Frame) => boolean) => f.find(pred)?.t ?? Infinity;
     const labelStart = first((x) => x.label > 0);
@@ -358,10 +389,13 @@ test.describe("M1 heading entrance (T033) @feature-sobre-mi", () => {
       name: "Sobre mí",
       exact: true,
     });
-    for (let i = 0; i < 25; i++) {
-      await expect(h1).toHaveCount(1);
-      await page.waitForTimeout(100);
-    }
+    // Sampled from load until the entrance has settled.
+    let samples = 0;
+    do {
+      expect(await h1.count()).toBe(1);
+      samples++;
+    } while (samples < 3 || (await gsapPending(page)) !== 0);
+    expect(await h1.count()).toBe(1);
   });
 
   test("the '20' counts up from 0 during the entrance; assistive tech reads only 20 (AC 21)", async ({
@@ -370,22 +404,30 @@ test.describe("M1 heading entrance (T033) @feature-sobre-mi", () => {
     await recordHeader(page);
     await page.goto("/sobre-mi");
     const label = page.locator("[data-sm-label]");
-    for (let i = 0; i < 10; i++) {
+    // Sampled from load until the entrance has settled.
+    let samples = 0;
+    do {
       expect(await label.ariaSnapshot()).toMatch(/\+20 visitas|\+ 20 visitas/);
-      await page.waitForTimeout(150);
-    }
+      samples++;
+    } while (samples < 3 || (await gsapPending(page)) !== 0);
     await expect
       .poll(async () => (await frames(page)).at(-1)?.count)
       .toBe("20");
-    // Only what's on screen: the server HTML holds the final "20" (for
-    // reduced motion / no JS) while the heading is still hidden.
-    const counts = (await frames(page))
-      .filter((x) => x.label > 0)
-      .map((x) => Number(x.count));
-    expect(counts[0]).toBe(0);
-    expect(counts.some((n) => n > 0 && n < 20)).toBe(true);
-    const shown = counts.filter((n, i) => i === 0 || n !== counts[i - 1]);
-    expect([...shown].sort((a, b) => a - b)).toEqual(shown);
+    // Every value the controller wrote: reset to 0 (the server HTML holds
+    // the final "20" for reduced motion / no JS), then up to 20, never down.
+    const writes = (
+      await page.evaluate(
+        () => (window as unknown as { __countWrites: string[] }).__countWrites,
+      )
+    ).map(Number);
+    expect(writes[0]).toBe(0);
+    expect(writes.at(-1)).toBe(20);
+    expect(writes.some((n) => n > 0 && n < 20)).toBe(true);
+    expect([...writes].sort((a, b) => a - b)).toEqual(writes);
+    // And the count-up happens on screen: the label's first visible frame
+    // doesn't already show the final number.
+    const firstVisible = (await frames(page)).find((x) => x.label > 0);
+    expect(Number(firstVisible?.count)).toBeLessThan(20);
   });
 
   test("other pages run the same entrance without a counter", async ({
@@ -393,10 +435,10 @@ test.describe("M1 heading entrance (T033) @feature-sobre-mi", () => {
   }) => {
     await recordHeader(page);
     await page.goto("/preguntas-frecuentes");
-    await expect
-      .poll(async () => (await frames(page)).at(-1)?.train, { timeout: 8000 })
-      .toBe("0%");
+    await waitForMotionController(page);
+    await waitForGsapIdle(page);
     const f = await frames(page);
+    expect(f.at(-1)?.train).toBe("0%");
     expect(f.some((x) => x.wordsOffset > 0)).toBe(true);
     expect(f.some((x) => x.label > 0 && x.label < 1)).toBe(true);
   });
@@ -454,17 +496,29 @@ test.describe("M2 shared reveals (T034) @feature-sobre-mi", () => {
       await expect
         .poll(() => state(page, selector, index))
         .toEqual({ opacity: 1, y: 0 });
-      // Up and back down: it stays revealed, no replay.
+      // Up and back down: it stays revealed, no replay (every frame).
       await toTop(page);
-      await page.waitForTimeout(300);
+      await waitForGsapIdle(page);
+      const sampler = await sampleFrames(
+        page,
+        ([sel, i]) => {
+          const el = document.querySelectorAll(sel)[i] as Element;
+          const t = getComputedStyle(el).transform;
+          return {
+            opacity: Number(getComputedStyle(el).opacity),
+            y: t === "none" ? 0 : Math.round(new DOMMatrixReadOnly(t).m42),
+          };
+        },
+        [selector, index] as const,
+      );
       await scrollToEl(page, selector, index);
-      for (let i = 0; i < 5; i++) {
-        expect(await state(page, selector, index)).toEqual({
-          opacity: 1,
-          y: 0,
-        });
-        await page.waitForTimeout(60);
-      }
+      await nextFrames(page, 6);
+      await waitForGsapIdle(page);
+      const seen = await sampler.stop();
+      expect(seen.length).toBeGreaterThan(6);
+      expect(new Set(seen.map((x) => JSON.stringify(x)))).toEqual(
+        new Set([JSON.stringify({ opacity: 1, y: 0 })]),
+      );
     });
   }
 
@@ -616,7 +670,7 @@ test.describe("M3 Sobre mí scenes (T035) @feature-sobre-mi", () => {
     const box = "main [data-sm-parallax]";
     const img = "main [data-sm-parallax] img";
     await scrollToEl(page, box);
-    await page.waitForTimeout(600);
+    await waitForGsapIdle(page);
     const a = {
       box: await geometry(page, box),
       img: await geometry(page, img),
@@ -624,7 +678,7 @@ test.describe("M3 Sobre mí scenes (T035) @feature-sobre-mi", () => {
     await page.evaluate(() =>
       window.scrollBy({ top: 250, behavior: "instant" }),
     );
-    await page.waitForTimeout(800);
+    await waitForGsapIdle(page);
     const b = {
       box: await geometry(page, box),
       img: await geometry(page, img),
@@ -643,7 +697,7 @@ test.describe("M3 Sobre mí scenes (T035) @feature-sobre-mi", () => {
     expect(await clip()).toMatch(/inset\(0(%|px)? 100%/);
     await scrollToEl(page, sig);
     await expect
-      .poll(clip, { timeout: 4000 })
+      .poll(clip, { timeout: 15_000 })
       .toMatch(/^(none|inset\(0(%|px)?( 0(%|px)?)*\))$/);
   });
 
@@ -669,7 +723,7 @@ test.describe("M3 Sobre mí scenes (T035) @feature-sobre-mi", () => {
     const end = top + height - vh * 0.55;
     for (const f of [0.15, 0.5, 0.85]) {
       await scrollToY(page, Math.round(start + (end - start) * f));
-      await page.waitForTimeout(900);
+      await waitForGsapIdle(page);
       samples.push(await scaleY());
     }
     expect(samples[0]).toBeGreaterThan(0);
@@ -781,14 +835,27 @@ test.describe("M4 Colaboraciones (T036) @feature-sobre-mi", () => {
     // 2023 → 2023: no tick, the year never changes.
     expect((await yearAt(page, 2)).text).toBe("2023");
     expect((await yearAt(page, 5)).opacity).toBe(0);
-    const seen = new Set<string>();
+    // Every value the tick writes, not only the frames a sample catches.
+    await page.evaluate(() => {
+      const year = document.querySelectorAll("main [data-sm-year]")[4]!;
+      const writes: string[] = [];
+      (window as unknown as { __yearWrites: string[] }).__yearWrites = writes;
+      new MutationObserver(() =>
+        writes.push(year.textContent?.trim() ?? ""),
+      ).observe(year, { childList: true, characterData: true, subtree: true });
+    });
     await scrollToEl(page, "main [data-sm-year]", 4);
-    for (let i = 0; i < 30; i++) {
-      seen.add((await yearAt(page, 4)).text ?? "");
-      await page.waitForTimeout(25);
-    }
     await expect.poll(async () => (await yearAt(page, 4)).text).toBe("2024");
-    expect(seen.has("2023")).toBe(true);
+    await waitForGsapIdle(page);
+    // From the previous row's 2023 up to 2024: nothing outside, never down.
+    const writes = (
+      await page.evaluate(
+        () => (window as unknown as { __yearWrites: string[] }).__yearWrites,
+      )
+    ).map(Number);
+    expect(writes.at(-1)).toBe(2024);
+    expect(writes.every((n) => n >= 2023 && n <= 2024)).toBe(true);
+    expect([...writes].sort((a, b) => a - b)).toEqual(writes);
     await scrollToEl(page, "main [data-sm-year]", 5);
     await expect.poll(async () => (await yearAt(page, 5)).opacity).toBe(1);
     await scrollThrough(page);
@@ -807,13 +874,15 @@ test.describe("M4 Colaboraciones (T036) @feature-sobre-mi", () => {
     page,
   }) => {
     const row = page.locator("main ol > li").first();
-    for (let i = 0; i < 8; i++) {
+    // Sampled from before the row is reached until its tick has settled.
+    let samples = 0;
+    do {
       const snapshot = await row.ariaSnapshot();
       expect(snapshot).toContain("2022");
       expect(snapshot).not.toContain("2021");
-      if (i === 0) await scrollToEl(page, "main ol > li");
-      await page.waitForTimeout(80);
-    }
+      if (samples === 0) await scrollToEl(page, "main ol > li");
+      samples++;
+    } while (samples < 3 || (await gsapPending(page)) !== 0);
   });
 
   test("the reading bar lives in the navbar capsule and fills through the ledger (AC 30)", async ({
@@ -840,14 +909,14 @@ test.describe("M4 Colaboraciones (T036) @feature-sobre-mi", () => {
       Math.min(1, Math.max(0, (y - from) / (to - from)));
     for (const y of [0, Math.round((from + to) / 2), Math.round(to + 200)]) {
       await scrollToY(page, Math.max(0, y));
-      await page.waitForTimeout(900);
+      await waitForGsapIdle(page);
       const actual = await barScale(page);
       expect(Math.abs(actual - expected(Math.max(0, y)))).toBeLessThan(0.05);
     }
     // Empty before the ledger, where that point is reachable at this width.
     if (from > 0) {
       await scrollToY(page, 0);
-      await page.waitForTimeout(900);
+      await waitForGsapIdle(page);
       expect(await barScale(page)).toBe(0);
     }
     await scrollToY(page, Math.round(to + 200));
@@ -906,6 +975,22 @@ test.describe("M5 audience rules and M6 channels (T037) @feature-sobre-mi", () =
         };
       });
     expect(await read()).toEqual({ rule: 0, text: [0, 0] });
+    const sampler = await sampleFrames(
+      page,
+      (index) => {
+        const li = document.querySelectorAll("main [data-sm-audience] > li")[
+          index
+        ] as Element;
+        const rule = li.querySelector("[data-sm-rule]") as Element;
+        const t = getComputedStyle(rule).transform;
+        const text = [...li.children].filter((c) => c !== rule);
+        return {
+          rule: t === "none" ? 1 : new DOMMatrixReadOnly(t).a,
+          text: text.map((c) => Number(getComputedStyle(c).opacity)),
+        };
+      },
+      4,
+    );
     await row.evaluate((el) => {
       const top = el.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({
@@ -913,11 +998,11 @@ test.describe("M5 audience rules and M6 channels (T037) @feature-sobre-mi", () =
         behavior: "instant",
       });
     });
-    const samples = [];
-    for (let i = 0; i < 40; i++) {
-      samples.push(await read());
-      await page.waitForTimeout(25);
-    }
+    await expect.poll(read, { timeout: 15_000 }).toEqual({
+      rule: 1,
+      text: [1, 1],
+    });
+    const samples = await sampler.stop();
     // The rule is drawing while the text hasn't started.
     expect(
       samples.some((x) => x.rule > 0 && x.rule < 1 && x.text[0] === 0),
@@ -929,6 +1014,18 @@ test.describe("M5 audience rules and M6 channels (T037) @feature-sobre-mi", () =
     page,
   }) => {
     await page.goto("/contacto");
+    const sampler = await sampleFrames(
+      page,
+      () =>
+        [...document.querySelectorAll("main [data-sm-channels] li")].some(
+          (el) => {
+            const t = getComputedStyle(el).transform;
+            const x = t === "none" ? 0 : new DOMMatrixReadOnly(t).m41;
+            return x < 0 && Number(getComputedStyle(el).opacity) > 0;
+          },
+        ),
+      null,
+    );
     const items = page.locator("main [data-sm-channels] li");
     const read = () =>
       items.evaluateAll((els) =>
@@ -946,17 +1043,13 @@ test.describe("M5 audience rules and M6 channels (T037) @feature-sobre-mi", () =
     );
     const early = await read();
     expect(early.every((x) => x.opacity < 1)).toBe(true);
-    const moving: boolean[] = [];
-    for (let i = 0; i < 60; i++) {
-      moving.push((await read()).some((x) => x.x < 0 && x.opacity > 0));
-      await page.waitForTimeout(25);
-    }
-    expect(moving.some(Boolean)).toBe(true);
-    await expect.poll(read, { timeout: 4000 }).toEqual([
+    await expect.poll(read, { timeout: 15_000 }).toEqual([
       { opacity: 1, x: 0 },
       { opacity: 1, x: 0 },
       { opacity: 1, x: 0 },
     ]);
+    // Seen mid-slide on some frame: moved left and partly visible.
+    expect((await sampler.stop()).some(Boolean)).toBe(true);
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
 });

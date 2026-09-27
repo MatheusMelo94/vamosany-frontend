@@ -217,6 +217,8 @@ test.describe("Sobre mí pages: shared structure, layout and a11y @feature-sobre
         (page.viewportSize()?.width ?? 0) === 768,
         "AC 20: idle state at 360 and 1280",
       );
+      // An axe run is heavy under parallel load: a longer ceiling, no sleep.
+      test.slow();
       await page.goto(route.path);
       await page.evaluate(() => document.fonts.ready);
       // Idle = after the M1 entrance has settled (the label fades in, and a
