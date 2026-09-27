@@ -147,8 +147,8 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
   test("drawer: top and last group", async ({ page }) => {
     test.skip(isDesktop(page), "drawer exists below 1024 only");
     await open(page);
-    await header(page).getByRole("button", { name: "Toggle menu" }).click();
-    const drawer = header(page).getByRole("navigation", { name: "Menu" });
+    await header(page).getByRole("button", { name: "Abrir menú" }).click();
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
     await expect(drawer).toBeVisible();
     await isolate(page);
     await expect(page).toHaveScreenshot("drawer-top.png", {
@@ -190,9 +190,9 @@ test.describe("navbar Sobre mí group (DDR-0002) @feature-sobre-mi", () => {
   }) => {
     test.skip(isDesktop(page), "drawer exists below 1024 only");
     await open(page);
-    const toggle = header(page).getByRole("button", { name: "Toggle menu" });
+    const toggle = header(page).getByRole("button", { name: "Abrir menú" });
     await toggle.click();
-    const drawer = header(page).getByRole("navigation", { name: "Menu" });
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
     for (const [title, href] of SOBRE_MI_ITEMS) {
       await expect(
         drawer.getByRole("link", { name: title, exact: true }),
@@ -587,8 +587,8 @@ test.describe("navbar marker on a Sobre mí route (AC 5, 6, 9) @feature-sobre-mi
   }) => {
     test.skip(isDesktop(page), "drawer exists below 1024 only");
     await page.goto("/colaboraciones");
-    await header(page).getByRole("button", { name: "Toggle menu" }).click();
-    const drawer = header(page).getByRole("navigation", { name: "Menu" });
+    await header(page).getByRole("button", { name: "Abrir menú" }).click();
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
     const current = drawer.locator('[aria-current="page"]');
     await expect(current).toHaveCount(1);
     await expect(current).toHaveAttribute("href", "/colaboraciones");

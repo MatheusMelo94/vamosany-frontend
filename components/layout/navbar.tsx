@@ -1,14 +1,16 @@
 "use client";
 
-import type { JSX } from "react";
+import type { ComponentType, JSX } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { GlobeIcon } from "@/components/ui/icons";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { cn } from "@/lib/utils";
-import { NAV } from "@/components/layout/nav-config";
+import { LANGUAGES, NAV, type Lang } from "@/components/layout/nav-config";
+import type { DrawerProps } from "./drawer/mobile-drawer";
+import { loadDrawer, prefetchDrawer } from "./drawer/load-drawer";
 
 /* Desktop-only, pointer/focus-driven: loaded on first panel open, never in
    First Load JS (plan § 11). Until it mounts, items keep their CSS hover. */
@@ -17,16 +19,62 @@ const NavMarker = dynamic(
   { ssr: false },
 );
 
-const LANGUAGES = [
-  { code: "EN", label: "English" },
-  { code: "ES", label: "Español" },
-  { code: "PT", label: "Português" },
-] as const;
-type Lang = (typeof LANGUAGES)[number]["code"];
+/** Set by the drawer loader's catch: the tap that hit the failure closes. */
+let drawerLoadFailed = false;
+
+/**
+ * What next/dynamic renders once the drawer chunk failed to load (plan § 9):
+ * no error boundary takes the page. React.lazy caches the loader's result, so
+ * this fallback retries by itself: the failing tap closes the burger, and
+ * every later tap imports the chunk again.
+ */
+function DrawerRetry(props: DrawerProps): JSX.Element | null {
+  const { onClose, onExited } = props;
+  const [Loaded, setLoaded] = useState<ComponentType<DrawerProps> | null>(null);
+  useEffect(() => {
+    const giveUp = () => {
+      onClose();
+      onExited();
+    };
+    if (drawerLoadFailed) {
+      drawerLoadFailed = false;
+      giveUp();
+      return;
+    }
+    let live = true;
+    loadDrawer().then(
+      (m) => live && setLoaded(() => m.MobileDrawer),
+      () => live && giveUp(),
+    );
+    return () => {
+      live = false;
+    };
+  }, [onClose, onExited]);
+  return Loaded ? <Loaded {...props} /> : null;
+}
+
+/* The phone drawer: a lazy chunk, never in First Load JS (plan § 0.3),
+   prefetched on idle below 1024 and on the burger's pointerdown/focus. */
+const MobileDrawer = dynamic<DrawerProps>(
+  () =>
+    loadDrawer()
+      .then((m) => m.MobileDrawer)
+      .catch(() => {
+        drawerLoadFailed = true;
+        return DrawerRetry;
+      }),
+  { ssr: false },
+);
 
 export function Navbar(): JSX.Element {
   const [open, setOpen] = useState<string | null>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  /* drawerOpen drives the burger's name and aria-expanded at once;
+     drawerMounted keeps the chunk (and the X icon) until the close ends. */
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMounted, setDrawerMounted] = useState(false);
+  const drawerId = useId();
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const onDrawerExited = useCallback(() => setDrawerMounted(false), []);
   const [lang, setLang] = useState<Lang>("EN");
   const [langOpen, setLangOpen] = useState(false);
   /* Current page is derived from the URL, never stored (DDR-0002/0003). */
@@ -45,11 +93,22 @@ export function Navbar(): JSX.Element {
   }, [open]);
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    document.body.style.overflow = drawerOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileOpen]);
+  }, [drawerOpen]);
+
+  /* Warm the drawer chunk on idle, only where the burger is visible. */
+  useEffect(() => {
+    if (!window.matchMedia("(max-width: 1023.98px)").matches) return;
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(prefetchDrawer);
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(prefetchDrawer, 1);
+    return () => window.clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -343,13 +402,19 @@ export function Navbar(): JSX.Element {
 
         <button
           type="button"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Toggle menu"
-          aria-expanded={mobileOpen}
+          onClick={() => {
+            if (!drawerOpen) setDrawerMounted(true);
+            setDrawerOpen(!drawerOpen);
+          }}
+          onPointerDown={prefetchDrawer}
+          onFocus={prefetchDrawer}
+          aria-label={drawerOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={drawerOpen}
+          aria-controls={drawerMounted ? drawerId : undefined}
           className="tap-target text-ink hover:bg-ink/5 grid size-10 place-items-center rounded-full transition-colors lg:hidden"
         >
           <svg viewBox="0 0 20 20" aria-hidden className="size-5">
-            {mobileOpen ? (
+            {drawerMounted ? (
               <path
                 d="m5 5 10 10M15 5 5 15"
                 stroke="currentColor"
@@ -368,116 +433,15 @@ export function Navbar(): JSX.Element {
         </button>
       </nav>
 
-      {/* Mobile menu — a floating panel under the capsule, over a veil that
-          hides the page beneath and closes the menu when tapped */}
-      {mobileOpen ? (
-        <button
-          type="button"
-          aria-label="Close menu"
-          onClick={() => setMobileOpen(false)}
-          className="bg-canvas/75 pointer-events-auto fixed inset-0 -z-10 lg:hidden"
+      {drawerMounted ? (
+        <MobileDrawer
+          open={drawerOpen}
+          drawerId={drawerId}
+          lang={lang}
+          onLang={setLang}
+          onClose={closeDrawer}
+          onExited={onDrawerExited}
         />
-      ) : null}
-      {mobileOpen ? (
-        // arbitrary: drawer abaixo da capsula = margem + altura da capsula + folga
-        // <nav>, not <div> (RV-0015): the drawer is its own labelled
-        // navigation landmark. It can't sit inside the capsule's <nav>: the
-        // capsule's backdrop-filter would become its containing block and
-        // move the fixed panel. Same box and classes, so pixels are unchanged.
-        <nav
-          aria-label="Menu"
-          className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto rounded-3xl border px-5 pt-4 pb-8 lg:hidden"
-        >
-          <ul className="divide-hairline divide-y">
-            {NAV.map((group) => (
-              <li key={group.label} className="py-5">
-                <p className="card-title text-ink">{group.label}</p>
-                {group.columns.map((column) => (
-                  <div key={column.heading} className="mt-4">
-                    <p className="eyebrow">{column.heading}</p>
-                    <ul className="mt-2 space-y-2">
-                      {column.items.map((item) => (
-                        <li key={item.title}>
-                          <Link
-                            href={item.href ?? "/#services"}
-                            aria-current={
-                              isCurrent(item.href) ? "page" : undefined
-                            }
-                            onClick={() => setMobileOpen(false)}
-                            className={cn(
-                              "body-sm text-ink-subtle flex items-center justify-between gap-3",
-                              // Coarse pointers: the hit area fills the item's slot, half of the
-                              // 8px gap above and below (invisible; QA-0004). 44px exclusive
-                              // targets don't fit the frozen 30px pitch.
-                              "pointer-coarse:relative pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1",
-                            )}
-                          >
-                            {item.title}
-                            {item.price ? (
-                              <span className="caption text-ink font-semibold">
-                                {item.price}
-                              </span>
-                            ) : null}
-                            {/* Static "you are here" dot, the same as the
-                                language menu's selected dot (DDR-0003). */}
-                            {isCurrent(item.href) ? (
-                              <span
-                                data-current-dot
-                                aria-hidden
-                                className="bg-brand size-1.5 rounded-full"
-                              />
-                            ) : null}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </li>
-            ))}
-          </ul>
-          <div className="border-hairline mt-6 flex items-center justify-between border-t pt-5">
-            <span className="body-sm text-ink flex items-center gap-2 font-semibold">
-              <GlobeIcon className="size-4" />
-              Language
-            </span>
-            <div className="flex gap-1.5" role="listbox" aria-label="Language">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  role="option"
-                  aria-selected={lang === l.code}
-                  onClick={() => setLang(l.code)}
-                  className={cn(
-                    "label-button rounded-full border-2 px-3 py-1.5 transition-colors",
-                    lang === l.code
-                      ? "border-ink bg-ink text-inverse-ink"
-                      : "border-hairline text-ink",
-                  )}
-                >
-                  {l.code}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="mt-5 flex flex-col gap-3">
-            <Link
-              href="#signup"
-              onClick={() => setMobileOpen(false)}
-              className="label-button bg-ink/5 text-ink hover:bg-ink/10 flex min-h-12 items-center justify-center rounded-full px-6 transition-colors"
-            >
-              Sign up
-            </Link>
-            <Link
-              href="#login"
-              onClick={() => setMobileOpen(false)}
-              className="label-button bg-ink/5 text-ink hover:bg-ink/10 flex min-h-12 items-center justify-center rounded-full px-6 transition-colors"
-            >
-              Log in
-            </Link>
-          </div>
-        </nav>
       ) : null}
     </header>
   );

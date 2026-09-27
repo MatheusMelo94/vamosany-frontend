@@ -112,7 +112,7 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
     const header = page.locator("header[data-nav]");
     for (const target of [
       header.getByRole("link", { name: "Vamos a NY — home" }),
-      header.getByRole("button", { name: "Toggle menu" }),
+      header.getByRole("button", { name: "Abrir menú" }),
     ]) {
       const extent = await hitExtent(target);
       expect(atLeast44(extent), JSON.stringify(extent)).toEqual({
@@ -129,11 +129,11 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
     await page.goto("/sobre-mi");
     await page
       .locator("header[data-nav]")
-      .getByRole("button", { name: "Toggle menu" })
+      .getByRole("button", { name: "Abrir menú" })
       .click();
     const column = page
       .locator("header[data-nav]")
-      .getByRole("navigation", { name: "Menu" })
+      .getByRole("navigation", { name: "Menú" })
       .locator("ul ul")
       .last();
     const items = column.locator("a");

@@ -1,4 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
@@ -182,7 +184,8 @@ describe("Navbar", () => {
         expect(within(panelIn(container)).queryByText(text)).toBeNull();
       }
     }
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
     for (const text of REMOVED) {
       expect(screen.queryByText(text)).toBeNull();
     }
@@ -191,8 +194,8 @@ describe("Navbar", () => {
   it("puts the phone drawer's links inside a labelled navigation landmark (RV-0015)", async () => {
     const user = userEvent.setup();
     render(<Navbar />);
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
-    const menu = screen.getByRole("navigation", { name: "Menu" });
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
     for (const [title] of SOBRE_MI_ITEMS) {
       expect(within(menu).getByRole("link", { name: title })).toBeVisible();
     }
@@ -202,10 +205,10 @@ describe("Navbar", () => {
   it("mirrors the Sobre mí group in the drawer; tapping an item closes it (AC 3)", async () => {
     const user = userEvent.setup();
     render(<Navbar />);
-    const toggle = screen.getByRole("button", { name: "Toggle menu" });
+    const toggle = screen.getByRole("button", { name: "Abrir menú" });
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("Vamos a New York")).toBeInTheDocument();
+    expect(await screen.findByText("Vamos a New York")).toBeInTheDocument();
     expect(screen.getByText("Ayuda")).toBeInTheDocument();
     for (const [title, , href] of SOBRE_MI_ITEMS) {
       expect(screen.getByRole("link", { name: title })).toHaveAttribute(
@@ -245,7 +248,8 @@ describe("Navbar item destinations (RV-0010)", () => {
   it("points every drawer item at a path, never a bare fragment", async () => {
     const user = userEvent.setup();
     render(<Navbar />);
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
     const hrefs = itemHrefs();
     expect(hrefs.length).toBeGreaterThan(20);
     for (const href of hrefs) expect(href).toMatch(/^\//);
@@ -375,7 +379,8 @@ describe("Navbar current page (AC 5, AC 9)", () => {
     vi.mocked(usePathname).mockReturnValue("/colaboraciones");
     const user = userEvent.setup();
     const { container } = render(<Navbar />);
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
     const current = container.querySelectorAll('[aria-current="page"]');
     expect(current).toHaveLength(1);
     const link = screen.getByRole("link", { name: "Colaboraciones" });
@@ -391,8 +396,96 @@ describe("Navbar current page (AC 5, AC 9)", () => {
     const { container } = render(<Navbar />);
     await openPanel("Sobre mí");
     expect(container.querySelector('[aria-current="page"]')).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
     expect(container.querySelector('[aria-current="page"]')).toBeNull();
     expect(container.querySelector("[data-current-dot]")).toBeNull();
+  });
+});
+
+describe("Navbar burger (mobile-navigation AC 4, 5)", () => {
+  it("is named Abrir menú, collapsed and controls nothing while closed", () => {
+    render(<Navbar />);
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+  });
+
+  it("becomes Cerrar menú and controls the Menú landmark once tapped", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    const burger = screen.getByRole("button", { name: "Cerrar menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "true");
+    expect(menu.id).not.toBe("");
+    expect(burger).toHaveAttribute("aria-controls", menu.id);
+  });
+
+  it("returns to Abrir menú and drops the drawer when tapped again", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(screen.getByRole("button", { name: "Cerrar menú" }));
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+  });
+
+  it("imports no GSAP: motion lives in the lazy drawer chunk (plan § 7.1)", () => {
+    const source = readFileSync(
+      path.resolve(__dirname, "../navbar.tsx"),
+      "utf8",
+    );
+    expect(source).not.toMatch(/from\s+["'](gsap|@gsap\/|@\/lib\/gsap)/);
+  });
+});
+
+describe("Navbar drawer chunk failure (plan § 9)", () => {
+  const LOADER = "@/components/layout/drawer/load-drawer";
+
+  afterEach(() => {
+    vi.doUnmock(LOADER);
+    vi.resetModules();
+  });
+
+  it("closes the burger when the chunk fails to load, and retries on the next tap", async () => {
+    vi.resetModules();
+    const actual =
+      await vi.importActual<typeof import("../drawer/load-drawer")>(LOADER);
+    const loadDrawer = vi
+      .fn(actual.loadDrawer)
+      .mockRejectedValueOnce(new Error("ChunkLoadError"));
+    vi.doMock(LOADER, () => ({
+      loadDrawer,
+      prefetchDrawer: () => undefined,
+    }));
+    const { Navbar: FreshNavbar } = await import("@/components/layout/navbar");
+    const user = userEvent.setup();
+    render(<FreshNavbar />);
+
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Abrir menú" }),
+      ).toHaveAttribute("aria-expanded", "false"),
+    );
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).not.toHaveAttribute("aria-controls");
+    // Nothing else unmounted: no error boundary replaced the page.
+    expect(
+      screen.getByRole("link", { name: "Vamos a NY — home" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Itineraries" }),
+    ).toBeInTheDocument();
+
+    await user.click(burger);
+    expect(
+      await screen.findByRole("navigation", { name: "Menú" }),
+    ).toBeInTheDocument();
+    expect(loadDrawer).toHaveBeenCalledTimes(2);
   });
 });
