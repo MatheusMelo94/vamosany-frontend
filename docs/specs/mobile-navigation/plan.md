@@ -9,6 +9,7 @@
 - **Contract:** **none.** The Contract Gate passes as N/A. Every read is static bundled config (`components/layout/nav-config.ts`, `features/sobre-mi/content/nav.ts`) or `usePathname()`. The one write is local UI state. There are no Pre-Contract items and no Contract Request.
 - **Posture:** production site on Vercel, with the landing frozen (ADR-0006). Every screenshot outside the four drawer files must stay diff 0 (AC 1).
 - **Commands** (npm, ADR-0005): `npm run typecheck && npm run lint && npm test`; `npm run build && npm run check:first-load`; `npm run test:e2e -- --grep @feature-mobile-nav`.
+- **Amendment 2026-09-27 (post-review, Architect):** the Engineer's `Pre-Convention` commits `910634c` (QA-0006/RV-0023: the drawer chunk resolved into state with a plain `import()` instead of `next/dynamic`) and `bebc394` (RV-0018: the drawer's motion values moved from `lib/motion.ts` to `components/layout/drawer/motion-values.ts`) are **accepted**. § 0.3, § 1, § 3/§ 7.1, § 9, § 12, § 13 and § 15 are amended in place. ADR-0009 and ADR-0010 get dated Amendment sections. There's one follow-up, RV-0024 (§ 9).
 - **Citations shorthand:** `A§` = `frontend-architecture-conventions.md §`, `D§` = `design-conventions.md §`, `S§` = `frontend-security-conventions.md §`.
 
 ---
@@ -24,7 +25,7 @@
 | Spec-Kit | Not initialized (no `.specify/`). Output goes to `docs/specs/mobile-navigation/{plan,tasks}.md`, as in `docs/specs/sobre-mi/`. |
 | Conventions | A§ and D§ loaded; S§ Next.js Surface Map checked (§ 10). |
 | Contract Gate | N/A. No backend dependency (spec § Data Dependencies). |
-| Tech Design Doc trigger (A§ Tech Design Doc) | **Not met.** One area is touched (`components/layout/` plus `lib/motion.ts`). There's no new cross-cutting mechanism of the kinds listed (auth, real-time, i18n, offline), no ScrollTrigger, no Flip transition, and no integration boundary. The motion design is detailed enough in § 7. |
+| Tech Design Doc trigger (A§ Tech Design Doc) | **Not met.** One area is touched (`components/layout/`; `lib/motion.ts` is untouched after the 2026-09-27 amendment). There's no new cross-cutting mechanism of the kinds listed (auth, real-time, i18n, offline), no ScrollTrigger, no Flip transition, and no integration boundary. The motion design is detailed enough in § 7. |
 
 ### 0.2 Font amendment (user decision 2026-09-27; supersedes the spec until the UX Strategist amends it)
 
@@ -56,9 +57,13 @@ The size of the group name is the only value this amendment leaves to judgment. 
 
 The guard fails above baseline + allowance = **179,492 B**, which is under the 179,500 B ceiling the coordinator set.
 
-**Decision (A§ Performance Budgets: `next/dynamic` for client-only components; A§ Component Model):** the whole open drawer, including its markup, accordion state, modal behavior and both GSAP timelines, moves into **one lazy client chunk**. The Navbar keeps only the burger, a small open, closing and mounted state machine, the drawer-scoped language state, and the prefetch. After that, `/` is **~160 B smaller than today**. All later drawer growth lands in the lazy chunk, which the guard doesn't count.
+**Decision (A§ Performance Budgets: lazy-load heavy client-only components; A§ Component Model):** the whole open drawer, including its markup, accordion state, modal behavior and both GSAP timelines, moves into **one lazy client chunk**. The Navbar keeps only the burger, a small open, closing and mounted state machine, the drawer-scoped language state, and the prefetch. After that, `/` is **~160 B smaller than today**. All later drawer growth lands in the lazy chunk, which the guard doesn't count.
 
-- **Expected byte impact on `/`:** about **−150 to −100 B** vs today once T009 adds the language state. The end state is about 178.1 kB, **~1.4 kB under the guard**. The ADR-0006 § 4 `next/dynamic` condition ("only if it doesn't perceptibly delay the first animated frame") is met by the prefetch below.
+- **Expected byte impact on `/`:** the plan predicted about −150 to −100 B vs today. **Measured after the amendment (`bebc394`):** `/` = **178,564 B**, +72 B of the 1,000 B allowance, **928 B under the guard**. The Reviewer measured the net effect vs `main` at +232 B before `bebc394` (RV-0018). About 187 B of that was the drawer's motion values riding in the shared `lib/motion.ts` object, which `bebc394` removed. The rest is loader glue and webpack's chunk map, inside the runtime allowance.
+- **Loading mechanism (amended 2026-09-27, `910634c`, QA-0006/RV-0023):** the chunk isn't rendered through `next/dynamic`. `next/dynamic` suspends on its first mount, and React throttles a Suspense reveal (about 300ms) even when the bytes are already prefetched. The first open then showed the X, "Cerrar menú" and `aria-expanded` about 340ms before the panel, with the page not yet inert and Tab escaping to page content. Instead, `navbar.tsx` resolves `import("./drawer/mobile-drawer")` (`load-drawer.ts`) **into state** through one shared promise (`requestDrawer()`), used by the idle warm-up, `pointerdown`/`focus` and the tap:
+  - With a **warm** chunk, the tap mounts the panel and flips the burger (name, `aria-expanded`, `aria-controls`, X) in one render. Measured first open: 335ms → 47ms on `/`.
+  - With a **cold** chunk, the tap claims nothing until the chunk arrives, then opens in one render. The burger never claims "open" without a panel, and `aria-controls` never points at a missing id.
+  - The ADR-0006 § 4 condition ("only if it doesn't perceptibly delay the first animated frame") is now met by construction, not only by the prefetch. The chunk is still lazy, out of First Load, and never fetched at ≥1024.
 - **Expected lazy chunk:** about 5–8 kB gzip of drawer code, plus `CustomEase` (about 3 kB gzip) on routes where it isn't loaded yet. `gsap` core is already in `/`'s First Load, because `hero-ring.tsx` imports `@/lib/gsap` statically. On the Sobre mí routes it is shared with the lazy Cuaderno controller. The chunk is **never fetched at ≥1024** (the burger is `lg:hidden`, and the prefetch checks the breakpoint).
 - **Prefetch, so the first tap isn't late:** after hydration, and only when `matchMedia("(max-width: 1023.98px)")` matches, the Navbar calls `import("./drawer/mobile-drawer")` on idle (`requestIdleCallback`, falling back to `setTimeout` for Safari). The burger's `pointerdown` and `focus` call it as well, which is a no-op once it's loaded. This also keeps the spec's § States Matrix "Offline: works once the page has loaded" true.
 - **The guard baseline doesn't move.** `perf/first-load.json` stays at 178,492 B with a 1,000 B allowance. Every task that touches `navbar.tsx` quotes the guard's output line in its commit body. **Stop rule:** if any task makes the guard fail, the Engineer stops and reports. Nothing is re-baselined upward. Tightening the baseline down to the new measurement after merge is an optional user decision (§ 14 Q3), not a task.
@@ -71,7 +76,7 @@ It isn't trivially free, so it isn't planned and no spec amendment is proposed. 
 
 ## 1. Component tree (server/client boundary)
 
-`[S]` Server Component · `[C]` `'use client'` in First Load · `[C·dyn]` client via `next/dynamic({ ssr:false })`, a lazy chunk not in First Load.
+`[S]` Server Component · `[C]` `'use client'` in First Load · `[C·dyn]` client, lazy chunk not in First Load: `NavMarker` via `next/dynamic({ ssr:false })`; `MobileDrawer` via `import()` resolved into Navbar state (§ 0.3 amendment).
 
 ```
 app/(marketing)/page.tsx                         [S]  (unchanged)
@@ -99,7 +104,7 @@ app/(marketing)/(cuaderno)/layout.tsx            [S]  (unchanged)
 Pure modules, no React, unit-tested:
 - `components/layout/drawer/nav-model.ts`: `scentLine(group)`, `groupHasCurrent(group, pathname)`, `defaultOpenGroup(nav, pathname)`, `isCurrentHref(href, pathname)`, `itemHref(item)` (the `/#services` fallback).
 - `components/layout/drawer/modal.ts`: `inertOutside(keep: Element[]): () => void` (restores exactly what it set), `wrapTab(event, first, last)`.
-- `components/layout/drawer/drawer-motion.ts`: `playOpen`, `playClose` and `toggleBody` (timeline builders taking elements and `MOTION.drawer`), called only inside `useGSAP` or `contextSafe`.
+- `components/layout/drawer/drawer-motion.ts`: `playOpen`, `playClose` and `toggleBody` (timeline builders taking elements and `DRAWER_MOTION` from `components/layout/drawer/motion-values.ts`), called only inside `useGSAP` or `contextSafe`.
 
 **Props across the boundary** (A§ Component Model: serializable, except the callbacks between two client components): `open: boolean`, `lang`, `onLang`, `onClose`, `onExited`, `burgerRef`, `drawerId`. No server data crosses; the content is imported from `nav-config.ts` inside the chunk.
 
@@ -184,23 +189,25 @@ Container queries aren't needed: the panel's width is set by the viewport rule a
 
 - All GSAP lives in the lazy chunk: `drawer-motion.ts` builders, run inside `MobileDrawer`'s `useGSAP({ scope: rootRef, dependencies: [open] })` and `contextSafe` handlers (A§ Animation: `useGSAP` only). Imports come from `@/lib/gsap` and `@/lib/gsap-ease` (`getEases().arrive`). `navbar.tsx` imports **no** GSAP.
 - **Gate:** every builder checks `motionEnabled()` (the `.gsap` class, ADR-0002) **when it is called**, not at mount, so removing the class at runtime also gives the instant path (AC 46). Reduced motion never gets `.gsap`, so one check covers both, and a `gsap.matchMedia()` reduced branch is added to satisfy A§ Animation literally. Off → no tween. The settled state is the natural CSS state, so it appears on the next frame.
-- **Values:** a new `MOTION.drawer` entry and `EASE.pop = "back.out(3)"` in `lib/motion.ts`. These are additions only; no existing value changes (the file header's rule; ADR-0006 § 4). The shape:
+- **Values (amended 2026-09-27, `bebc394`, RV-0018):** `DRAWER_MOTION` (`open`, `close`, `accordion`) and `DRAWER_EASE.pop = "back.out(3)"` live in **`components/layout/drawer/motion-values.ts`**, which only `drawer-motion.ts` (the lazy chunk) imports. They are **not** in `lib/motion.ts`. That file exports one shared `const` object that First Load code on `/` imports, so a nested key can't be tree-shaken per chunk, and the drawer-only values (about 187 B) were shipping in `/`. `lib/motion.ts` keeps every pre-existing key unchanged, and a test asserts it holds no drawer-only values. The values themselves are unchanged from spec § Motion Intent; `motion-values.test.ts` pins them, including the AC 44 swap bound. `EASE.arrive` is still read from `lib/motion.ts` through `getEases()`. Rule going forward: **named motion values used only by a lazily loaded module live beside that module; values shared with First Load code live in `lib/motion.ts`.** The shape (as committed):
 
 ```ts
-drawer: {
+export const DRAWER_EASE = { pop: "back.out(3)" } as const;
+export const DRAWER_MOTION = {
   open:  { veil: { duration: 0.25, ease: "power1.out" },
-           icon: { rotate: -90, scale: 0.6, duration: 0.35 },            // ease: arrive
-           panel: { clipFrom: "inset(0% 0% 100% 0% round 24px)", y: -10, duration: 0.55 }, // arrive
+           icon: { rotate: -90, scale: 0.6, duration: 0.35 },                        // ease: arrive
+           panel: { clip: { bottomFrom: 100, bottomTo: 0, radiusFallback: "24px" },  // arrive
+                    y: -10, duration: 0.55 },
            rows: { y: 14, duration: 0.35, stagger: 0.05, at: 0.15, ease: "power2.out" },
-           footer: { y: 24, duration: 0.4, at: 0.3 },                     // arrive
-           dot: { duration: 0.4, at: 0.45 } },                            // EASE.pop
+           footer: { y: 24, duration: 0.4, at: 0.3 },                                 // arrive
+           dot: { duration: 0.4, at: 0.45 } },                                        // DRAWER_EASE.pop
   close: { panel: { y: -6, duration: 0.25, ease: "power2.in" }, veil: { duration: 0.2, at: 0.05 } },
   accordion: { expand: { duration: 0.3, ease: "power2.out" }, collapse: { duration: 0.18, ease: "power2.in" },
                rows: { y: 6, duration: 0.18, stagger: 0.03, at: 0.05, maxStart: 0.25 }, chevron: 0.2 },
-}
+} as const;
 ```
 
-The `24px` in `clipFrom` is `--radius-3xl` (Tailwind's default theme, 1.5rem; the panel's `rounded-3xl`). The builder reads the token with `getComputedStyle`, as `nav-marker.tsx` does, and the literal is only the jsdom fallback.
+The clip is built from parameters (`panelClip()`, `795425b`, RV-0022). The radius is read from `--radius-3xl` (the panel's `rounded-3xl`) with `getComputedStyle`, as `nav-marker.tsx` does, and `24px` is only the jsdom fallback.
 
 ### 7.2 Open, the "unfold" (M1–M6; ADR-0010 for `clip-path`)
 
@@ -213,7 +220,7 @@ One timeline is built in `useGSAP` when `open` becomes true, in layout-effect ti
 | M3 | panel `<nav>` | `fromTo { clipPath: clipFrom, y:-10 } → { clipPath: "inset(0% 0% 0% 0% round 24px)", y:0, clearProps:"clipPath" }`, ease `arrive` |
 | M4 | `[data-drawer-group]` ×5 (header plus a default-open body) | `from { y:14, opacity:0 }`, stagger 0.05, at 0.15 |
 | M5 | footer | `from { y:24, opacity:0 }`, at 0.3 |
-| M6 | the current-group header dot | `from { scale:0 }`, `EASE.pop`, at 0.45 |
+| M6 | the current-group header dot | `from { scale:0 }`, `DRAWER_EASE.pop`, at 0.45 |
 
 - **Reveals use `opacity`, not `autoAlpha`** (ADR-0008 / A§ Animation). Headers, rows and footer controls are focusable, and they must stay in the tab order during the sequence (AC 43).
 - **Focus safeguard (ADR-0008 condition 2):** a `focusin` listener in the panel (`contextSafe`) completes the reveal of the focused `[data-drawer-group]` or footer (`tween.progress(1)` on its child tween) when the user Tabs to it mid-sequence. **The initial programmatic focus on "Itineraries" at t = 0 is the one exception.** The spec requires it (spec § Motion Intent › Global rules, "focus moves into the panel at t = 0"; DDR-0006 item 18), and at that moment the whole panel is also still clipped by M3. The reveal is bounded: the header is fully opaque by t = 0.5s. See § 14 Q2; it doesn't block.
@@ -267,16 +274,15 @@ The ≈0.85s sequence (more than 800ms), a second expressive moment, and the sta
 
 ## 9. Error handling (A§ Error Handling)
 
-There is no I/O, so no result unions and no `AppError`. **One new failure mode:** the lazy chunk fails to load (flaky network before the prefetch finished). `next/dynamic` would throw into the nearest error boundary, and on these routes that is only `app/global-error.tsx`, which would replace the whole page. The loader therefore catches:
+There is no I/O, so no result unions and no `AppError`. **One new failure mode:** the lazy chunk fails to load (a flaky network before the warm-up finished).
 
-```ts
-const MobileDrawer = dynamic(
-  () => loadDrawer().then((m) => m.MobileDrawer).catch(() => DrawerUnavailable),
-  { ssr: false },
-);
-```
+**Amended 2026-09-27 (`910634c`):** the chunk is resolved into state rather than rendered through `next/dynamic`, so a rejected `import()` never reaches React or an error boundary (`app/global-error.tsx` is the only one on these routes). The original `DrawerUnavailable`/`DrawerRetry` fallback component is gone. The contract:
 
-`DrawerUnavailable` is a two-line component in `navbar.tsx` that calls `onExited()` in an effect and returns `null`. The burger returns to closed, and the next tap retries: webpack forgets a failed chunk, and `loadDrawer` isn't memoized on failure. T003 covers this with a Vitest test that makes the import reject.
+- `requestDrawer()` shares one load promise. On rejection it clears the promise, so the next call imports again (webpack forgets a failed chunk).
+- A tap whose load fails leaves the burger **closed**: it was never claimed "open", and the page is untouched. The next tap retries and opens.
+- Covered by `navbar.test.tsx` (the chunk-failure contract) and `mobile-nav.spec.ts` "drawer first open" (a cold chunk behind a 1.5s delay never claims open without the panel).
+
+**Follow-up RV-0024 (Architect, NON-BLOCKING; Engineer to fix before merge):** a **cold** tap opens when the chunk arrives, and nothing re-checks the breakpoint at that moment. If the viewport reaches ≥1024 between the tap and the chunk's arrival (a rotation on a slow network), `MobileDrawer` mounts on desktop. Its breakpoint handler listens only to `change` events, so it never fires, and the page is left `inert` and scroll-locked under an invisible (`lg:hidden`) panel. **Fix (either one, both preferred):** (a) in `openDrawer`'s deferred `show`, skip opening unless `matchMedia("(max-width: 1023.98px)").matches`; (b) in `MobileDrawer`'s breakpoint effect, run `onChange()` once on mount as well as on `change`. **Test:** Vitest with a mocked `matchMedia` that switches to desktop before a deferred chunk resolves → no panel, no `inert`, `body.style.overflow === ""`. This is AC 30 extended to the cold path.
 
 ---
 
@@ -334,7 +340,7 @@ The names are kept on purpose. The bot's "changed" mode then rewrites these four
 
 **Time-sampled motion ACs (41, 43, 44, 46):** use `page.clock.install()` before navigation, then `clock.runFor(ms)` to sample at t ≈ 0.1s, 0.5s and 0.9s. GSAP's ticker runs on `requestAnimationFrame` and `performance.now`, which the clock controls. The fallback is `gsapPending` from `tests/e2e/support/motion.ts`. "No `.gsap`" (AC 46) is emulated by removing the class after load (`document.documentElement.classList.remove("gsap")`), which works because the builders check the gate at call time (§ 7.1).
 
-**Unit (Vitest + RTL, jsdom):** `nav-model`, `modal`, `lib/motion` additions, and `MobileDrawer`, `DrawerGroup` and `DrawerFooter` behavior with the `.gsap` class absent (the instant path). The motion builders are tested by asserting the tweens they create on a paused timeline (`tl.getChildren()`, durations and positions), as `nav-marker.test.tsx` does.
+**Unit (Vitest + RTL, jsdom):** `nav-model`, `modal`, `drawer/motion-values` (plus the `lib/motion` "no drawer-only values" check), and `MobileDrawer`, `DrawerGroup` and `DrawerFooter` behavior with the `.gsap` class absent (the instant path). The motion builders are tested by asserting the tweens they create on a paused timeline (`tl.getChildren()`, durations and positions), as `nav-marker.test.tsx` does.
 
 ---
 
@@ -342,7 +348,7 @@ The names are kept on purpose. The bot's "changed" mode then rewrites these four
 
 | ADR | Decision | Gates | If rejected |
 |---|---|---|---|
-| **ADR-0009** `docs/adr/0009-animacao-de-altura-no-acordeao-do-menu-mobile.md` | Extend ADR-0007's `height` exception to the drawer accordion's body wrapper only, under the same conditions (user action only, `.gsap` gate, `clearProps`, retarget with no queue, values in `lib/motion.ts`, closed scope). | T012 | T012 is re-planned as a Flip-based sibling translation plus a `clip-path` body reveal (see the ADR's alternatives). That is about 2 more tasks, and it adds the Flip plugin to the lazy chunk. |
+| **ADR-0009** `docs/adr/0009-animacao-de-altura-no-acordeao-do-menu-mobile.md` | Extend ADR-0007's `height` exception to the drawer accordion's body wrapper only, under the same conditions (user action only, `.gsap` gate, `clearProps`, retarget with no queue, named values (amended 2026-09-27: in the lazy chunk's `drawer/motion-values.ts`), closed scope). | T012 | T012 is re-planned as a Flip-based sibling translation plus a `clip-path` body reveal (see the ADR's alternatives). That is about 2 more tasks, and it adds the Flip plugin to the lazy chunk. |
 | **ADR-0010** `docs/adr/0010-clip-path-como-propriedade-animavel.md` | Amend A§ Animation: `clip-path: inset()` is an allowed paint-only animation property, with conditions. It records the two existing uses (the DDR-0003 marker and the Sobre mí signature), which were never recorded. | T011 (M3, M7) | M3/M7 become a transform-only equivalent (a `scaleY` wrapper with counter-scaled content). That isn't pixel-equivalent to the approved mockup, so it needs a DDR-0006 amendment from the UX Strategist. |
 
 **Why ADR-0009 and not Flip** (spec Note 1): the swap collapses one body and expands another at the same time, inside a scrolling list, retargets on quick double taps, and has to keep the tapped header in view (AC 19, 44). With `height`, the browser's layout gives all of that for free. With Flip, the collapsing body has to stay in the DOM while its siblings are translated, and translated siblings fight the scroll container's `scrollTop` correction. ADR-0007 already rejected `clip-path`/`scaleY` alone for the same "content below jumps" reason. The layout cost is bounded: the panel is `position: fixed`, so layout work stays inside the panel for ≤0.3s per tap.
@@ -364,6 +370,7 @@ The names are kept on purpose. The bot's "changed" mode then rewrites these four
 
 1. **A§ Animation:** `clip-path` as an animatable property. Drafted as ADR-0010, including its amendment text.
 2. **A§ Animation / ADR-0008:** clarify that the `focusin` safeguard applies to user-initiated focus. Spec-mandated programmatic focus into a time-bounded, user-triggered sequence (≤0.5s to opaque) is allowed. Want me to draft it?
-3. **A§ Performance Budgets:** "Overlays that exist only after a user action (drawers, dialogs, sheets) on a route at ≥98% of its First Load budget ship as a `next/dynamic({ ssr:false })` chunk, prefetched on idle where the trigger is visible, with a loader `catch` that resolves to a no-op component (no `error.tsx` blast radius)." Want me to draft it?
+3. **A§ Performance Budgets (revised 2026-09-27 after QA-0006):** "Overlays that exist only after a user action (drawers, dialogs, sheets) on a route at ≥98% of its First Load budget ship as a lazy chunk, **resolved with `import()` into state (not `next/dynamic`, whose first mount suspends and whose Suspense reveal React throttles by about 300ms)**. They are warmed on idle where the trigger is visible and on the trigger's `pointerdown`/`focus`. The trigger claims 'open' only in the render that mounts the overlay, and a failed load leaves the trigger closed and retries on the next action." `next/dynamic` stays right for components that render passively (for example `NavMarker`). Want me to draft it?
+6. **A§ Animation / `lib/motion.ts` (RV-0018):** "Named motion values used only by a lazily loaded module live beside it, not in the shared `lib/motion.ts` object that First Load code imports (a shared `const` object can't be tree-shaken per chunk)." This also needs a matching note in ADR-0009/0010 (done as Amendments) and would retire the "values in `lib/motion.ts`" wording in future motion ADRs. Want me to draft it?
 4. **A§ Accessibility (engineering rules):** "A modal disclosure whose trigger stays in the focus cycle uses `inert` on the outside plus two-edge Tab wrapping, not `<dialog>.showModal()`." Want me to draft it?
 5. **D§ Motion Principles:** CSS transitions for state changes should sit behind the project's motion gate (`.gsap [data-…] { transition: … }`) when a spec requires "instant without the gate", because reduced-motion media queries alone don't cover the no-gate case. Want me to draft it?

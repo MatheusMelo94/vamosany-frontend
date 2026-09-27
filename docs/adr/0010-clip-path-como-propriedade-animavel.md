@@ -54,3 +54,10 @@ Conditions that apply now, to the drawer and to the two existing uses:
 - DDR-0006 item 13, item 17 and Consequences; DDR-0003 (marker); ADR-0002; ADR-0006; ADR-0008 (amendment pattern)
 - `components/layout/nav-marker.tsx`; `app/globals.css` (`.gsap [data-sm-signature]`); `docs/specs/sobre-mi/plan.md` § 8.7
 - `frontend-architecture-conventions.md` § Animation (GSAP 3); `design-conventions.md` § Motion Principles
+
+## Amendment (2026-09-27, Frontend Architect; recorded after acceptance, the decision and the proposed convention text are unchanged)
+
+**Condition 5 ("Values in `lib/motion.ts`") now reads:** values in the project's named motion values. That means `lib/motion.ts` for modules in First Load, or a values module beside a lazily loaded module that alone uses them. For the drawer, that is `components/layout/drawer/motion-values.ts` (`DRAWER_MOTION.open.panel.clip`, `DRAWER_MOTION.close.panel`). As before, the radius is read from the element's token (`--radius-3xl`) with `getComputedStyle`.
+
+- **Why:** the same as ADR-0009's Amendment: RV-0018, fixed by `bebc394`. `lib/motion.ts`'s shared object can't be tree-shaken per chunk, so the drawer's values were riding in `/`'s First Load.
+- **What doesn't change:** conditions 1–4, the `inset()`-only shape, `clearProps: "clipPath"` on a full reveal (now built by `panelClip()`, `795425b`), and the no-`backdrop-filter` rule. The two earlier uses (DDR-0003 marker, Sobre mí signature) keep their values in `lib/motion.ts`, because they are in or next to First Load code already.

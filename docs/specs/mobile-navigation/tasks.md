@@ -7,6 +7,7 @@
 - **Visual rule (AC 1, DDR-0006):** only `drawer-top-{phone-360,tablet-768}` and `drawer-last-group-{phone-360,tablet-768}` may change. Any other screenshot diff is BLOCKING.
 - **Labels:** `DDR-0006` (a visible drawer change) · `Render-Preserving` (diff 0 everywhere, including the drawer files) · `ADR-0009` / `ADR-0010` (can't merge until that ADR is *Accepted*) · **build check required** (touches a `'use client'` boundary or a dynamic import).
 - **Citations:** `A§` = `frontend-architecture-conventions.md §`, `D§` = `design-conventions.md §`, `S§` = `frontend-security-conventions.md §`. AC numbers are the spec's (1–52).
+- **Amendment 2026-09-27:** T002's values now live in `components/layout/drawer/motion-values.ts` (`DRAWER_MOTION`, `DRAWER_EASE`), not `lib/motion.ts` (`bebc394`, RV-0018). T003's chunk is resolved with `import()` into Navbar state, not `next/dynamic`, and the `catch` fallback component is replaced by a "burger stays closed, next tap retries" contract (`910634c`, QA-0006/RV-0023). See plan § 0.3, § 7.1 and § 9. Follow-up **RV-0024** (plan § 9) is open for the Engineer.
 - **Files:** new code goes in `components/layout/drawer/` (`nav-model.ts`, `modal.ts`, `drawer-motion.ts`, `mobile-drawer.tsx`, `drawer-group.tsx`, `drawer-footer.tsx`) with tests in `components/layout/drawer/__tests__/`. New behavioral e2e goes in `tests/e2e/mobile-nav.spec.ts`.
 
 ---

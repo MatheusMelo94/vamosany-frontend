@@ -47,3 +47,11 @@ Allow GSAP to animate `height` on **the drawer accordion's body wrapper only** (
 - DDR-0006 items 15–16; ADR-0007 (FAQ height; closed scope); ADR-0002 (`.gsap` gate)
 - `frontend-architecture-conventions.md` § Animation (GSAP 3); `design-conventions.md` § Motion Principles
 - Approved mockup: `docs/design/mockups/mobile-menu-indice.html` (`act('acc')`, `render('acc:…')`)
+
+## Amendment (2026-09-27, Frontend Architect; recorded after acceptance, the decision is unchanged)
+
+**Condition 4 ("Values in `lib/motion.ts` (`MOTION.drawer.accordion`)") now reads:** the values are named constants in **`components/layout/drawer/motion-values.ts`** (`DRAWER_MOTION.accordion`), imported only by the lazy drawer chunk (`drawer-motion.ts`).
+
+- **Why:** `lib/motion.ts` exports one shared `const` object that First Load code on `/` imports. A nested key can't be tree-shaken per chunk, so the drawer-only values shipped in `/`'s First Load JS (about 187 B, against plan § 0.3). Found in review (RV-0018, `docs/reviews/2026-09-27_mobile-nav_v1.md`) and fixed by `bebc394`.
+- **What doesn't change:** the intent of the condition (no magic numbers; named, reviewable, test-pinned values) and every value. `components/layout/drawer/__tests__/motion-values.test.ts` pins them, including the AC 44 ≤500ms swap bound. Conditions 1–3 and 5 are unchanged, and the closed scope is still `[data-drawer-body]` in `drawer-motion.ts`.
+- **Reference:** `docs/specs/mobile-navigation/plan.md` § 7.1 (amended); proposed convention note in plan § 15 item 6.
