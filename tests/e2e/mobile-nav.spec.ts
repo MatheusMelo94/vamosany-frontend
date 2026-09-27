@@ -426,3 +426,139 @@ test.describe("drawer index (AC 6, 7, 11, 20, 22, 23, 24, 32, 36) @feature-mobil
     ).toBe(0);
   });
 });
+
+test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  test("tags on exactly three rows; Services' prices in Courier bold, right-aligned; no blurbs", async ({
+    page,
+  }) => {
+    await openLanding(page);
+    const drawer = await openDrawer(page);
+    const tagged: string[] = [];
+    for (const label of LABELS) {
+      await drawer.getByRole("button", { name: label, exact: true }).click();
+      const body = drawer.locator("[data-drawer-body]:visible");
+      await expect(body.getByRole("heading", { level: 3 })).not.toHaveCount(0);
+      for (const t of await body.locator("[data-row-tag]").all()) {
+        await expect(t).toBeVisible();
+        tagged.push((await t.textContent()) ?? "");
+      }
+      // Blurbs end with a period; no row text does.
+      for (const row of await body.getByRole("link").all()) {
+        expect(await row.textContent()).not.toMatch(/\.$/);
+      }
+    }
+    expect(tagged).toEqual(["Best seller", "New", "Most popular"]);
+
+    // Services is open last-but-one; open it again.
+    await drawer.getByRole("button", { name: "Services", exact: true }).click();
+    const rows = drawer.locator("[data-drawer-body]:visible a");
+    await expect(rows).toHaveCount(3);
+    const prices = await rows.evaluateAll((as) =>
+      as.map((a) => {
+        const p = a.querySelector("[data-row-price]") as HTMLElement;
+        const cs = getComputedStyle(p);
+        const pr = p.getBoundingClientRect();
+        const ar = a.getBoundingClientRect();
+        return {
+          text: p.textContent,
+          family: cs.fontFamily,
+          weight: cs.fontWeight,
+          transform: cs.textTransform,
+          rightGap: Math.round(ar.right - pr.right),
+        };
+      }),
+    );
+    expect(prices.map((p) => p.text)).toEqual(["from €25", "€149", "€290"]);
+    for (const p of prices) {
+      expect(p.family).toMatch(/Courier[_ ]Prime/);
+      expect(p.weight).toBe("700");
+      expect(p.transform).toBe("none");
+      expect(p.rightGap).toBe(0);
+    }
+    // "with Belén" never breaks across lines (DDR-0005).
+    const oneLine = await rows.nth(1).evaluate((a) => {
+      const title = a.querySelector("[data-row-title]")?.firstChild;
+      const text = title?.textContent ?? "";
+      const range = document.createRange();
+      const from = text.indexOf("with");
+      range.setStart(title as Node, from);
+      range.setEnd(title as Node, text.length);
+      const tops = new Set(
+        [...range.getClientRects()].map((r) => Math.round(r.top)),
+      );
+      return tops.size;
+    });
+    expect(oneLine).toBe(1);
+  });
+
+  test("a Services row from /sobre-mi lands on the landing's #services, in view", async ({
+    page,
+  }) => {
+    await page.goto("/sobre-mi");
+    const drawer = await openDrawer(page);
+    await drawer.getByRole("button", { name: "Services", exact: true }).click();
+    await drawer.getByRole("link", { name: /^Walk with Belén/ }).click();
+    await expect(page).toHaveURL(/\/#services$/);
+    await expect(panel(page)).toHaveCount(0);
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          Math.abs(
+            document.getElementById("services")?.getBoundingClientRect().top ??
+              Number.POSITIVE_INFINITY,
+          ),
+        ),
+      )
+      .toBeLessThan(1);
+  });
+
+  test("360 × 640: with Itineraries open, Film Locations scrolls fully above the footer", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await openLanding(page);
+    const drawer = await openDrawer(page);
+    await drawer.getByRole("button", { name: "Itineraries" }).click();
+    const last = drawer.getByRole("link", { name: "Film Locations" });
+    await drawer.locator("[data-drawer-list]").evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    const row = await last.boundingBox();
+    const footer = await drawer.locator("[data-drawer-footer]").boundingBox();
+    if (!row || !footer) throw new Error("no box");
+    expect(row.y + row.height).toBeLessThanOrEqual(footer.y);
+  });
+
+  test("320: scent lines wrap, never truncate", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 780 });
+    await openLanding(page);
+    const drawer = await openDrawer(page);
+    const scents = drawer.locator(
+      "[data-drawer-group] h2 button [id$='-scent']",
+    );
+    await expect(scents).toHaveCount(5);
+    const clipped = await scents.evaluateAll(
+      (els) =>
+        els.filter(
+          (el) =>
+            el.scrollWidth > el.clientWidth ||
+            getComputedStyle(el).textOverflow === "ellipsis" ||
+            getComputedStyle(el).whiteSpace === "nowrap",
+        ).length,
+    );
+    expect(clipped).toBe(0);
+    const wrapped = await scents.evaluateAll(
+      (els) =>
+        els.filter(
+          (el) =>
+            el.getBoundingClientRect().height >
+            parseFloat(getComputedStyle(el).lineHeight) * 1.5,
+        ).length,
+    );
+    expect(wrapped).toBeGreaterThan(0);
+  });
+});

@@ -122,54 +122,55 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
     }
   });
 
-  test("each drawer item owns its whole slot: no dead gaps between items", async ({
+  // Replaces "each drawer item owns its whole slot" (mobile-navigation
+  // AC 15, plan § 12): rows are real 44px boxes now, not an invisible slot.
+  test("every drawer row's visible box is ≥ 44px tall and spans the list, in every group", async ({
     page,
   }) => {
-    test.skip(!isPhone(page), "coarse pointer (phone project)");
+    test.skip(
+      (page.viewportSize()?.width ?? 0) >= 1024,
+      "drawer exists below 1024 only",
+    );
     await page.goto("/sobre-mi");
     await page
       .locator("header[data-nav]")
       .getByRole("button", { name: "Abrir menú" })
       .click();
-    const column = page
+    const drawer = page
       .locator("header[data-nav]")
-      .getByRole("navigation", { name: "Menú" })
-      .locator("[data-drawer-body] ul")
-      .last();
-    const items = column.locator("a");
-    await expect(items.first()).toBeVisible();
-    const count = await items.count();
-    expect(count).toBeGreaterThan(1);
-    // Hit regions measured through each item's centre: [top, bottom] in px.
-    const regions: Array<[number, number]> = [];
-    for (let i = 0; i < count; i++) {
-      const item = items.nth(i);
-      await item.scrollIntoViewIfNeeded();
-      regions.push(
-        await item.evaluate((el) => {
-          const r = el.getBoundingClientRect();
-          const cx = r.left + r.width / 2;
-          const cy = r.top + r.height / 2;
-          const hits = (y: number) =>
-            document.elementFromPoint(cx, y)?.closest("a") === el;
-          let up = 0;
-          while (up < 60 && hits(cy - up - 1)) up++;
-          let down = 0;
-          while (down < 60 && hits(cy + down + 1)) down++;
-          return [Math.round(cy - up), Math.round(cy + down)];
-        }),
+      .getByRole("navigation", { name: "Menú" });
+    const list = drawer.locator("[data-drawer-list]");
+    const width = await list.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return (
+        el.clientWidth -
+        parseFloat(cs.paddingLeft) -
+        parseFloat(cs.paddingRight)
       );
-    }
-    for (let i = 0; i < count; i++) {
-      const [top, bottom] = regions[i]!;
-      // The text is 22px; its slot on the 30px pitch is the target.
-      expect(bottom - top, `item ${i}`).toBeGreaterThanOrEqual(29);
-      if (i > 0) {
+    });
+    const headers = drawer
+      .getByRole("heading", { level: 2 })
+      .getByRole("button");
+    let rows = 0;
+    for (let g = 0; g < 5; g++) {
+      const header = headers.nth(g);
+      if ((await header.getAttribute("aria-expanded")) !== "true")
+        await header.click();
+      const links = drawer.locator("[data-drawer-body]:visible a");
+      const n = await links.count();
+      expect(n).toBeGreaterThan(0);
+      for (let i = 0; i < n; i++) {
+        const b = await links.nth(i).boundingBox();
+        expect(b?.height ?? 0, `group ${g} row ${i}`).toBeGreaterThanOrEqual(
+          44,
+        );
         expect(
-          Math.abs(top - regions[i - 1]![1]),
-          `gap before item ${i}`,
+          Math.abs((b?.width ?? 0) - width),
+          `group ${g} row ${i}`,
         ).toBeLessThanOrEqual(1);
       }
+      rows += n;
     }
+    expect(rows).toBe(40); // 12 + 12 + 8 + 3 + 5
   });
 });

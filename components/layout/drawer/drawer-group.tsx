@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { useId } from "react";
+import { Fragment, useId } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { NavGroup } from "@/components/layout/nav-config";
@@ -92,9 +92,11 @@ export function DrawerGroup({
       </h2>
       <div id={bodyId} data-drawer-body hidden={!expanded} className="pb-3">
         {group.columns.map((column) => (
-          <div key={column.heading} className="mt-4 first:mt-0">
-            <p className="eyebrow">{column.heading}</p>
-            <ul className="mt-2 space-y-2">
+          <Fragment key={column.heading}>
+            <h3 className="eyebrow text-ink-muted mt-3 mb-1">
+              {column.heading}
+            </h3>
+            <ul>
               {column.items.map((item) => {
                 const current = isCurrentHref(item.href, pathname);
                 return (
@@ -104,31 +106,51 @@ export function DrawerGroup({
                       aria-current={current ? "page" : undefined}
                       onClick={onNavigate}
                       className={cn(
-                        "body-sm text-ink-subtle flex items-center justify-between gap-3",
-                        // Coarse pointers: the hit area fills the item's slot (QA-0004);
-                        // replaced by 44px rows in T008.
-                        "pointer-coarse:relative pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1",
+                        "group/row border-surface-1 flex min-h-11 items-center gap-2 border-b py-1",
+                        FOCUS_RING,
                       )}
                     >
-                      {item.title}
-                      {item.price ? (
-                        <span className="caption text-ink font-semibold">
-                          {item.price}
+                      <span
+                        data-row-title
+                        className="body-sm text-ink min-w-0 font-semibold underline-offset-4 group-hover/row:underline"
+                      >
+                        {item.title}
+                      </span>
+                      {item.tag ? (
+                        <span
+                          data-row-tag
+                          className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap"
+                        >
+                          {item.tag}
                         </span>
                       ) : null}
-                      {current ? (
-                        <span
-                          data-current-dot
-                          aria-hidden
-                          className="bg-brand size-1.5 rounded-full"
-                        />
+                      {/* Price, then the dot, at the row's end: the dot never
+                          overlaps the title, tag or price (DDR-0003). */}
+                      {item.price || current ? (
+                        <span className="ml-auto flex shrink-0 items-center gap-2">
+                          {item.price ? (
+                            <span
+                              data-row-price
+                              className="body-sm text-ink font-mono font-bold whitespace-nowrap"
+                            >
+                              {item.price}
+                            </span>
+                          ) : null}
+                          {current ? (
+                            <span
+                              data-current-dot
+                              aria-hidden
+                              className="bg-brand size-1.5 rounded-full"
+                            />
+                          ) : null}
+                        </span>
                       ) : null}
                     </Link>
                   </li>
                 );
               })}
             </ul>
-          </div>
+          </Fragment>
         ))}
       </div>
     </div>

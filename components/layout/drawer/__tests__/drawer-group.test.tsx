@@ -129,3 +129,110 @@ describe("DrawerGroup header dot (AC 22, 23, 37)", () => {
     expect(document.querySelector("[data-header-dot]")).toBeNull();
   });
 });
+
+describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
+  it.each(NAV.map((g) => g.label))(
+    "%s: h3 column headings, then its items as links, in config order",
+    (label) => {
+      renderGroup(label, { expanded: true });
+      const body = document.querySelector("[data-drawer-body]") as HTMLElement;
+      const g = group(label);
+      expect(
+        within(body)
+          .getAllByRole("heading", { level: 3 })
+          .map((h) => h.textContent),
+      ).toEqual(g.columns.map((c) => c.heading));
+      for (const h of within(body).getAllByRole("heading", { level: 3 })) {
+        expect(h).toHaveClass("eyebrow", "text-ink-muted");
+      }
+      expect(
+        within(body)
+          .getAllByRole("link")
+          .map((a) => a.querySelector("[data-row-title]")?.textContent),
+      ).toEqual(g.columns.flatMap((c) => c.items.map((i) => i.title)));
+      for (const list of within(body).getAllByRole("list")) {
+        expect(list.previousElementSibling?.tagName).toBe("H3");
+      }
+    },
+  );
+
+  it("renders rows ≥44px with the title in body-sm semibold ink and no blurb", () => {
+    for (const g of NAV) {
+      const { unmount } = renderGroup(g.label, { expanded: true });
+      for (const link of screen.getAllByRole("link")) {
+        expect(link).toHaveClass("min-h-11", "border-b", "border-surface-1");
+        expect(link.querySelector("[data-row-title]")).toHaveClass(
+          "body-sm",
+          "font-semibold",
+          "text-ink",
+        );
+      }
+      for (const item of g.columns.flatMap((c) => c.items)) {
+        expect(screen.queryByText(item.blurb)).toBeNull();
+      }
+      unmount();
+    }
+  });
+
+  it("puts the three tags on exactly their rows, as yellow pills", () => {
+    const tagged: Array<[string, string]> = [];
+    for (const g of NAV) {
+      const { unmount } = renderGroup(g.label, { expanded: true });
+      for (const link of screen.getAllByRole("link")) {
+        const tag = link.querySelector("[data-row-tag]");
+        if (!tag) continue;
+        expect(tag).toHaveClass("caption", "bg-brand", "rounded-full");
+        tagged.push([
+          link.querySelector("[data-row-title]")?.textContent ?? "",
+          tag.textContent ?? "",
+        ]);
+      }
+      unmount();
+    }
+    expect(tagged).toEqual([
+      ["5 Days — The Classic", "Best seller"],
+      ["Christmas in New York", "New"],
+      ["Custom itinerary with Belén", "Most popular"],
+    ]);
+  });
+
+  it("shows Services' three prices in Courier bold, pointing at /#services", () => {
+    renderGroup("Services", { expanded: true });
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(3);
+    expect(
+      links.map((a) => a.querySelector("[data-row-price]")?.textContent),
+    ).toEqual(["from €25", "€149", "€290"]);
+    for (const a of links) {
+      expect(a).toHaveAttribute("href", "/#services");
+      expect(a.querySelector("[data-row-price]")).toHaveClass(
+        "body-sm",
+        "font-mono",
+        "font-bold",
+      );
+    }
+  });
+
+  it("marks only the current row, with aria-current and a static dot after the price", () => {
+    renderGroup("Sobre mí", {
+      expanded: true,
+      hasCurrent: true,
+      pathname: "/colaboraciones",
+    });
+    const current = document.querySelectorAll("[aria-current]");
+    expect(current).toHaveLength(1);
+    const row = screen.getByRole("link", { name: "Colaboraciones" });
+    expect(row).toHaveAttribute("aria-current", "page");
+    const dot = row.querySelector("[data-current-dot]");
+    expect(dot).toHaveAttribute("aria-hidden", "true");
+    expect(row.lastElementChild).toContainElement(dot as HTMLElement);
+  });
+
+  it("closes the drawer through onNavigate when a row is tapped", async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+    renderGroup("Sobre mí", { expanded: true, onNavigate });
+    await user.click(screen.getByRole("link", { name: "Contacto" }));
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
+});
