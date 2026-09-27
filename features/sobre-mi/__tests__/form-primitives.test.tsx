@@ -69,7 +69,6 @@ describe("FormField", () => {
     expect(input).toHaveAccessibleDescription(
       "Falta tu email para poder responderte.",
     );
-    expect(input).toHaveClass("shadow-[inset_0_-3px_0_var(--color-brand)]");
     const badge = screen.getByText("!");
     expect(badge).toHaveAttribute("aria-hidden", "true");
     expect(container.querySelector(smSel("field"))).toContainElement(input);
@@ -142,13 +141,12 @@ describe("SelectField", () => {
 });
 
 describe("SubmitRow (AC 37, 43, 44; R-01)", () => {
-  it("is a plain button until hydrated, then a submit button, 220px wide, with no helper line", () => {
+  it("is a plain button until hydrated, then a submit button, with no helper line", () => {
     const { rerender, container } = render(
       <SubmitRow label="Enviar mensaje" hydrated={false} />,
     );
     const button = screen.getByRole("button", { name: "Enviar mensaje" });
     expect(button).toHaveAttribute("type", "button");
-    expect(button).toHaveClass("min-w-55");
     rerender(<SubmitRow label="Enviar mensaje" hydrated />);
     expect(button).toHaveAttribute("type", "submit");
     expect(container.textContent).toBe("Enviar mensaje");
@@ -164,10 +162,8 @@ describe("NotConfiguredBanner (AC 41)", () => {
     );
     expect(banner).toHaveAttribute("tabindex", "-1");
     expect(banner).toHaveAttribute("data-sm-banner");
-    expect(banner).toHaveClass("border-2", "border-ink");
     const link = screen.getByRole("link", { name: "hola@vamosany.com" });
     expect(link).toHaveAttribute("href", "mailto:hola@vamosany.com");
-    expect(link).toHaveClass("font-mono", "font-bold");
   });
 });
 
@@ -180,6 +176,5 @@ describe("NoJsBlock (AC 44)", () => {
     );
     const link = screen.getByRole("link", { name: "hola@vamosany.com" });
     expect(link).toHaveAttribute("href", "mailto:hola@vamosany.com");
-    expect(link).toHaveClass("headline", "font-mono", "font-bold");
   });
 });

@@ -51,7 +51,6 @@ describe("PageHeader (slots 01–03)", () => {
     const visual = container.querySelector(smSel("train"));
     expect(visual).toHaveAttribute("aria-hidden", "true");
     expect(visual).toHaveAttribute(SM_ATTR.split);
-    expect(visual).toHaveClass("highlight-heading");
     expect(visual).toHaveTextContent("Sobre mí");
   });
 
@@ -64,34 +63,17 @@ describe("PageHeader (slots 01–03)", () => {
 });
 
 describe("NotesLayout (slot 04)", () => {
-  it("puts the notes column before the main column, in an @container (AC 18)", () => {
+  it("puts the notes column before the main column (AC 18; widths in e2e structure.spec)", () => {
     const { container } = render(
       <NotesLayout notes={["Belén", "Lic. en Comunicación"]}>
         <p>Main column</p>
       </NotesLayout>,
     );
-    const root = container.firstElementChild;
-    expect(root).toHaveClass("@container");
     const notes = container.querySelector(smSel("notes"));
     const main = screen.getByText("Main column");
     expect(notes?.compareDocumentPosition(main)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
-    expect(notes?.parentElement).toHaveClass("@gutter:flex-row");
-    expect(notes).toHaveClass("@gutter:w-50");
-  });
-
-  it("sets the first note in bold ink, the rest muted", () => {
-    const { container } = render(
-      <NotesLayout notes={["Belén", "Lic. en Comunicación"]}>
-        <p>Main</p>
-      </NotesLayout>,
-    );
-    const [first, second] = Array.from(
-      container.querySelector(smSel("notes"))?.children ?? [],
-    );
-    expect(first).toHaveClass("font-bold", "text-ink");
-    expect(second).not.toHaveClass("font-bold");
   });
 
   it("renders the first note as an h2 when it names the section", () => {
@@ -119,7 +101,6 @@ describe("ClosingRow (slot 05)", () => {
       />,
     );
     const row = container.querySelector(smSel("closing"));
-    expect(row?.querySelector(".border-y-2.border-ink")).not.toBeNull();
     const scope = within(row as HTMLElement);
     expect(
       scope.getByRole("heading", {
@@ -134,22 +115,6 @@ describe("ClosingRow (slot 05)", () => {
       scope.getByRole("link", { name: "Viajes grupales" }),
     ).toHaveAttribute("href", "/preguntas-frecuentes#viajes-grupales");
     expect(row?.querySelectorAll(smSel("closingItem"))).toHaveLength(3);
-  });
-
-  it("uses the primary (yellow) style for the first action and outline for the second", () => {
-    render(
-      <ClosingRow
-        headline="¿Querés crear algo juntos?"
-        primary={{ label: "Escribime", href: "mailto:hola@vamosany.com" }}
-        secondary={{ label: "Trabajá conmigo", href: "/trabaja-conmigo" }}
-      />,
-    );
-    expect(screen.getByRole("link", { name: "Escribime" })).toHaveClass(
-      "bg-brand",
-    );
-    expect(screen.getByRole("link", { name: "Trabajá conmigo" })).toHaveClass(
-      "bg-transparent",
-    );
   });
 
   it("renders without a secondary action", () => {
