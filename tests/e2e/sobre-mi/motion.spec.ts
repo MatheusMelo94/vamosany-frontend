@@ -491,6 +491,17 @@ test.describe("M2 shared reveals (T034) @feature-sobre-mi", () => {
         "opacity",
         "1",
       );
+      // Whether the target starts below the reveal line depends on font
+      // metrics (CI renders real Arial, shorter than the fallback), so the
+      // premise is measured, not assumed. Reveal start is "top 88%".
+      const startRatio = await page
+        .locator(selector)
+        .nth(index)
+        .evaluate((el) => el.getBoundingClientRect().top / window.innerHeight);
+      test.skip(
+        startRatio < 0.95,
+        `target starts at ${Math.round(startRatio * 100)}% of the viewport, not below the fold at this size`,
+      );
       expect(await state(page, selector, index)).toMatchObject({ opacity: 0 });
       await scrollToEl(page, selector, index);
       await expect
