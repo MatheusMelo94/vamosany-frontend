@@ -218,6 +218,8 @@ test.describe("navbar Sobre mí group (DDR-0002) @feature-sobre-mi", () => {
     const toggle = header(page).getByRole("button", { name: "Abrir menú" });
     await toggle.click();
     const drawer = header(page).getByRole("navigation", { name: "Menú" });
+    // On "/" every group starts closed (mobile-navigation S2): open Sobre mí.
+    await drawer.getByRole("button", { name: "Sobre mí", exact: true }).click();
     for (const [title, href] of SOBRE_MI_ITEMS) {
       await expect(
         drawer.getByRole("link", { name: title, exact: true }),

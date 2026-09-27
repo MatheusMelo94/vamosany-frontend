@@ -1,13 +1,20 @@
 "use client";
 
 import type { JSX, RefObject } from "react";
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { GlobeIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { LANGUAGES, NAV, type Lang } from "@/components/layout/nav-config";
-import { isCurrentHref, itemHref } from "./nav-model";
+import { defaultOpenGroup, groupHasCurrent } from "./nav-model";
+import { DrawerGroup } from "./drawer-group";
 import { focusables, inertOutside, wrapTab } from "./modal";
 
 export type DrawerProps = {
@@ -42,6 +49,13 @@ export function MobileDrawer({
   const pathname = usePathname();
   const veilRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
+  /* Single-open accordion, initialized on every mount from the current
+     page, so a reopen always starts from the default (AC 20, 24). */
+  const [expanded, setExpanded] = useState(() =>
+    defaultOpenGroup(NAV, pathname),
+  );
+  const toggle = (label: string) =>
+    setExpanded((cur) => (cur === label ? null : label));
 
   /** Veil and Esc: close and hand focus back to the burger (AC 29). */
   const dismiss = useCallback(() => {
@@ -128,57 +142,21 @@ export function MobileDrawer({
       >
         <div
           data-drawer-list
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-4 pb-4"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-1 pb-4"
         >
-          <ul className="divide-hairline divide-y">
+          <div className="border-hairline border-t">
             {NAV.map((group) => (
-              <li key={group.label} className="py-5">
-                <p className="card-title text-ink">{group.label}</p>
-                {group.columns.map((column) => (
-                  <div key={column.heading} className="mt-4">
-                    <p className="eyebrow">{column.heading}</p>
-                    <ul className="mt-2 space-y-2">
-                      {column.items.map((item) => {
-                        const current = isCurrentHref(item.href, pathname);
-                        return (
-                          <li key={item.title}>
-                            <Link
-                              href={itemHref(item)}
-                              aria-current={current ? "page" : undefined}
-                              onClick={onClose}
-                              className={cn(
-                                "body-sm text-ink-subtle flex items-center justify-between gap-3",
-                                // Coarse pointers: the hit area fills the item's slot, half of the
-                                // 8px gap above and below (invisible; QA-0004). 44px exclusive
-                                // targets don't fit the frozen 30px pitch.
-                                "pointer-coarse:relative pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1",
-                              )}
-                            >
-                              {item.title}
-                              {item.price ? (
-                                <span className="caption text-ink font-semibold">
-                                  {item.price}
-                                </span>
-                              ) : null}
-                              {/* Static "you are here" dot, the same as the
-                                language menu's selected dot (DDR-0003). */}
-                              {current ? (
-                                <span
-                                  data-current-dot
-                                  aria-hidden
-                                  className="bg-brand size-1.5 rounded-full"
-                                />
-                              ) : null}
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </li>
+              <DrawerGroup
+                key={group.label}
+                group={group}
+                expanded={expanded === group.label}
+                hasCurrent={groupHasCurrent(group, pathname)}
+                pathname={pathname}
+                onToggle={() => toggle(group.label)}
+                onNavigate={onClose}
+              />
             ))}
-          </ul>
+          </div>
         </div>
         <div
           data-drawer-footer

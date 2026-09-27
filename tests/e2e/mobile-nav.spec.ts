@@ -166,7 +166,7 @@ test.describe("drawer focus (AC 25, 28, 29, 32, 33) @feature-mobile-nav", () => 
     [
       "Escape from a panel control",
       async (page, drawer) => {
-        await drawer.getByRole("link").nth(2).focus();
+        await drawer.getByRole("button").nth(2).focus();
         await page.keyboard.press("Escape");
       },
     ],
@@ -271,6 +271,7 @@ test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
     page,
   }) => {
     const { drawer, b } = await openAt(page, 360, 640);
+    await drawer.getByRole("button", { name: "Itineraries" }).click();
     const list = drawer.locator("[data-drawer-list]");
     const footer = drawer.locator("[data-drawer-footer]");
     const scroll = await list.evaluate((el) => ({
@@ -288,5 +289,140 @@ test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
     expect(after).toEqual(before);
     if (!after) throw new Error("no footer box");
     expect(after.y + after.height).toBeLessThanOrEqual(b.y + b.height);
+  });
+});
+
+const LABELS = ["Itineraries", "Guides", "Blog", "Services", "Sobre mí"];
+const SCENTS = [
+  "By length · By season · By appetite",
+  "Getting around · Neighbourhoods · Before you fly",
+  "Latest · Readers",
+  "Ready-made · One to one · In person",
+  "Vamos a New York · Ayuda",
+];
+const SOBRE_MI_PATHS = [
+  "/sobre-mi",
+  "/colaboraciones",
+  "/trabaja-conmigo",
+  "/contacto",
+  "/preguntas-frecuentes",
+];
+
+/** The group header buttons: each is the only child of an h2. */
+const groupHeaders = (drawer: Locator) =>
+  drawer.getByRole("heading", { level: 2 }).getByRole("button");
+
+test.describe("drawer index (AC 6, 7, 11, 20, 22, 23, 24, 32, 36) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  test("first level: five closed headers in desktop order, Montserrat bold, scent lines, no item links", async ({
+    page,
+  }) => {
+    await openLanding(page);
+    const drawer = await openDrawer(page);
+    const hs = groupHeaders(drawer);
+    await expect(hs).toHaveCount(5);
+    for (const [i, label] of LABELS.entries()) {
+      const h = hs.nth(i);
+      await expect(h).toHaveAccessibleName(label);
+      await expect(h).toHaveAccessibleDescription(SCENTS[i] ?? "");
+      await expect(h).toHaveAttribute("aria-expanded", "false");
+      const font = await h.getByText(label, { exact: true }).evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return [cs.fontFamily, cs.fontWeight, cs.textTransform];
+      });
+      expect(font[0]).toMatch(/^"?_*Montserrat/);
+      expect(font.slice(1)).toEqual(["700", "none"]);
+      const scent = await h.getByText(SCENTS[i] ?? "").evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return [cs.fontFamily, cs.color];
+      });
+      expect(scent[0]).toMatch(/Courier[_ ]Prime/);
+      expect(scent[1]).toBe("rgb(72, 72, 70)"); // ink-muted, not ink-tertiary (AC 40)
+      expect((await h.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(56);
+    }
+    await expect(drawer.getByRole("link")).toHaveCount(2); // Log in, Sign up
+    await expect(hs.first()).toBeFocused();
+    await expect(drawer.locator("[data-header-dot]")).toHaveCount(0);
+    await expect(drawer.locator("[aria-current]")).toHaveCount(0);
+  });
+
+  test("one group open at a time; the open header closes it; Enter keeps focus", async ({
+    page,
+  }) => {
+    await openLanding(page);
+    const drawer = await openDrawer(page);
+    const header = (name: string) =>
+      drawer.getByRole("button", { name, exact: true });
+    await header("Itineraries").click();
+    await expect(drawer.getByRole("heading", { level: 2 })).toHaveCount(5);
+    await expect(
+      drawer.getByRole("link", { name: "Weekend Escape" }),
+    ).toBeVisible();
+    await header("Guides").click();
+    await expect(header("Itineraries")).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    await expect(header("Guides")).toHaveAttribute("aria-expanded", "true");
+    await header("Guides").focus();
+    await page.keyboard.press("Enter");
+    await expect(header("Guides")).toHaveAttribute("aria-expanded", "false");
+    await expect(header("Guides")).toBeFocused();
+    await expect(drawer.getByRole("link")).toHaveCount(2);
+  });
+
+  for (const path of SOBRE_MI_PATHS) {
+    test(`${path}: Sobre mí open with the header dot, Services closed`, async ({
+      page,
+    }) => {
+      await page.goto(path);
+      const drawer = await openDrawer(page);
+      const sobreMi = drawer.getByRole("button", {
+        name: "Sobre mí",
+        exact: true,
+      });
+      await expect(sobreMi).toHaveAttribute("aria-expanded", "true");
+      await expect(sobreMi.locator("[data-header-dot]")).toBeVisible();
+      await expect(
+        drawer.getByRole("button", { name: "Services", exact: true }),
+      ).toHaveAttribute("aria-expanded", "false");
+      await expect(drawer.locator("[aria-expanded='true']")).toHaveCount(1);
+    });
+  }
+
+  test("the header dot stays after collapse; reopen restores the default, list at the top", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto("/sobre-mi");
+    let drawer = await openDrawer(page);
+    const sobreMi = drawer.getByRole("button", {
+      name: "Sobre mí",
+      exact: true,
+    });
+    await sobreMi.click();
+    await expect(sobreMi).toHaveAttribute("aria-expanded", "false");
+    await expect(sobreMi.locator("[data-header-dot]")).toBeVisible();
+    await drawer.getByRole("button", { name: "Itineraries" }).click();
+    const list = drawer.locator("[data-drawer-list]");
+    await list.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    expect(await list.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await burger(page).click();
+    await expect(panel(page)).toHaveCount(0);
+    drawer = await openDrawer(page);
+    await expect(
+      drawer.getByRole("button", { name: "Sobre mí", exact: true }),
+    ).toHaveAttribute("aria-expanded", "true");
+    await expect(
+      drawer.getByRole("button", { name: "Itineraries" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(
+      await drawer.locator("[data-drawer-list]").evaluate((el) => el.scrollTop),
+    ).toBe(0);
   });
 });

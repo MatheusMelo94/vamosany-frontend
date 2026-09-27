@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { focusables, wrapTab } from "../modal";
 
@@ -113,5 +114,134 @@ describe("MobileDrawer focus (AC 29, 32, 33)", () => {
     await user.click(burger);
     expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
     expect(screen.getByRole("button", { name: "Abrir menú" })).toHaveFocus();
+  });
+});
+
+const LABELS = ["Itineraries", "Guides", "Blog", "Services", "Sobre mí"];
+const SOBRE_MI_PATHS = [
+  "/sobre-mi",
+  "/colaboraciones",
+  "/trabaja-conmigo",
+  "/contacto",
+  "/preguntas-frecuentes",
+];
+
+/** The five group headers, in DOM order. */
+const headers = (panel: HTMLElement) =>
+  within(panel)
+    .getAllByRole("heading", { level: 2 })
+    .map((h) => within(h).getByRole("button"));
+
+const expandedLabels = (panel: HTMLElement) =>
+  headers(panel)
+    .filter((b) => b.getAttribute("aria-expanded") === "true")
+    .map(
+      (b) =>
+        document.getElementById(b.getAttribute("aria-labelledby") ?? "")
+          ?.textContent,
+    );
+
+describe("MobileDrawer index (AC 6, 11, 13, 14, 20, 23, 24, 32, 35)", () => {
+  afterEach(() => {
+    vi.mocked(usePathname).mockReturnValue("/");
+  });
+
+  it("shows five closed h2 headers in desktop order and no item link on /", async () => {
+    const { panel } = await openDrawer();
+    const hs = headers(panel);
+    expect(hs.map((b) => b.getAttribute("aria-expanded"))).toEqual(
+      Array(5).fill("false"),
+    );
+    for (const [i, label] of LABELS.entries()) {
+      expect(hs[i]).toHaveAccessibleName(label);
+    }
+    // Only the footer's links are exposed while every group is closed.
+    expect(
+      within(panel)
+        .getAllByRole("link")
+        .map((a) => a.textContent)
+        .sort(),
+    ).toEqual(["Log in", "Sign up"]);
+  });
+
+  it("focuses the Itineraries header on open", async () => {
+    const { panel } = await openDrawer();
+    expect(
+      within(panel).getByRole("button", { name: "Itineraries" }),
+    ).toHaveFocus();
+  });
+
+  it("keeps one group open at a time; tapping the open header closes it", async () => {
+    const { user, panel } = await openDrawer();
+    await user.click(
+      within(panel).getByRole("button", { name: "Itineraries" }),
+    );
+    expect(expandedLabels(panel)).toEqual(["Itineraries"]);
+    expect(
+      within(panel).getByRole("link", { name: "Weekend Escape" }),
+    ).toBeVisible();
+    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    expect(expandedLabels(panel)).toEqual(["Guides"]);
+    expect(
+      within(panel).queryByRole("link", { name: "Weekend Escape" }),
+    ).toBeNull();
+    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    expect(expandedLabels(panel)).toEqual([]);
+  });
+
+  it("toggles a header with Enter and Space, focus staying on it", async () => {
+    const { user, panel } = await openDrawer();
+    const blog = within(panel).getByRole("button", { name: "Blog" });
+    blog.focus();
+    await user.keyboard("{Enter}");
+    expect(blog).toHaveAttribute("aria-expanded", "true");
+    await user.keyboard(" ");
+    expect(blog).toHaveAttribute("aria-expanded", "false");
+    expect(blog).toHaveFocus();
+  });
+
+  it("shows no header dot and no aria-current on /", async () => {
+    const { panel } = await openDrawer();
+    expect(panel.querySelector("[data-header-dot]")).toBeNull();
+    expect(panel.querySelector("[aria-current]")).toBeNull();
+  });
+
+  it.each(SOBRE_MI_PATHS)(
+    "on %s opens with Sobre mí expanded, Services closed, and the header dot",
+    async (path) => {
+      vi.mocked(usePathname).mockReturnValue(path);
+      const { panel } = await openDrawer();
+      expect(expandedLabels(panel)).toEqual(["Sobre mí"]);
+      const sobreMi = within(panel).getByRole("button", { name: "Sobre mí" });
+      expect(sobreMi.querySelector("[data-header-dot]")).not.toBeNull();
+      expect(
+        within(panel).getByRole("button", { name: "Services" }),
+      ).toHaveAttribute("aria-expanded", "false");
+    },
+  );
+
+  it("keeps the Sobre mí dot after collapsing it or opening another group (S4)", async () => {
+    vi.mocked(usePathname).mockReturnValue("/contacto");
+    const { user, panel } = await openDrawer();
+    const sobreMi = within(panel).getByRole("button", { name: "Sobre mí" });
+    await user.click(sobreMi);
+    expect(sobreMi).toHaveAttribute("aria-expanded", "false");
+    expect(sobreMi.querySelector("[data-header-dot]")).not.toBeNull();
+    await user.click(within(panel).getByRole("button", { name: "Blog" }));
+    expect(sobreMi.querySelector("[data-header-dot]")).not.toBeNull();
+    expect(panel.querySelectorAll("[data-header-dot]")).toHaveLength(1);
+  });
+
+  it("restores the default state on reopen: nothing remembered, list at the top", async () => {
+    vi.mocked(usePathname).mockReturnValue("/sobre-mi");
+    const { user, panel, burger } = await openDrawer();
+    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    const list = panel.querySelector("[data-drawer-list]");
+    if (list) list.scrollTop = 120;
+    await user.click(burger);
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const again = await screen.findByRole("navigation", { name: "Menú" });
+    expect(expandedLabels(again)).toEqual(["Sobre mí"]);
+    expect(again.querySelector("[data-drawer-list]")?.scrollTop).toBe(0);
   });
 });

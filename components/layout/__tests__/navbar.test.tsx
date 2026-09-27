@@ -196,6 +196,7 @@ describe("Navbar", () => {
     render(<Navbar />);
     await user.click(screen.getByRole("button", { name: "Abrir menú" }));
     const menu = await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(within(menu).getByRole("button", { name: "Sobre mí" }));
     for (const [title] of SOBRE_MI_ITEMS) {
       expect(within(menu).getByRole("link", { name: title })).toBeVisible();
     }
@@ -208,6 +209,9 @@ describe("Navbar", () => {
     const toggle = screen.getByRole("button", { name: "Abrir menú" });
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
+    // On "/" every group starts closed (mobile-navigation S2): open Sobre mí.
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(within(menu).getByRole("button", { name: "Sobre mí" }));
     expect(await screen.findByText("Vamos a New York")).toBeInTheDocument();
     expect(screen.getByText("Ayuda")).toBeInTheDocument();
     for (const [title, , href] of SOBRE_MI_ITEMS) {
@@ -249,9 +253,14 @@ describe("Navbar item destinations (RV-0010)", () => {
     const user = userEvent.setup();
     render(<Navbar />);
     await user.click(screen.getByRole("button", { name: "Abrir menú" }));
-    await screen.findByRole("navigation", { name: "Menú" });
-    const hrefs = itemHrefs();
-    expect(hrefs.length).toBeGreaterThan(20);
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    // Single-open accordion: open each group in turn and read its links.
+    const hrefs: string[] = [];
+    for (const group of NAV) {
+      await user.click(within(menu).getByRole("button", { name: group.label }));
+      hrefs.push(...itemHrefs());
+    }
+    expect(hrefs.length).toBeGreaterThan(30);
     for (const href of hrefs) expect(href).toMatch(/^\//);
   });
 });

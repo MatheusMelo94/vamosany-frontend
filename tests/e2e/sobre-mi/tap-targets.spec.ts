@@ -134,7 +134,7 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
     const column = page
       .locator("header[data-nav]")
       .getByRole("navigation", { name: "Menú" })
-      .locator("ul ul")
+      .locator("[data-drawer-body] ul")
       .last();
     const items = column.locator("a");
     await expect(items.first()).toBeVisible();
