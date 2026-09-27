@@ -1,4 +1,9 @@
 import { test, expect, type Page } from "@playwright/test";
+import {
+  nextFrames,
+  waitForGsapIdle,
+  waitForLandingMotion,
+} from "./support/motion";
 import AxeBuilder from "@axe-core/playwright";
 
 /**
@@ -25,14 +30,16 @@ const LOOPING = (page: Page) => [
 async function scrollThrough(page: Page) {
   await page.evaluate(async () => {
     const step = window.innerHeight / 2;
+    const frame = () => new Promise((r) => requestAnimationFrame(r));
     for (let y = 0; y < document.body.scrollHeight; y += step) {
       window.scrollTo(0, y);
-      await new Promise((r) => setTimeout(r, 60));
+      await frame();
+      await frame();
     }
     window.scrollTo(0, 0);
   });
   // Reveals, contadores (1.2 s) e o pin do overscroll precisam terminar antes da captura.
-  await page.waitForTimeout(3000);
+  await waitForGsapIdle(page);
 }
 
 test.describe("landing", () => {
@@ -56,7 +63,7 @@ test.describe("landing", () => {
 
   test("baseline: idle, motion enabled", async ({ page }) => {
     await page.goto("/");
-    await page.waitForTimeout(2000);
+    await waitForLandingMotion(page);
     await expect(page).toHaveScreenshot("idle-motion.png", {
       mask: LOOPING(page),
       animations: "disabled",
@@ -70,6 +77,7 @@ test.describe("landing", () => {
     // recalcula os pins do overscroll e a pagina nunca estabiliza. Capturas de viewport em
     // posicoes fixas sao deterministas (scrub imediato, reveals once ja disparados).
     await page.goto("/");
+    await waitForLandingMotion(page);
     await scrollThrough(page);
     for (const fraction of [0.25, 0.5, 0.75, 1]) {
       await page.evaluate((f) => {
@@ -78,7 +86,7 @@ test.describe("landing", () => {
           Math.round((document.body.scrollHeight - window.innerHeight) * f),
         );
       }, fraction);
-      await page.waitForTimeout(800);
+      await waitForGsapIdle(page);
       await expect(page).toHaveScreenshot(
         `scrolled-${Math.round(fraction * 100)}.png`,
         {
@@ -108,7 +116,8 @@ test.describe("landing", () => {
 
     test("baseline: full page, reduced motion", async ({ page }) => {
       await page.goto("/");
-      await page.waitForTimeout(500);
+      await page.evaluate(() => document.fonts.ready);
+      await nextFrames(page, 3);
       await expect(page).toHaveScreenshot("full-reduced-motion.png", {
         fullPage: true,
         animations: "disabled",

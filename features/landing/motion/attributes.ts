@@ -27,6 +27,5 @@ export type MotionAttr = keyof typeof MOTION_ATTR;
 /** Seletor CSS para um atributo do contrato. */
 export const sel = (key: MotionAttr): string => `[${MOTION_ATTR[key]}]`;
 
-/** Gate global: o inline script em app/layout.tsx poe `.gsap` no <html> quando ha JS e motion nao esta reduzido (ADR-0002). */
-export const motionEnabled = (): boolean =>
-  document.documentElement.classList.contains("gsap");
+/** Gate global (ADR-0002); mora em lib/gsap.ts, re-exportado para os imports da landing nao mudarem. */
+export { motionEnabled } from "@/lib/gsap";

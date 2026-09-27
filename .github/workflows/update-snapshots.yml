@@ -2,8 +2,15 @@ name: Update snapshots
 
 # Regenera o baseline de screenshots (oraculo do ADR-0006) no mesmo ambiente do CI
 # e commita na branch. Rodar so quando uma mudanca visual foi aprovada por DDR, ou na
-# primeira vez. Dois gatilhos: manual (Actions > Update snapshots) ou a label
-# "update-snapshots" no PR (o workflow_dispatch so existe apos o merge na main).
+# primeira vez. Gatilhos:
+#   - manual (Actions > Update snapshots; o workflow_dispatch so existe apos o merge na main)
+#     ou a label "update-snapshots" no PR: todos os projetos, modo "changed" do Playwright
+#     (reescreve so os PNG ausentes ou fora da tolerancia de 1%). Commita tests/e2e/**/*-snapshots.
+#   - a label "update-snapshots-desktop" no PR (T003, plan sobre-mi § 12 item 4): so o projeto
+#     desktop-1280, modo "all" (reescreve todo PNG desktop, mesmo abaixo da tolerancia, p. ex.
+#     o rotulo "About" -> "Sobre mi" do DDR-0002). Commita SO arquivos *desktop-1280*; qualquer
+#     outro PNG alterado fica fora do commit e aparece como aviso no job summary.
+# O job summary lista os arquivos do commit do bot (o Reviewer confere contra o plan § 12).
 on:
   workflow_dispatch:
   pull_request:
@@ -15,9 +22,19 @@ permissions:
 
 jobs:
   update:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'update-snapshots'
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.label.name == 'update-snapshots' ||
+      github.event.label.name == 'update-snapshots-desktop'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # As duas labels no mesmo PR rodam em serie: o segundo job faz checkout do HEAD que o
+    # primeiro pushou, em vez de disputar o push.
+    concurrency:
+      group: update-snapshots-${{ github.head_ref || github.ref }}
+      cancel-in-progress: false
+    env:
+      SCOPE: ${{ github.event.label.name == 'update-snapshots-desktop' && 'desktop' || 'changed' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -29,20 +46,71 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test --update-snapshots
+      - name: Update snapshots (all projects, changed)
+        if: env.SCOPE == 'changed'
+        run: npx playwright test --update-snapshots
+        env:
+          CI: "true"
+      - name: Update snapshots (desktop-1280, all)
+        if: env.SCOPE == 'desktop'
+        run: npx playwright test --project=desktop-1280 --update-snapshots=all
         env:
           CI: "true"
       - name: Commit baseline
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/e2e/*-snapshots
-          git diff --cached --quiet && { echo "baseline sem mudancas"; exit 0; }
-          git commit -m "test(e2e): update screenshot baseline"
+          if [ "$SCOPE" = "desktop" ]; then
+            git add -A -- ':(glob)tests/e2e/**/*-snapshots/*desktop-1280*'
+            msg="test(e2e): update desktop-1280 screenshot baseline (update-snapshots=all)"
+          else
+            git add -A -- ':(glob)tests/e2e/**/*-snapshots/**'
+            msg="test(e2e): update screenshot baseline"
+          fi
+          if git diff --cached --quiet; then
+            echo "baseline sem mudancas"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "$msg"
           # Push com GITHUB_TOKEN nao dispara o CI; o proximo push humano compara contra este baseline.
           git push
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+      - name: Job summary
+        if: always() && steps.commit.outcome == 'success'
+        env:
+          PUSHED: ${{ steps.commit.outputs.pushed }}
+          TRIGGER: ${{ github.event.label.name || github.event_name }}
+        run: |
+          {
+            echo "## Update snapshots"
+            echo ""
+            echo "- Trigger: \`$TRIGGER\` · scope: \`$SCOPE\`"
+            if [ "$PUSHED" = "true" ]; then
+              echo "- Bot commit: \`$(git rev-parse --short HEAD)\` ($(git diff --name-only HEAD~1 HEAD | wc -l) files)"
+              echo ""
+              echo "| Status | File |"
+              echo "|---|---|"
+              git diff --name-status HEAD~1 HEAD | awk -F'\t' '{ print "| " $1 " | `" $NF "` |" }'
+            else
+              echo "- No snapshot changed; nothing committed."
+            fi
+            left=$(git status --porcelain -- ':(glob)tests/e2e/**/*-snapshots/**')
+            if [ -n "$left" ]; then
+              echo ""
+              echo "> [!WARNING]"
+              echo "> Snapshot files changed by the run but NOT committed (outside the scope):"
+              echo ""
+              echo '```'
+              echo "$left"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Remove trigger label
         if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api -X DELETE "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/update-snapshots"
+          LABEL: ${{ github.event.label.name }}
+          PR: ${{ github.event.pull_request.number }}
+        run: gh api -X DELETE "repos/${{ github.repository }}/issues/$PR/labels/$LABEL"

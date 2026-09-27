@@ -2,194 +2,20 @@
 
 import type { JSX } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
 import { GlobeIcon } from "@/components/ui/icons";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { cn } from "@/lib/utils";
+import { NAV } from "@/components/layout/nav-config";
 
-type Item = {
-  title: string;
-  blurb: string;
-  tag?: string;
-  price?: string;
-  href?: string;
-};
-type Group = { label: string; columns: { heading: string; items: Item[] }[] };
-
-const NAV: Group[] = [
-  {
-    label: "Itineraries",
-    columns: [
-      {
-        heading: "By length",
-        items: [
-          {
-            title: "3 Days — First Timer",
-            blurb: "The greatest hits, walkable.",
-          },
-          {
-            title: "5 Days — The Classic",
-            blurb: "Icons plus real neighbourhoods.",
-            tag: "Best seller",
-          },
-          { title: "7 Days — Deep Cut", blurb: "Five boroughs, no filler." },
-          { title: "Weekend Escape", blurb: "48 hours, zero wasted minutes." },
-        ],
-      },
-      {
-        heading: "By season",
-        items: [
-          {
-            title: "Christmas in New York",
-            blurb: "Markets, windows, ice rinks.",
-            tag: "New",
-          },
-          {
-            title: "Autumn in the Parks",
-            blurb: "Peak foliage, October light.",
-          },
-          { title: "Summer Rooftops", blurb: "Long evenings above the grid." },
-          { title: "Winter on a Budget", blurb: "Warm rooms, cheap tickets." },
-        ],
-      },
-      {
-        heading: "By appetite",
-        items: [
-          { title: "Foodie New York", blurb: "Delis, dumplings, slices." },
-          { title: "Art & Museums", blurb: "The Met to Bushwick walls." },
-          { title: "Family New York", blurb: "Tested with small legs." },
-          { title: "Film Locations", blurb: "Stand where the scene happened." },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Guides",
-    columns: [
-      {
-        heading: "Getting around",
-        items: [
-          {
-            title: "The Subway, Explained",
-            blurb: "Read the map like a local.",
-          },
-          { title: "From the Airport", blurb: "JFK, EWR and LGA compared." },
-          { title: "Walking the Grid", blurb: "Why the numbers make sense." },
-          { title: "Yellow Cab vs App", blurb: "When each one wins." },
-        ],
-      },
-      {
-        heading: "Neighbourhoods",
-        items: [
-          { title: "Lower East Side", blurb: "Tenements and late nights." },
-          { title: "Williamsburg", blurb: "Brooklyn's front window." },
-          { title: "Harlem", blurb: "Jazz, stoops and Sunday." },
-          {
-            title: "Chinatown & Little Italy",
-            blurb: "Two blocks, two worlds.",
-          },
-        ],
-      },
-      {
-        heading: "Before you fly",
-        items: [
-          { title: "ESTA & Entry", blurb: "Paperwork without panic." },
-          { title: "Budget Calculator", blurb: "What a day really costs." },
-          {
-            title: "Packing for the Season",
-            blurb: "It is colder than you think.",
-          },
-          { title: "Broadway Tickets", blurb: "Rush, lottery and TKTS." },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Blog",
-    columns: [
-      {
-        heading: "Latest",
-        items: [
-          { title: "Neighbourhood Diaries", blurb: "One block at a time." },
-          { title: "Seasonal Guides", blurb: "What's on, month by month." },
-          { title: "Food Crawls", blurb: "Routes built around eating." },
-          { title: "Photo Spots", blurb: "Where the light lands." },
-        ],
-      },
-      {
-        heading: "Readers",
-        items: [
-          { title: "Reader Trips", blurb: "Real itineraries, real notes." },
-          { title: "Ask Us Anything", blurb: "Your questions, answered." },
-          { title: "Mistakes We Made", blurb: "So you don't repeat them." },
-          { title: "Newsletter Archive", blurb: "Every issue, free." },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Services",
-    columns: [
-      {
-        heading: "Ready-made",
-        items: [
-          {
-            title: "Curated by Belén",
-            blurb: "Itineraries she walked and wrote. Download and go.",
-            price: "from €25",
-            href: "#services",
-          },
-        ],
-      },
-      {
-        heading: "One to one",
-        items: [
-          {
-            title: "Custom itinerary with Belén",
-            blurb: "A call, your dates and pace, a plan built just for you.",
-            price: "€149",
-            tag: "Most popular",
-            href: "#services",
-          },
-        ],
-      },
-      {
-        heading: "In person",
-        items: [
-          {
-            title: "Walk with Belén",
-            blurb:
-              "Half a day on foot with her, in the neighbourhood you pick.",
-            price: "€290",
-            href: "#services",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "About",
-    columns: [
-      {
-        heading: "The studio",
-        items: [
-          { title: "Our Story", blurb: "Why we started walking." },
-          { title: "How We Research", blurb: "On foot, twice a year." },
-          { title: "Press", blurb: "Where we've turned up." },
-          { title: "Work With Us", blurb: "Partnerships and briefs." },
-        ],
-      },
-      {
-        heading: "Help",
-        items: [
-          { title: "Contact", blurb: "A human replies." },
-          { title: "Refunds", blurb: "Fourteen days, no questions." },
-          { title: "FAQ", blurb: "The usual suspects." },
-        ],
-      },
-    ],
-  },
-];
+/* Desktop-only, pointer/focus-driven: loaded on first panel open, never in
+   First Load JS (plan § 11). Until it mounts, items keep their CSS hover. */
+const NavMarker = dynamic(
+  () => import("./nav-marker").then((m) => m.NavMarker),
+  { ssr: false },
+);
 
 const LANGUAGES = [
   { code: "EN", label: "English" },
@@ -203,6 +29,20 @@ export function Navbar(): JSX.Element {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [lang, setLang] = useState<Lang>("EN");
   const [langOpen, setLangOpen] = useState(false);
+  /* Current page is derived from the URL, never stored (DDR-0002/0003). */
+  const pathname = usePathname();
+  const isCurrent = (href: string | undefined): boolean =>
+    href !== undefined && href === pathname;
+  const panelIdBase = useId();
+  /** Trigger per group label, so Escape can hand focus back (disclosure pattern). */
+  const triggerRefs = useRef(new Map<string, HTMLButtonElement>());
+  const openRef = useRef(open);
+  /** Group whose panel the pointer opened by hovering, until a click claims it (QA-0002). */
+  const hoverOpenedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -214,8 +54,10 @@ export function Navbar(): JSX.Element {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        const openGroup = openRef.current;
         setOpen(null);
         setLangOpen(false);
+        if (openGroup) triggerRefs.current.get(openGroup)?.focus();
       }
     };
     const onClick = (e: MouseEvent) => {
@@ -230,8 +72,6 @@ export function Navbar(): JSX.Element {
     };
   }, []);
 
-  const active = NAV.find((g) => g.label === open);
-
   const textLink =
     "body-sm rounded-full px-3 py-1.5 font-semibold text-ink transition-colors hover:bg-ink/5";
 
@@ -242,24 +82,65 @@ export function Navbar(): JSX.Element {
       data-nav
       className="site-nav pointer-events-none sticky top-4 z-50 mt-4 px-4 sm:px-6"
     >
-      <div
+      {/* <nav>, not <div>: the site's navigation landmark at every width
+          (same box and classes as before, so the render is unchanged). */}
+      <nav
         className="nav-capsule border-ink/[0.08] max-w-page bg-canvas/55 shadow-nav pointer-events-auto relative mx-auto flex h-14 w-full items-center justify-between gap-4 rounded-full border pr-2 pl-5 backdrop-blur-xl backdrop-saturate-150 transition-shadow duration-(--duration-slow) sm:pr-2.5 sm:pl-7"
         onMouseLeave={() => setOpen(null)}
       >
-        <Link href="/" className="shrink-0" aria-label="Vamos a NY — home">
+        {/* tap-target: ≥ 44 × 44 px invisible hit area on coarse pointers
+            (QA-0004); nothing drawn changes */}
+        <Link
+          href="/"
+          className="tap-target shrink-0"
+          aria-label="Vamos a NY — home"
+        >
           <BrandLogo className="h-6" priority />
         </Link>
 
         <div className="hidden items-center gap-1 lg:flex">
           <ul className="flex items-center gap-0.5">
-            {NAV.map((group) => (
-              <li key={group.label}>
+            {NAV.map((group, index) => (
+              <li
+                key={group.label}
+                // Keyboard focus leaving trigger + panel closes it (RV-0005). A null
+                // relatedTarget (a click on the panel's unfocusable padding, the
+                // window losing focus) keeps it; the pointer path owns that case.
+                onBlur={(e) => {
+                  const next = e.relatedTarget;
+                  if (
+                    openRef.current === group.label &&
+                    next instanceof Node &&
+                    !e.currentTarget.contains(next)
+                  )
+                    setOpen(null);
+                }}
+              >
                 <button
+                  ref={(el) => {
+                    if (el) triggerRefs.current.set(group.label, el);
+                    else triggerRefs.current.delete(group.label);
+                  }}
                   type="button"
-                  onMouseEnter={() => setOpen(group.label)}
-                  onClick={() =>
-                    setOpen((cur) => (cur === group.label ? null : group.label))
-                  }
+                  aria-controls={`${panelIdBase}-panel-${index}`}
+                  onMouseEnter={() => {
+                    if (openRef.current !== group.label)
+                      hoverOpenedRef.current = group.label;
+                    setOpen(group.label);
+                  }}
+                  onClick={(e) => {
+                    // A pointer click (detail > 0) on the trigger that hovering just
+                    // opened keeps it open: "hover or click" opens (QA-0002). The next
+                    // click, and Enter/Space (detail 0), toggle as before.
+                    const claimsHover =
+                      e.detail > 0 && hoverOpenedRef.current === group.label;
+                    hoverOpenedRef.current = null;
+                    if (claimsHover) setOpen(group.label);
+                    else
+                      setOpen((cur) =>
+                        cur === group.label ? null : group.label,
+                      );
+                  }}
                   aria-expanded={open === group.label}
                   className={cn(
                     textLink,
@@ -286,6 +167,87 @@ export function Navbar(): JSX.Element {
                     />
                   </svg>
                 </button>
+                {/* Desktop mega menu — rendered right after its trigger
+                    (disclosure pattern: DOM order = tab order) but still
+                    positioned against the capsule, its nearest positioned
+                    ancestor, so it floats beneath the capsule as before. */}
+                {open === group.label ? (
+                  // arbitrary: offset do dropdown = altura do trigger + 8px
+                  <div
+                    id={`${panelIdBase}-panel-${index}`}
+                    className={cn(
+                      "border-ink/[0.08] bg-canvas shadow-menu absolute inset-x-0 top-[calc(100%+0.5rem)] hidden rounded-3xl border lg:block",
+                      // Hover bridge (QA-0001): an unpainted strip over the 8px gap, 4px into the
+                      // capsule, so a pointer on its way to the items never leaves the panel.
+                      "before:absolute before:inset-x-0 before:-top-3 before:h-3",
+                    )}
+                    onMouseEnter={() => setOpen(group.label)}
+                    onMouseLeave={() => setOpen(null)}
+                  >
+                    <NavMarker />
+                    {/* relative: the items paint above the marker's highlight */}
+                    <div
+                      className="relative grid gap-10 px-8 py-8"
+                      style={{
+                        gridTemplateColumns: `repeat(${group.columns.length}, minmax(0,1fr))`,
+                      }}
+                    >
+                      {group.columns.map((column) => (
+                        <div key={column.heading}>
+                          <p className="eyebrow">{column.heading}</p>
+                          <ul className="mt-5 space-y-1">
+                            {column.items.map((item) => (
+                              <li key={item.title}>
+                                <Link
+                                  href={item.href ?? "/#services"}
+                                  data-nav-item
+                                  aria-current={
+                                    isCurrent(item.href) ? "page" : undefined
+                                  }
+                                  className={cn(
+                                    // Once the marker is ready it is the hover highlight (DDR-0003).
+                                    "group hover:bg-surface-1 block rounded-xl p-3 transition-colors in-data-marker-ready:hover:bg-transparent",
+                                    item.price &&
+                                      "border-hairline hover:border-ink border",
+                                  )}
+                                >
+                                  {/* pr-4: room for the marker dot, which sits
+                                      24px in from the item's right edge (DDR-0003) */}
+                                  <span className="body-sm text-ink flex items-center gap-2 pr-4 font-semibold">
+                                    <span
+                                      data-nav-title
+                                      className="underline-offset-4 group-hover:underline"
+                                    >
+                                      {item.title}
+                                    </span>
+                                    {item.tag ? (
+                                      <span className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap">
+                                        {item.tag}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                  <span className="body-sm text-ink-subtle mt-0.5 block">
+                                    {item.blurb}
+                                  </span>
+                                  {item.price ? (
+                                    <span className="mt-3 flex items-center justify-between">
+                                      <span className="headline text-ink">
+                                        {item.price}
+                                      </span>
+                                      <span className="label-button text-ink underline-offset-4 group-hover:underline">
+                                        See details
+                                      </span>
+                                    </span>
+                                  ) : null}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -384,7 +346,7 @@ export function Navbar(): JSX.Element {
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
-          className="text-ink hover:bg-ink/5 grid size-10 place-items-center rounded-full transition-colors lg:hidden"
+          className="tap-target text-ink hover:bg-ink/5 grid size-10 place-items-center rounded-full transition-colors lg:hidden"
         >
           <svg viewBox="0 0 20 20" aria-hidden className="size-5">
             {mobileOpen ? (
@@ -404,66 +366,7 @@ export function Navbar(): JSX.Element {
             )}
           </svg>
         </button>
-
-        {/* Desktop mega menu — floats beneath the capsule at its width */}
-        {active ? (
-          // arbitrary: offset do dropdown = altura do trigger + 8px
-          <div
-            className="border-ink/[0.08] bg-canvas shadow-menu absolute inset-x-0 top-[calc(100%+0.5rem)] hidden rounded-3xl border lg:block"
-            onMouseEnter={() => setOpen(active.label)}
-            onMouseLeave={() => setOpen(null)}
-          >
-            <div
-              className="grid gap-10 px-8 py-8"
-              style={{
-                gridTemplateColumns: `repeat(${active.columns.length}, minmax(0,1fr))`,
-              }}
-            >
-              {active.columns.map((column) => (
-                <div key={column.heading}>
-                  <p className="eyebrow">{column.heading}</p>
-                  <ul className="mt-5 space-y-1">
-                    {column.items.map((item) => (
-                      <li key={item.title}>
-                        <Link
-                          href={item.href ?? "#services"}
-                          className={cn(
-                            "group hover:bg-surface-1 block rounded-xl p-3 transition-colors",
-                            item.price &&
-                              "border-hairline hover:border-ink border",
-                          )}
-                        >
-                          <span className="body-sm text-ink flex items-center gap-2 font-semibold">
-                            {item.title}
-                            {item.tag ? (
-                              <span className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap">
-                                {item.tag}
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="body-sm text-ink-subtle mt-0.5 block">
-                            {item.blurb}
-                          </span>
-                          {item.price ? (
-                            <span className="mt-3 flex items-center justify-between">
-                              <span className="headline text-ink">
-                                {item.price}
-                              </span>
-                              <span className="label-button text-ink underline-offset-4 group-hover:underline">
-                                See details
-                              </span>
-                            </span>
-                          ) : null}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </div>
+      </nav>
 
       {/* Mobile menu — a floating panel under the capsule, over a veil that
           hides the page beneath and closes the menu when tapped */}
@@ -477,7 +380,14 @@ export function Navbar(): JSX.Element {
       ) : null}
       {mobileOpen ? (
         // arbitrary: drawer abaixo da capsula = margem + altura da capsula + folga
-        <div className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto rounded-3xl border px-5 pt-4 pb-8 lg:hidden">
+        // <nav>, not <div> (RV-0015): the drawer is its own labelled
+        // navigation landmark. It can't sit inside the capsule's <nav>: the
+        // capsule's backdrop-filter would become its containing block and
+        // move the fixed panel. Same box and classes, so pixels are unchanged.
+        <nav
+          aria-label="Menu"
+          className="border-ink/[0.08] bg-canvas shadow-drawer pointer-events-auto fixed inset-x-4 top-[calc(1rem+3.5rem+0.5rem)] bottom-4 overflow-y-auto rounded-3xl border px-5 pt-4 pb-8 lg:hidden"
+        >
           <ul className="divide-hairline divide-y">
             {NAV.map((group) => (
               <li key={group.label} className="py-5">
@@ -489,15 +399,33 @@ export function Navbar(): JSX.Element {
                       {column.items.map((item) => (
                         <li key={item.title}>
                           <Link
-                            href={item.href ?? "#services"}
+                            href={item.href ?? "/#services"}
+                            aria-current={
+                              isCurrent(item.href) ? "page" : undefined
+                            }
                             onClick={() => setMobileOpen(false)}
-                            className="body-sm text-ink-subtle flex items-center justify-between gap-3"
+                            className={cn(
+                              "body-sm text-ink-subtle flex items-center justify-between gap-3",
+                              // Coarse pointers: the hit area fills the item's slot, half of the
+                              // 8px gap above and below (invisible; QA-0004). 44px exclusive
+                              // targets don't fit the frozen 30px pitch.
+                              "pointer-coarse:relative pointer-coarse:before:absolute pointer-coarse:before:inset-x-0 pointer-coarse:before:-inset-y-1",
+                            )}
                           >
                             {item.title}
                             {item.price ? (
                               <span className="caption text-ink font-semibold">
                                 {item.price}
                               </span>
+                            ) : null}
+                            {/* Static "you are here" dot, the same as the
+                                language menu's selected dot (DDR-0003). */}
+                            {isCurrent(item.href) ? (
+                              <span
+                                data-current-dot
+                                aria-hidden
+                                className="bg-brand size-1.5 rounded-full"
+                              />
                             ) : null}
                           </Link>
                         </li>
@@ -549,7 +477,7 @@ export function Navbar(): JSX.Element {
               Log in
             </Link>
           </div>
-        </div>
+        </nav>
       ) : null}
     </header>
   );

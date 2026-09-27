@@ -72,4 +72,61 @@ export const MOTION = {
       settleDelayMs: 150,
     },
   },
+
+  /* ---- Sobre mí pages (plan § 8.4; DDR-0003, DDR-0004). Additions only. ---- */
+
+  /** Shared page template: heading dek offset, "20" count-up, notes/closing/form reveals */
+  page: {
+    /** dek lands while the train is still braking (MOTION.heading.lede.offset is -=0.42) */
+    dekOffset: "-=0.85",
+    count: { at: 0.1, ease: "power2.out" },
+    notes: { y: 12, duration: 0.4, stagger: 0.06 },
+    closing: { y: 14, duration: 0.4, stagger: 0.08 },
+    formFields: { y: 16, duration: 0.4, stagger: 0.07 },
+  },
+  /** Navbar mega-menu moving marker (DDR-0003) */
+  menuMarker: {
+    pill: 0.55,
+    dot: 0.75,
+    /** dot scaleX = min(stretchMax, 1 + distance / stretchDivisor) */
+    stretchMax: 2.6,
+    stretchDivisor: 160,
+    squash: 0.8,
+    stretchEase: "power1.inOut",
+    /** px from the item's right edge / top edge */
+    dotOffset: { right: 24, top: 15 },
+  },
+  sobreMi: {
+    parallax: { scaleFrom: 1.18, scaleTo: 1.04, yPercent: 6, scrub: 0.4 },
+    signature: { duration: 1.2, start: "top 92%", ease: "power2.inOut" },
+    rail: { start: "top 80%", end: "bottom 55%", scrub: 0.4 },
+    timelineRows: { x: -14, duration: 0.4, stagger: 0.1 },
+  },
+  colaboraciones: {
+    readingBar: { start: "top 70%", end: "bottom 60%", scrub: 0.3 },
+    yearTick: { duration: 0.6, start: "top 82%", firstFrom: 2021 },
+    yearFade: { duration: 0.3 },
+    partner: { x: -10, duration: 0.4, at: 0.1 },
+    body: { y: 18, duration: 0.45, stagger: 0.06, at: 0.05 },
+  },
+  trabajaConmigo: {
+    rule: { duration: 0.6, start: "top 90%" },
+    text: { y: 14, duration: 0.4, stagger: 0.08, offset: "-=0.35" },
+  },
+  contacto: {
+    channels: { x: -14, duration: 0.4, stagger: 0.09, delay: 0.9 },
+  },
+  faq: {
+    rows: { y: 12, duration: 0.35, stagger: 0.05 },
+    open: { duration: 0.4, content: { y: 8, duration: 0.35, delay: 0.08 } },
+    close: { duration: 0.3, ease: "power2.inOut" },
+  },
+  form: {
+    shake: { x: [0, -7, 7, -4, 4, 0], duration: 0.4 },
+    banner: { y: -8, duration: 0.35 },
+    success: {
+      sweepDelay: 0.1,
+      lines: { y: 12, duration: 0.4, stagger: 0.08, delay: 0.25 },
+    },
+  },
 } as const;

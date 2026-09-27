@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check:first-load": "node scripts/check-first-load.mjs",
+    "check:first-load:selftest": "node scripts/check-first-load.selftest.mjs",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

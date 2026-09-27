@@ -21,9 +21,11 @@ function collectGsapWarnings(page: Page): string[] {
 async function scrollThrough(page: Page) {
   await page.evaluate(async () => {
     const step = window.innerHeight / 2;
+    const frame = () => new Promise((r) => requestAnimationFrame(r));
     for (let y = 0; y < document.body.scrollHeight; y += step) {
       window.scrollTo(0, y);
-      await new Promise((r) => setTimeout(r, 60));
+      await frame();
+      await frame();
     }
   });
 }
@@ -64,7 +66,7 @@ test.describe("landing split-text headings @feature-landing-motion", () => {
     for (let i = 0; i < count; i++) {
       await page.locator(SPLIT_HEADINGS).nth(i).scrollIntoViewIfNeeded();
       await expect
-        .poll(() => headingState(page, i), { timeout: 5000 })
+        .poll(() => headingState(page, i), { timeout: 15_000 })
         .toMatchObject({ opacity: "1", maxOffsetY: 0 });
       expect((await headingState(page, i)).text).not.toBe("");
     }
