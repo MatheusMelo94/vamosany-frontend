@@ -279,6 +279,7 @@ test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
   }) => {
     const { drawer, b } = await openAt(page, 360, 640);
     await drawer.getByRole("button", { name: "Itineraries" }).click();
+    await waitForGsapIdle(page); // the accordion settles (T012)
     const list = drawer.locator("[data-drawer-list]");
     const footer = drawer.locator("[data-drawer-footer]");
     const scroll = await list.evaluate((el) => ({
@@ -447,6 +448,7 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
     const tagged: string[] = [];
     for (const label of LABELS) {
       await drawer.getByRole("button", { name: label, exact: true }).click();
+      await waitForGsapIdle(page); // the accordion settles (T012)
       const body = drawer.locator("[data-drawer-body]:visible");
       await expect(body.getByRole("heading", { level: 3 })).not.toHaveCount(0);
       for (const t of await body.locator("[data-row-tag]").all()) {
@@ -462,6 +464,7 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
 
     // Services is open last-but-one; open it again.
     await drawer.getByRole("button", { name: "Services", exact: true }).click();
+    await waitForGsapIdle(page); // the accordion settles (T012)
     const rows = drawer.locator("[data-drawer-body]:visible a");
     await expect(rows).toHaveCount(3);
     const prices = await rows.evaluateAll((as) =>
@@ -530,6 +533,7 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
     await openLanding(page);
     const drawer = await openDrawer(page);
     await drawer.getByRole("button", { name: "Itineraries" }).click();
+    await waitForGsapIdle(page); // the accordion settles (T012)
     const last = drawer.getByRole("link", { name: "Film Locations" });
     await drawer.locator("[data-drawer-list]").evaluate((el) => {
       el.scrollTop = el.scrollHeight;
@@ -1031,5 +1035,163 @@ test.describe("drawer motion off: no .gsap gate (AC 46) @feature-mobile-nav", ()
       document.documentElement.classList.remove("gsap"),
     );
     await instantOpenClose(page);
+  });
+});
+
+/** Top of a group's header and height of its body, in the page. */
+function groupBox(page: Page, label: string) {
+  return panel(page)
+    .getByRole("button", { name: label, exact: true })
+    .evaluate((button) => {
+      const group = button.closest("[data-drawer-group]");
+      const body = group?.querySelector("[data-drawer-body]");
+      return {
+        top: button.getBoundingClientRect().top,
+        body: body?.getBoundingClientRect().height ?? 0,
+        hidden: body?.hasAttribute("hidden") ?? true,
+        inert: body?.hasAttribute("inert") ?? false,
+      };
+    });
+}
+
+test.describe("drawer motion: the accordion (AC 19, 44; M11–M13) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  test("a swap overlaps: the old body collapses (inert), the new one grows, the headers slide; all done by 0.5s (AC 44)", async ({
+    page,
+  }) => {
+    await pausedAt(page, "/");
+    await tapOpen(page);
+    await page.clock.runFor(1000);
+    const drawer = panel(page);
+    await drawer.getByRole("button", { name: "Itineraries" }).click();
+    await page.clock.runFor(1000);
+    const blogBefore = await groupBox(page, "Blog");
+
+    await drawer.getByRole("button", { name: "Guides" }).click();
+    await page.clock.runFor(100);
+    const itMid = await groupBox(page, "Itineraries");
+    expect(itMid.hidden).toBe(false);
+    expect(itMid.inert).toBe(true);
+    expect(itMid.body).toBeGreaterThan(0);
+    const guidesMid = await groupBox(page, "Guides");
+    const blogMid = await groupBox(page, "Blog");
+
+    await page.clock.runFor(400);
+    expect(await gsapPending(page)).toBe(0);
+    const itEnd = await groupBox(page, "Itineraries");
+    const guidesEnd = await groupBox(page, "Guides");
+    const blogEnd = await groupBox(page, "Blog");
+    expect(itEnd.hidden).toBe(true);
+    expect(guidesMid.body).toBeGreaterThan(0);
+    expect(guidesMid.body).toBeLessThan(guidesEnd.body);
+    // Blog slides, it doesn't jump: mid-swap it is at neither end (the
+    // overlap can take it past both, as the expand leads the collapse).
+    expect(Math.abs(blogMid.top - blogBefore.top)).toBeGreaterThan(1);
+    expect(Math.abs(blogMid.top - blogEnd.top)).toBeGreaterThan(1);
+  });
+
+  test("a double tap within 100ms leaves the group collapsed, nothing running after 0.5s (AC 44)", async ({
+    page,
+  }) => {
+    await pausedAt(page, "/");
+    await tapOpen(page);
+    await page.clock.runFor(1000);
+    const guides = panel(page).getByRole("button", { name: "Guides" });
+    await guides.click();
+    await page.clock.runFor(60);
+    await guides.click();
+    await page.clock.runFor(500);
+    await expect(guides).toHaveAttribute("aria-expanded", "false");
+    expect((await groupBox(page, "Guides")).hidden).toBe(true);
+    expect(await gsapPending(page)).toBe(0);
+  });
+});
+
+/** Opens Itineraries, scrolls Blog's header near the list's bottom, taps it. */
+async function blogAfterLongGroup(page: Page) {
+  const drawer = await openDrawer(page);
+  await drawer.getByRole("button", { name: "Itineraries" }).click();
+  await waitForGsapIdle(page);
+  const list = drawer.locator("[data-drawer-list]");
+  const blog = drawer.getByRole("button", { name: "Blog", exact: true });
+  await list.evaluate((el, b) => {
+    const header = [...el.querySelectorAll("h2 button")].find((x) =>
+      x.textContent?.includes(b),
+    );
+    if (!header) throw new Error("no Blog header");
+    const box = el.getBoundingClientRect();
+    el.scrollTop += header.getBoundingClientRect().bottom - box.bottom + 8;
+  }, "Blog");
+  // Precondition: without a correction Blog would end above the list's top.
+  const outOfView = await list.evaluate((el) => {
+    const body = el.querySelector("[data-drawer-body]:not([hidden])");
+    return (body?.getBoundingClientRect().height ?? 0) > el.clientHeight / 2;
+  });
+  expect(outOfView).toBe(true);
+  await blog.click();
+  await waitForGsapIdle(page);
+  const [b, l] = await Promise.all([blog.boundingBox(), list.boundingBox()]);
+  if (!b || !l) throw new Error("no box");
+  expect(b.y).toBeGreaterThanOrEqual(l.y - 0.5);
+  expect(b.y + b.height).toBeLessThanOrEqual(l.y + l.height + 0.5);
+}
+
+test.describe("drawer keeps the opened header in view (AC 19) @feature-mobile-nav", () => {
+  test("with motion", async ({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await openLanding(page);
+    await blogAfterLongGroup(page);
+  });
+
+  test.describe("reduced motion", () => {
+    test.use({ reducedMotion: "reduce" });
+    test("instant", async ({ page }) => {
+      test.skip(isDesktop(page), "drawer exists below 1024 only");
+      await openLanding(page);
+      await blogAfterLongGroup(page);
+    });
+  });
+});
+
+/** Frame right after an expand and a collapse tap = the settled frame (AC 46). */
+async function instantAccordion(page: Page) {
+  await page.addStyleTag({ content: ISOLATE });
+  const drawer = await openDrawer(page);
+  const guides = drawer.getByRole("button", { name: "Guides" });
+  // Leave the burger first: its hover fill fades out on a CSS transition
+  // (the frozen navbar's, not drawer motion) when the pointer moves away.
+  await guides.hover();
+  await page.waitForTimeout(500);
+  for (const expanded of ["true", "false"]) {
+    await guides.click();
+    await expect(guides).toHaveAttribute("aria-expanded", expanded);
+    const after = await page.screenshot();
+    await page.waitForTimeout(1000);
+    expect(await page.screenshot()).toEqual(after);
+  }
+}
+
+test.describe("accordion motion off: reduced motion (AC 46) @feature-mobile-nav", () => {
+  test.use({ reducedMotion: "reduce" });
+  test("expand and collapse are instant", async ({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await openLanding(page);
+    await instantAccordion(page);
+  });
+});
+
+test.describe("accordion motion off: no .gsap gate (AC 46) @feature-mobile-nav", () => {
+  test("expand and collapse are instant, chevron included", async ({
+    page,
+  }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await openLanding(page);
+    await page.evaluate(() =>
+      document.documentElement.classList.remove("gsap"),
+    );
+    await instantAccordion(page);
   });
 });

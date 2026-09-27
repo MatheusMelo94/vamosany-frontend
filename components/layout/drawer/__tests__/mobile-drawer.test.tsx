@@ -364,7 +364,9 @@ describe("MobileDrawer motion (AC 41–43, 46; plan § 7)", () => {
   // its transform, which drops focus; the Tab path is in mobile-nav.spec.ts.
   it("completes a group's reveal when focus reaches it mid-unfold", async () => {
     const { panel } = await openDrawer();
-    const guides = panel.querySelectorAll<HTMLElement>("[data-drawer-group]")[1];
+    const guides = panel.querySelectorAll<HTMLElement>(
+      "[data-drawer-group]",
+    )[1];
     expect(guides?.style.opacity).toBe("0");
     within(panel).getByRole("button", { name: "Guides" }).focus();
     expect(guides?.style.opacity).toBe("");
@@ -387,6 +389,64 @@ describe("MobileDrawer motion (AC 41–43, 46; plan § 7)", () => {
     finishMotion();
     expect(screen.getByRole("navigation", { name: "Menú" })).toBe(panel);
     expect(panel.getAttribute("style") ?? "").toBe("");
+  });
+
+  const bodyOf = (panel: HTMLElement, label: string) =>
+    within(panel)
+      .getByRole("button", { name: label })
+      .closest("[data-drawer-group]")
+      ?.querySelector("[data-drawer-body]") as HTMLElement;
+
+  it("a collapsing body stays painted and inert until its collapse ends (M12)", async () => {
+    const { user, panel } = await openDrawer();
+    finishMotion();
+    await user.click(
+      within(panel).getByRole("button", { name: "Itineraries" }),
+    );
+    finishMotion();
+    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    const it = bodyOf(panel, "Itineraries");
+    expect(expandedLabels(panel)).toEqual(["Guides"]);
+    expect(it).not.toHaveAttribute("hidden");
+    expect(it).toHaveAttribute("inert");
+    expect(focusables(panel).some((el) => it.contains(el))).toBe(false);
+    expect(bodyOf(panel, "Guides").style.height).toBe("0px");
+    finishMotion();
+    expect(it).toHaveAttribute("hidden");
+    expect(bodyOf(panel, "Guides").getAttribute("style") ?? "").toBe("");
+  });
+
+  it("a double tap on a header leaves it collapsed, with nothing left running (AC 44)", async () => {
+    const { user, panel } = await openDrawer();
+    finishMotion();
+    const guides = within(panel).getByRole("button", { name: "Guides" });
+    await user.click(guides);
+    await user.click(guides);
+    expect(guides).toHaveAttribute("aria-expanded", "false");
+    finishMotion();
+    expect(bodyOf(panel, "Guides")).toHaveAttribute("hidden");
+    expect(
+      gsap.globalTimeline
+        .getChildren(true, true, false)
+        .filter((t) => t.progress() < 1),
+    ).toEqual([]);
+  });
+
+  it("a reopen during the close drops any collapsing body at once", async () => {
+    const { user, panel, burger } = await openDrawer();
+    finishMotion();
+    await user.click(
+      within(panel).getByRole("button", { name: "Itineraries" }),
+    );
+    finishMotion();
+    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    await user.click(burger);
+    await user.click(burger);
+    expect(expandedLabels(panel)).toEqual([]);
+    for (const label of LABELS) {
+      expect(bodyOf(panel, label)).toHaveAttribute("hidden");
+      expect(bodyOf(panel, label).getAttribute("style") ?? "").toBe("");
+    }
   });
 
   it("closes at once when the gate is removed while open (checked at call time)", async () => {

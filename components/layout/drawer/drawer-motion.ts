@@ -11,6 +11,8 @@ import { EASE, MOTION } from "@/lib/motion";
  *   removing `.gsap` at runtime also gives the instant path (AC 46).
  * - Reveals of focusable content use `opacity`, never `autoAlpha` (ADR-0008);
  *   `clip-path: inset()` is animated per ADR-0010 and cleared at the end.
+ * - The accordion animates the body wrapper's `height` (ADR-0009, this
+ *   module only) and retargets from the current value, never queues.
  * - Everything ends with `clearProps`: the settled drawer is its plain CSS
  *   state, pixel-equal to the drawer baselines.
  */
@@ -28,7 +30,9 @@ export type DrawerTargets = {
 
 const O = MOTION.drawer.open;
 const C = MOTION.drawer.close;
+const A = MOTION.drawer.accordion;
 const REVEALED = "[data-drawer-group], [data-drawer-footer]";
+const ROW = "[data-drawer-body] li";
 
 /**
  * The motion gate (ADR-0002), read at call time. Reduced motion never gets
@@ -159,8 +163,14 @@ export function playOpen(t: DrawerTargets): gsap.core.Timeline | null {
  * The focus safeguard (ADR-0008 condition 2): Tab reached a control whose
  * group or footer is still rising, so its reveal completes at once.
  */
-export function revealFocused(tl: gsap.core.Timeline, el: Element): void {
-  const revealed = el.closest(REVEALED);
+export function revealFocused(
+  tl: gsap.core.Timeline | null,
+  el: Element,
+): void {
+  // An accordion row (M13): its own standalone tween.
+  const row = el.closest(ROW);
+  if (row) for (const tween of gsap.getTweensOf(row)) tween.progress(1);
+  const revealed = tl && el.closest(REVEALED);
   if (!revealed) return;
   for (const tween of tl.getChildren(true, true, false)) {
     if ((tween as gsap.core.Tween).targets()[0] !== revealed) continue;
@@ -268,4 +278,98 @@ export function playReopen(t: DrawerTargets): gsap.core.Timeline | null {
       0,
     );
   return tl;
+}
+
+/** Drops a body's (and its rows') motion: the plain CSS state, at once. */
+function settleBody(body: HTMLElement, rows: HTMLElement[]) {
+  // Per target: killTweensOf([a, b]) only strips a tween of [a] partially,
+  // and the stripped tween would still complete (and call onDone).
+  for (const el of [body, ...rows]) gsap.killTweensOf(el);
+  gsap.set(body, { clearProps: "height,overflow" });
+  if (rows.length) gsap.set(rows, { clearProps: "opacity,transform" });
+}
+
+/**
+ * M11–M13: expands (`height` → auto, rows rise) or collapses (`height` → 0)
+ * one group body, from wherever it is (ADR-0009: retarget, no queue). A
+ * collapse reports its end through `onDone`, so the caller can stop
+ * painting the body; a retarget kills it first, so it never reports.
+ * Without motion everything is instant and `onDone` runs synchronously.
+ */
+export function toggleBody(
+  body: HTMLElement,
+  expand: boolean,
+  onDone?: () => void,
+  { instant = false }: { instant?: boolean } = {},
+): void {
+  const rows = [...body.querySelectorAll<HTMLElement>("li")];
+  if (instant || !animates()) {
+    settleBody(body, rows);
+    onDone?.();
+    return;
+  }
+  const from = body.style.height;
+  settleBody(body, rows);
+  // A body mid-way keeps its height; a fresh expand starts at 0.
+  gsap.set(body, {
+    height: from || (expand ? 0 : undefined),
+    overflow: "hidden",
+  });
+  if (!expand) {
+    gsap.to(body, {
+      height: 0,
+      duration: A.collapse.duration,
+      ease: A.collapse.ease,
+      onComplete: onDone,
+    });
+    return;
+  }
+  gsap.to(body, {
+    height: "auto",
+    duration: A.expand.duration,
+    ease: A.expand.ease,
+    clearProps: "height,overflow",
+  });
+  // One tween per row, so the focus safeguard can complete exactly one.
+  const stagger = Math.min(
+    A.rows.stagger,
+    (A.rows.maxStart - A.rows.at) / Math.max(1, rows.length - 1),
+  );
+  rows.forEach((row, i) =>
+    gsap.fromTo(
+      row,
+      { opacity: 0, y: A.rows.y },
+      {
+        opacity: 1,
+        y: 0,
+        duration: A.rows.duration,
+        delay: A.rows.at + i * stagger,
+        clearProps: "opacity,transform",
+      },
+    ),
+  );
+}
+
+/**
+ * AC 19: an opened header whose final top (after the bodies above it have
+ * collapsed) is above the list's scrollTop is brought to the list's top,
+ * over the collapse; instant without motion.
+ */
+export function keepInView(
+  list: HTMLElement,
+  top: number,
+  { instant = false }: { instant?: boolean } = {},
+): void {
+  if (instant || !animates()) {
+    gsap.killTweensOf(list);
+    if (top < list.scrollTop) list.scrollTop = top;
+    return;
+  }
+  if (top >= list.scrollTop) return;
+  gsap.to(list, {
+    scrollTop: top,
+    duration: A.collapse.duration,
+    ease: A.collapse.ease,
+    overwrite: true,
+  });
 }

@@ -11,6 +11,7 @@ function group(label: string): NavGroup {
 
 type Overrides = Partial<{
   expanded: boolean;
+  painted: boolean;
   hasCurrent: boolean;
   pathname: string;
   onToggle: () => void;
@@ -22,6 +23,7 @@ function renderGroup(label: string, o: Overrides = {}) {
     <DrawerGroup
       group={group(label)}
       expanded={o.expanded ?? false}
+      painted={o.painted}
       hasCurrent={o.hasCurrent ?? false}
       pathname={o.pathname ?? "/"}
       onToggle={o.onToggle ?? (() => undefined)}
@@ -234,5 +236,46 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     renderGroup("Sobre mí", { expanded: true, onNavigate });
     await user.click(screen.getByRole("link", { name: "Contacto" }));
     expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("DrawerGroup body motion hooks (M11–M12; ADR-0009; plan § 7.4)", () => {
+  const bodyEl = () =>
+    document.querySelector("[data-drawer-body]") as HTMLElement;
+
+  it("paints the body only while expanded by default", () => {
+    renderGroup("Guides");
+    expect(bodyEl()).toHaveAttribute("hidden");
+  });
+
+  it("keeps a collapsing body painted but inert: its links leave the tab order at once", () => {
+    renderGroup("Guides", { expanded: false, painted: true });
+    expect(bodyEl()).not.toHaveAttribute("hidden");
+    expect(bodyEl()).toHaveAttribute("inert");
+    expect(screen.getByRole("button", { name: "Guides" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  });
+
+  it("an expanded body is neither hidden nor inert", () => {
+    renderGroup("Guides", { expanded: true, painted: true });
+    expect(bodyEl()).not.toHaveAttribute("hidden");
+    expect(bodyEl()).not.toHaveAttribute("inert");
+  });
+
+  it("puts the padding on an inner wrapper, so the wrapper's height can reach 0", () => {
+    renderGroup("Guides", { expanded: true });
+    expect(bodyEl().className).toBe("");
+    expect(bodyEl().firstElementChild).toHaveClass("pb-3");
+  });
+
+  // The first h3's mt-3 must not collapse out through the wrapper: the
+  // wrapper's box is then exactly the space the body takes, which the
+  // keep-in-view math subtracts (AC 19), and clipping it (overflow hidden
+  // while it animates) can't move that margin.
+  it("contains its content's margins (flow-root)", () => {
+    renderGroup("Guides", { expanded: true });
+    expect(bodyEl().firstElementChild).toHaveClass("flow-root");
   });
 });

@@ -1,15 +1,20 @@
 import { gsap } from "@/lib/gsap";
 import { getEases } from "@/lib/gsap-ease";
 import { EASE, MOTION } from "@/lib/motion";
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 import {
+  keepInView,
   playClose,
   playOpen,
   playReopen,
   revealFocused,
+  toggleBody,
   type DrawerTargets,
 } from "../drawer-motion";
 
 const O = MOTION.drawer.open;
+const A = MOTION.drawer.accordion;
 const C = MOTION.drawer.close;
 
 /** The drawer's animated nodes, as MobileDrawer passes them. */
@@ -261,5 +266,163 @@ describe("playReopen, a reopen during the close", () => {
     html.classList.remove("gsap");
     expect(playReopen(t)).toBeNull();
     expect(t.panel.getAttribute("style") ?? "").toBe("");
+  });
+});
+
+/** Running animations of a target (a finished `gsap.set` isn't one). */
+const live = (target: gsap.TweenTarget) =>
+  gsap.getTweensOf(target).filter((t) => t.duration() > 0);
+
+/** A group body as DrawerGroup renders it: wrapper, padded content, rows. */
+function body(rows = 4): HTMLElement {
+  document.body.innerHTML = `<div data-drawer-body id="b"><div class="pb-3"><ul>${"<li><a href='#'>row</a></li>".repeat(rows)}</ul></div></div>`;
+  return document.getElementById("b") as HTMLElement;
+}
+const rowsOf = (b: HTMLElement) => [...b.querySelectorAll("li")];
+
+describe("toggleBody, the accordion (M11–M13; ADR-0009)", () => {
+  it("expands the body's height from 0 to auto, 0.3s power2.out, clipped while it runs (M11)", () => {
+    const b = body();
+    toggleBody(b, true);
+    const [tw] = live(b);
+    expect(tw?.duration()).toBe(A.expand.duration);
+    expect(tw?.vars.ease).toBe(A.expand.ease);
+    expect(tw?.vars.height).toBe("auto");
+    expect(b.style.height).toBe("0px");
+    expect(b.style.overflow).toBe("hidden");
+    tw?.progress(1);
+    expect(b.getAttribute("style") ?? "").toBe("");
+  });
+
+  it("fades and raises each row 6px, 30ms apart from 0.05s (M13)", () => {
+    const b = body(4);
+    toggleBody(b, true);
+    rowsOf(b).forEach((row, i) => {
+      const [tw] = live(row);
+      expect(tw?.duration()).toBe(A.rows.duration);
+      expect(tw?.delay()).toBeCloseTo(A.rows.at + i * A.rows.stagger);
+      expect(row.style.opacity).toBe("0");
+      expect(row.style.visibility).toBe("");
+      expect(gsap.getProperty(row, "y")).toBe(A.rows.y);
+    });
+  });
+
+  it("caps the stagger so the last row starts ≤0.25s after the expand begins", () => {
+    const b = body(12);
+    toggleBody(b, true);
+    const last = live(rowsOf(b).at(-1)!)[0];
+    expect(last?.delay()).toBeLessThanOrEqual(A.rows.maxStart + 1e-9);
+    expect(last!.delay() + last!.duration()).toBeLessThanOrEqual(0.5);
+  });
+
+  it("collapses to 0 in 0.18s power2.in and reports the end (M12)", () => {
+    const b = body();
+    const onDone = vi.fn();
+    toggleBody(b, false, onDone);
+    const [tw] = live(b);
+    expect(tw?.duration()).toBe(A.collapse.duration);
+    expect(tw?.vars.ease).toBe(A.collapse.ease);
+    expect(tw?.vars.height).toBe(0);
+    expect(b.style.overflow).toBe("hidden");
+    expect(onDone).not.toHaveBeenCalled();
+    tw?.progress(1);
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it("retargets without a queue: a collapse mid-expand starts from the current height, and the expand never reports", () => {
+    const b = body();
+    toggleBody(b, true);
+    live(b)[0]?.pause();
+    gsap.set(b, { height: 40 });
+    const onDone = vi.fn();
+    toggleBody(b, false, onDone);
+    const tweensNow = live(b);
+    expect(tweensNow).toHaveLength(1);
+    expect(tweensNow[0]?.vars.height).toBe(0);
+    expect(b.style.height).toBe("40px");
+    for (const row of rowsOf(b)) expect(live(row)).toEqual([]);
+  });
+
+  it("re-expands a collapsing body from where it is", () => {
+    const b = body();
+    const onDone = vi.fn();
+    toggleBody(b, false, onDone);
+    live(b)[0]?.pause();
+    gsap.set(b, { height: 25 });
+    toggleBody(b, true);
+    expect(b.style.height).toBe("25px");
+    expect(live(b)).toHaveLength(1);
+    for (const t of gsap.globalTimeline.getChildren(true, true, false))
+      t.progress(1);
+    expect(onDone).not.toHaveBeenCalled();
+    expect(b.getAttribute("style") ?? "").toBe("");
+  });
+
+  it("is instant without the gate: no tween, styles cleared, onDone synchronous", () => {
+    const b = body();
+    toggleBody(b, true);
+    html.classList.remove("gsap");
+    const onDone = vi.fn();
+    toggleBody(b, false, onDone);
+    expect(live([b, ...rowsOf(b)])).toEqual([]);
+    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(b.getAttribute("style") ?? "").toBe("");
+    for (const row of rowsOf(b))
+      expect(row.getAttribute("style") ?? "").toBe("");
+  });
+});
+
+describe("revealFocused on accordion rows (M13 safeguard)", () => {
+  it("completes the reveal of a row that gets focus mid-stagger", () => {
+    const b = body(4);
+    toggleBody(b, true);
+    const rows = rowsOf(b);
+    revealFocused(null, rows[3]!.querySelector("a")!);
+    expect(rows[3]!.style.opacity).toBe("");
+    expect(rows[2]!.style.opacity).toBe("0");
+  });
+});
+
+describe("keepInView (AC 19)", () => {
+  const list = (scrollTop: number) => {
+    document.body.innerHTML = `<div id="l"></div>`;
+    const l = document.getElementById("l") as HTMLElement;
+    l.scrollTop = scrollTop;
+    return l;
+  };
+
+  it("scrolls up to the header's final top over the collapse duration", () => {
+    const l = list(300);
+    keepInView(l, 120);
+    const [tw] = live(l);
+    expect(tw?.vars.scrollTop).toBe(120);
+    expect(tw?.duration()).toBe(A.collapse.duration);
+  });
+
+  it("leaves the list alone when the header stays below its top", () => {
+    const l = list(100);
+    keepInView(l, 180);
+    expect(live(l)).toEqual([]);
+    expect(l.scrollTop).toBe(100);
+  });
+
+  it("sets scrollTop at once without the gate", () => {
+    const l = list(300);
+    html.classList.remove("gsap");
+    keepInView(l, 120);
+    expect(live(l)).toEqual([]);
+    expect(l.scrollTop).toBe(120);
+  });
+});
+
+describe("height is animated only in drawer-motion.ts (ADR-0009 closed scope)", () => {
+  it("no other drawer module mentions a height tween", () => {
+    const dir = path.resolve(__dirname, "..");
+    const offenders = readdirSync(dir)
+      .filter((f) => /\.tsx?$/.test(f) && f !== "drawer-motion.ts")
+      .filter((f) =>
+        /\bheight\s*:/.test(readFileSync(path.join(dir, f), "utf8")),
+      );
+    expect(offenders).toEqual([]);
   });
 });

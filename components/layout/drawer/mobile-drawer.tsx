@@ -16,10 +16,12 @@ import { DrawerGroup } from "./drawer-group";
 import { DrawerFooter } from "./drawer-footer";
 import { focusables, inertOutside, wrapTab } from "./modal";
 import {
+  keepInView,
   playClose,
   playOpen,
   playReopen,
   revealFocused,
+  toggleBody,
   type DrawerTargets,
 } from "./drawer-motion";
 
@@ -61,8 +63,26 @@ export function MobileDrawer({
   const [expanded, setExpanded] = useState(() =>
     defaultOpenGroup(NAV, pathname),
   );
-  const toggle = (label: string) =>
-    setExpanded((cur) => (cur === label ? null : label));
+  /* The painted bodies: the expanded one plus any still collapsing (M12). */
+  const [shown, setShown] = useState<ReadonlySet<string>>(
+    () => new Set(expanded ? [expanded] : []),
+  );
+  const expandedNow = useRef(expanded);
+  expandedNow.current = expanded;
+  const toggle = (label: string) => {
+    const next = expanded === label ? null : label;
+    setExpanded(next);
+    if (next) setShown((cur) => new Set(cur).add(next));
+  };
+  /** The group's body once its collapse has ended, unless it reopened. */
+  const unpaint = useCallback((label: string) => {
+    if (expandedNow.current === label) return;
+    setShown((cur) => {
+      const next = new Set(cur);
+      next.delete(label);
+      return next;
+    });
+  }, []);
 
   /** Veil and Esc: close and hand focus back to the burger (AC 29). */
   const dismiss = useCallback(() => {
@@ -120,6 +140,10 @@ export function MobileDrawer({
   // Declared after the modality effect: the t = 0 focus isn't a Tab.
   const motion = useRef<gsap.core.Timeline | null>(null);
   const opened = useRef(false);
+  /* The expanded group the accordion last animated to, and "skip the next
+     change" for the reopen reset. */
+  const lastExpanded = useRef(expanded);
+  const instantAccordion = useRef(false);
   const exited = useRef(onExited);
   exited.current = onExited;
   useGSAP(
@@ -131,9 +155,7 @@ export function MobileDrawer({
         veil,
         panel,
         icon: burgerRef.current?.querySelector("svg") ?? null,
-        groups: [
-          ...panel.querySelectorAll<HTMLElement>("[data-drawer-group]"),
-        ],
+        groups: [...panel.querySelectorAll<HTMLElement>("[data-drawer-group]")],
         footer: panel.querySelector<HTMLElement>("[data-drawer-footer]"),
         dot: panel.querySelector<HTMLElement>("[data-header-dot]"),
       };
@@ -145,14 +167,66 @@ export function MobileDrawer({
         opened.current = true;
         motion.current = playOpen(t);
       } else {
-        // Every open starts from the default state, list at the top (AC 24).
-        setExpanded(defaultOpenGroup(NAV, pathname));
-        const list = panel.querySelector("[data-drawer-list]");
-        if (list) list.scrollTop = 0;
+        // Every open starts from the default state, list at the top (AC 24),
+        // with no body mid-way: the defaults appear at once.
+        const initial = defaultOpenGroup(NAV, pathname);
+        instantAccordion.current = initial !== expanded;
+        setExpanded(initial);
+        setShown(new Set(initial ? [initial] : []));
+        for (const body of panel.querySelectorAll<HTMLElement>(
+          "[data-drawer-body]",
+        ))
+          toggleBody(body, false, undefined, { instant: true });
+        const list = panel.querySelector<HTMLElement>("[data-drawer-list]");
+        if (list) keepInView(list, 0, { instant: true });
         motion.current = playReopen(t);
       }
     },
     { scope: panelRef, dependencies: [open] },
+  );
+
+  // The accordion (M11–M13; ADR-0009; plan § 7.4): after each logical
+  // change, the old body collapses and the new one expands, overlapping and
+  // retargeting; the opened header is kept in view (AC 19).
+  useGSAP(
+    () => {
+      const from = lastExpanded.current;
+      lastExpanded.current = expanded;
+      const panel = panelRef.current;
+      const list = panel?.querySelector<HTMLElement>("[data-drawer-list]");
+      if (from === expanded || !panel || !list) return;
+      if (instantAccordion.current) {
+        instantAccordion.current = false;
+        return;
+      }
+      const groups = [
+        ...panel.querySelectorAll<HTMLElement>("[data-drawer-group]"),
+      ];
+      const index = (label: string) =>
+        NAV.findIndex((group) => group.label === label);
+      const bodyOf = (label: string) =>
+        groups[index(label)]?.querySelector<HTMLElement>("[data-drawer-body]");
+
+      if (expanded) {
+        // Its final top: the painted bodies above it are all going to 0.
+        const header = groups[index(expanded)];
+        let top = header
+          ? header.getBoundingClientRect().top -
+            list.getBoundingClientRect().top +
+            list.scrollTop
+          : list.scrollTop;
+        for (const label of shown)
+          if (label !== expanded && index(label) < index(expanded))
+            top -= bodyOf(label)?.getBoundingClientRect().height ?? 0;
+        keepInView(list, top);
+      }
+      const collapsing = from && bodyOf(from);
+      if (from && collapsing)
+        toggleBody(collapsing, false, () => unpaint(from));
+      const opening = expanded && bodyOf(expanded);
+      if (opening) toggleBody(opening, true);
+    },
+    { scope: panelRef, dependencies: [expanded] },
   );
 
   // The focus safeguard (ADR-0008): Tab onto a still-rising control
@@ -162,7 +236,7 @@ export function MobileDrawer({
       const panel = panelRef.current;
       if (!panel || !contextSafe) return;
       const onFocusIn = contextSafe((e: FocusEvent) => {
-        if (motion.current && e.target instanceof Element)
+        if (e.target instanceof Element)
           revealFocused(motion.current, e.target);
       });
       panel.addEventListener("focusin", onFocusIn);
@@ -209,6 +283,7 @@ export function MobileDrawer({
                 key={group.label}
                 group={group}
                 expanded={expanded === group.label}
+                painted={shown.has(group.label)}
                 hasCurrent={groupHasCurrent(group, pathname)}
                 pathname={pathname}
                 onToggle={() => toggle(group.label)}

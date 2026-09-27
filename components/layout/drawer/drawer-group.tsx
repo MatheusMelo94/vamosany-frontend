@@ -7,8 +7,10 @@ import { isCurrentHref, itemHref, scentLine } from "./nav-model";
 
 type Props = {
   group: NavGroup;
-  /** Logical state: drives aria-expanded and the body's visibility. */
+  /** Logical state: drives aria-expanded, and the body's inertness. */
   expanded: boolean;
+  /** The body is painted: expanded, or still collapsing (plan § 7.4). */
+  painted?: boolean;
   /** The group holds the current page: the header carries the dot (S4, S5). */
   hasCurrent: boolean;
   pathname: string;
@@ -33,6 +35,7 @@ export const FOCUS_RING =
 export function DrawerGroup({
   group,
   expanded,
+  painted = expanded,
   hasCurrent,
   pathname,
   onToggle,
@@ -95,68 +98,78 @@ export function DrawerGroup({
           </svg>
         </button>
       </h2>
-      <div id={bodyId} data-drawer-body hidden={!expanded} className="pb-3">
-        {group.columns.map((column) => (
-          <Fragment key={column.heading}>
-            <h3 className="eyebrow text-ink-muted mt-3 mb-1">
-              {column.heading}
-            </h3>
-            <ul>
-              {column.items.map((item) => {
-                const current = isCurrentHref(item.href, pathname);
-                return (
-                  <li key={item.title}>
-                    <Link
-                      href={itemHref(item)}
-                      aria-current={current ? "page" : undefined}
-                      onClick={onNavigate}
-                      className={cn(
-                        "group/row border-surface-1 flex min-h-11 items-center gap-2 border-b py-1",
-                        FOCUS_RING,
-                      )}
-                    >
-                      <span
-                        data-row-title
-                        className="body-sm text-ink min-w-0 font-semibold underline-offset-4 group-hover/row:underline"
+      {/* The wrapper's height is animated (ADR-0009), so it has no padding;
+          a collapsing body stays painted but inert: its links leave the tab
+          order and the accessibility tree at once (plan § 7.4). */}
+      <div
+        id={bodyId}
+        data-drawer-body
+        hidden={!painted}
+        inert={painted && !expanded}
+      >
+        <div className="flow-root pb-3">
+          {group.columns.map((column) => (
+            <Fragment key={column.heading}>
+              <h3 className="eyebrow text-ink-muted mt-3 mb-1">
+                {column.heading}
+              </h3>
+              <ul>
+                {column.items.map((item) => {
+                  const current = isCurrentHref(item.href, pathname);
+                  return (
+                    <li key={item.title}>
+                      <Link
+                        href={itemHref(item)}
+                        aria-current={current ? "page" : undefined}
+                        onClick={onNavigate}
+                        className={cn(
+                          "group/row border-surface-1 flex min-h-11 items-center gap-2 border-b py-1",
+                          FOCUS_RING,
+                        )}
                       >
-                        {item.title}
-                      </span>
-                      {item.tag ? (
                         <span
-                          data-row-tag
-                          className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap"
+                          data-row-title
+                          className="body-sm text-ink min-w-0 font-semibold underline-offset-4 group-hover/row:underline"
                         >
-                          {item.tag}
+                          {item.title}
                         </span>
-                      ) : null}
-                      {/* Price, then the dot, at the row's end: the dot never
+                        {item.tag ? (
+                          <span
+                            data-row-tag
+                            className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap"
+                          >
+                            {item.tag}
+                          </span>
+                        ) : null}
+                        {/* Price, then the dot, at the row's end: the dot never
                           overlaps the title, tag or price (DDR-0003). */}
-                      {item.price || current ? (
-                        <span className="ml-auto flex shrink-0 items-center gap-2">
-                          {item.price ? (
-                            <span
-                              data-row-price
-                              className="body-sm text-ink font-mono font-bold whitespace-nowrap"
-                            >
-                              {item.price}
-                            </span>
-                          ) : null}
-                          {current ? (
-                            <span
-                              data-current-dot
-                              aria-hidden
-                              className="bg-brand size-1.5 rounded-full"
-                            />
-                          ) : null}
-                        </span>
-                      ) : null}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </Fragment>
-        ))}
+                        {item.price || current ? (
+                          <span className="ml-auto flex shrink-0 items-center gap-2">
+                            {item.price ? (
+                              <span
+                                data-row-price
+                                className="body-sm text-ink font-mono font-bold whitespace-nowrap"
+                              >
+                                {item.price}
+                              </span>
+                            ) : null}
+                            {current ? (
+                              <span
+                                data-current-dot
+                                aria-hidden
+                                className="bg-brand size-1.5 rounded-full"
+                              />
+                            ) : null}
+                          </span>
+                        ) : null}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Fragment>
+          ))}
+        </div>
       </div>
     </div>
   );

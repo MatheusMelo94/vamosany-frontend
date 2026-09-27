@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { waitForMotionToSettle } from "../support/motion";
+import { waitForGsapIdle, waitForMotionToSettle } from "../support/motion";
 
 /**
  * Touch targets on coarse pointers (spec § Accessibility Acceptance:
@@ -156,6 +156,8 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
       const header = headers.nth(g);
       if ((await header.getAttribute("aria-expanded")) !== "true")
         await header.click();
+      // The accordion settles before measuring (mobile-navigation T012).
+      await waitForGsapIdle(page);
       const links = drawer.locator("[data-drawer-body]:visible a");
       const n = await links.count();
       expect(n).toBeGreaterThan(0);
