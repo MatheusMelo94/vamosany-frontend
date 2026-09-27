@@ -1,10 +1,10 @@
 # Plan: vamosany-front-end — Mobile navigation "Índice" (drawer below 1024px) v1
 
-- **Status:** **Ready for /tasks.** Two tasks are gated on ADRs that are still *Proposed*: T011 (ADR-0010) and T012 (ADR-0009). T001–T010 don't depend on either ADR, so work can start now. See § 13.
+- **Status:** **Ready for /tasks.** T011 (ADR-0010) and T012 (ADR-0009) were gated on two ADRs; both are *Accepted* (2026-09-27, Matheus Melo). See § 13.
 - **Date:** 2026-09-27
 - **Author:** Frontend Architect. The user is the sole approver.
 - **Spec:** `docs/specs/mobile-navigation/spec.md` v1 (*Ready for /plan*, 52 ACs, no open clarifications), with the **font amendment of 2026-09-27** applied here ahead of the spec (§ 0.2).
-- **Decisions of record:** DDR-0006 (implemented here), DDR-0002 (amended), DDR-0003 (extended), DDR-0005; ADR-0002 (`.gsap` gate), ADR-0006 (freeze, superseded for the drawer's open state only), ADR-0007 (FAQ height, closed scope), ADR-0008 (opacity reveals). **Drafted by this plan, status Proposed:** ADR-0009 (height animation on the drawer accordion) and ADR-0010 (`clip-path` as an animatable paint property).
+- **Decisions of record:** DDR-0006 (implemented here), DDR-0002 (amended), DDR-0003 (extended), DDR-0005; ADR-0002 (`.gsap` gate), ADR-0006 (freeze, superseded for the drawer's open state only), ADR-0007 (FAQ height, closed scope), ADR-0008 (opacity reveals). **Drafted by this plan, Accepted 2026-09-27:** ADR-0009 (height animation on the drawer accordion) and ADR-0010 (`clip-path` as an animatable paint property).
 - **Approved mockup:** `docs/design/mockups/mobile-menu-indice.html`, phone "A · Índice", including the 2026-09-27 font update (the "fonts match the desktop menu exactly" CSS block and the "Desktop dropdown" section).
 - **Contract:** **none.** The Contract Gate passes as N/A. Every read is static bundled config (`components/layout/nav-config.ts`, `features/sobre-mi/content/nav.ts`) or `usePathname()`. The one write is local UI state. There are no Pre-Contract items and no Contract Request.
 - **Posture:** production site on Vercel, with the landing frozen (ADR-0006). Every screenshot outside the four drawer files must stay diff 0 (AC 1).
@@ -241,7 +241,7 @@ Each builder returns before creating tweens. Open: the settled DOM is painted on
 
 ### 7.6 Motion Principles deviations, and who covers them
 
-The ≈0.85s sequence (more than 800ms), a second expressive moment, and the stagger of 0.05s (≤60ms, OK) are covered by **DDR-0006 item 17** (design). The `clip-path` animation is covered by **ADR-0010** (Proposed, engineering). The `height` animation is covered by **ADR-0009** (Proposed, engineering).
+The ≈0.85s sequence (more than 800ms), a second expressive moment, and the stagger of 0.05s (≤60ms, OK) are covered by **DDR-0006 item 17** (design). The `clip-path` animation is covered by **ADR-0010** (Accepted, engineering). The `height` animation is covered by **ADR-0009** (Accepted, engineering).
 
 ---
 
@@ -338,7 +338,7 @@ The names are kept on purpose. The bot's "changed" mode then rewrites these four
 
 ---
 
-## 13. ADRs drafted (Proposed; need the user's approval)
+## 13. ADRs drafted (Accepted 2026-09-27)
 
 | ADR | Decision | Gates | If rejected |
 |---|---|---|---|
@@ -353,7 +353,7 @@ The names are kept on purpose. The bot's "changed" mode then rewrites these four
 
 ## 14. Open questions (none blocks T001–T010)
 
-1. **ADR-0009 and ADR-0010:** approve, amend or reject (§ 13). They block T012 and T011 respectively.
+1. ~~**ADR-0009 and ADR-0010:** approve, amend or reject (§ 13).~~ Resolved: both Accepted on 2026-09-27; T011 and T012 are unblocked.
 2. **The initial focus during the unfold vs ADR-0008 condition 2** (§ 7.2): the plan treats the spec-mandated t = 0 focus on "Itineraries" as bounded (opaque by 0.5s) and exempt from the "complete at once" safeguard; later Tab moves do complete reveals. Default: proceed like this. The alternative is to exclude the first header from M4 (it would appear with the unfold instead of rising), which changes approved motion slightly and would need the UX Strategist.
 3. **Guard ratchet (optional):** after merge, lower `perf/first-load.json`'s baseline from 178,492 to the new measurement (about 178.1 kB)? It tightens the zero-growth guard. Default: leave it; the user decides.
 4. **Group-name size** (§ 0.2): `body-lg font-bold` until the UX Strategist's spec amendment says otherwise.

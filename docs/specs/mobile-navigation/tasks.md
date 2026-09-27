@@ -1,6 +1,6 @@
 # Tasks: vamosany-front-end — Mobile navigation "Índice" v1
 
-- **Plan:** `docs/specs/mobile-navigation/plan.md` (Ready for /tasks) · **Spec:** `docs/specs/mobile-navigation/spec.md` v1 (plus the font amendment of 2026-09-27, plan § 0.2) · **DDR:** DDR-0006 · **ADRs:** ADR-0009 and ADR-0010 (*Proposed*)
+- **Plan:** `docs/specs/mobile-navigation/plan.md` (Ready for /tasks) · **Spec:** `docs/specs/mobile-navigation/spec.md` v1 (plus the font amendment of 2026-09-27, plan § 0.2) · **DDR:** DDR-0006 · **ADRs:** ADR-0009 and ADR-0010 (*Accepted* 2026-09-27)
 - **Branch:** `feat/mobile-menu-indice` (exists). **One PR** for the whole feature. One task = one conventional commit. Execute in numeric order.
 - **Commands** (npm, ADR-0005): suite = `npm run typecheck && npm run lint && npm test`; build = `npm run build && npm run check:first-load`; e2e = `npm run test:e2e -- --grep @feature-mobile-nav` (tag every new drawer test `@feature-mobile-nav`; existing `@feature-sobre-mi` tests keep their tag). Screenshots are compared only in CI; baselines come **only** from the `update-snapshots` label bot.
 - **Byte rule (plan § 0.3):** every task that touches `components/layout/navbar.tsx` runs `npm run build && npm run check:first-load` and quotes the output line in its commit body. **If the guard fails (`/` > 179,492 B), stop and report.** Don't edit `perf/first-load.json`.
@@ -177,7 +177,7 @@
 - **ACs:** 41, 42, 43, 45, 46 (open and close), 47
 - **Citations:** A§ Animation (`useGSAP` only; `gsap.matchMedia` reduced branch; opacity reveals per ADR-0008; no input blocking); D§ Motion Principles; DDR-0006 items 13, 14, 16, 17; ADR-0002
 - **Depends on:** T002, T010
-- **Labels:** **ADR-0010** (needs *Accepted* before merge) · DDR-0006
+- **Labels:** **ADR-0010** (*Accepted* 2026-09-27) · DDR-0006
 
 ### T012: feat(motion): accordion expand/collapse (M10–M13), overlap ≤500ms, header kept in view
 - **Layer:** motion
@@ -191,7 +191,7 @@
 - **ACs:** 19, 44, 46 (expand and collapse)
 - **Citations:** A§ Animation (the `height` exception per ADR-0009; retarget; reduced branch); D§ Motion Principles (layout change); ADR-0007 (precedent)
 - **Depends on:** T011
-- **Labels:** **ADR-0009** (needs *Accepted* before merge) · DDR-0006
+- **Labels:** **ADR-0009** (*Accepted* 2026-09-27) · DDR-0006
 
 ---
 
