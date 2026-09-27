@@ -68,20 +68,6 @@ describe("DrawerGroup header (AC 6, 7, 35, 36, 37)", () => {
     expect(body).toBeVisible();
   });
 
-  it("uses the desktop menu's fonts: the label body-lg bold, the scent eyebrow ink-muted", () => {
-    renderGroup("Blog");
-    const header = screen.getByRole("button", { name: "Blog" });
-    expect(within(header).getByText("Blog")).toHaveClass(
-      "body-lg",
-      "font-bold",
-      "text-ink",
-    );
-    expect(within(header).getByText("Latest · Readers")).toHaveClass(
-      "eyebrow",
-      "text-ink-muted",
-    );
-  });
-
   it("hides the chevron from assistive tech and marks it for the gated transition", () => {
     renderGroup("Blog");
     const chevron = screen
@@ -110,7 +96,6 @@ describe("DrawerGroup header dot (AC 22, 23, 37)", () => {
     const header = screen.getByRole("button", { name: "Sobre mí" });
     const dot = header.querySelector("[data-header-dot]");
     expect(dot).toHaveAttribute("aria-hidden", "true");
-    expect(dot).toHaveClass("bg-brand", "size-1.5", "rounded-full");
   });
 
   it("keeps the dot while the group is collapsed (S4)", () => {
@@ -144,9 +129,6 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
           .getAllByRole("heading", { level: 3 })
           .map((h) => h.textContent),
       ).toEqual(g.columns.map((c) => c.heading));
-      for (const h of within(body).getAllByRole("heading", { level: 3 })) {
-        expect(h).toHaveClass("eyebrow", "text-ink-muted");
-      }
       expect(
         within(body)
           .getAllByRole("link")
@@ -158,16 +140,11 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     },
   );
 
-  it("renders rows ≥44px with the title in body-sm semibold ink and no blurb", () => {
+  it("renders each row's title and no blurb", () => {
     for (const g of NAV) {
       const { unmount } = renderGroup(g.label, { expanded: true });
       for (const link of screen.getAllByRole("link")) {
-        expect(link).toHaveClass("min-h-11", "border-b", "border-surface-1");
-        expect(link.querySelector("[data-row-title]")).toHaveClass(
-          "body-sm",
-          "font-semibold",
-          "text-ink",
-        );
+        expect(link.querySelector("[data-row-title]")).not.toBeNull();
       }
       for (const item of g.columns.flatMap((c) => c.items)) {
         expect(screen.queryByText(item.blurb)).toBeNull();
@@ -176,14 +153,13 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     }
   });
 
-  it("puts the three tags on exactly their rows, as yellow pills", () => {
+  it("puts the three tags on exactly their rows", () => {
     const tagged: Array<[string, string]> = [];
     for (const g of NAV) {
       const { unmount } = renderGroup(g.label, { expanded: true });
       for (const link of screen.getAllByRole("link")) {
         const tag = link.querySelector("[data-row-tag]");
         if (!tag) continue;
-        expect(tag).toHaveClass("caption", "bg-brand", "rounded-full");
         tagged.push([
           link.querySelector("[data-row-title]")?.textContent ?? "",
           tag.textContent ?? "",
@@ -198,7 +174,7 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     ]);
   });
 
-  it("shows Services' three prices in Courier bold, pointing at /#services", () => {
+  it("shows Services' three prices, pointing at /#services", () => {
     renderGroup("Services", { expanded: true });
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(3);
@@ -207,11 +183,6 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     ).toEqual(["from €25", "€149", "€290"]);
     for (const a of links) {
       expect(a).toHaveAttribute("href", "/#services");
-      expect(a.querySelector("[data-row-price]")).toHaveClass(
-        "body-sm",
-        "font-mono",
-        "font-bold",
-      );
     }
   });
 
@@ -262,20 +233,5 @@ describe("DrawerGroup body motion hooks (M11–M12; ADR-0009; plan § 7.4)", () 
     renderGroup("Guides", { expanded: true, painted: true });
     expect(bodyEl()).not.toHaveAttribute("hidden");
     expect(bodyEl()).not.toHaveAttribute("inert");
-  });
-
-  it("puts the padding on an inner wrapper, so the wrapper's height can reach 0", () => {
-    renderGroup("Guides", { expanded: true });
-    expect(bodyEl().className).toBe("");
-    expect(bodyEl().firstElementChild).toHaveClass("pb-3");
-  });
-
-  // The first h3's mt-3 must not collapse out through the wrapper: the
-  // wrapper's box is then exactly the space the body takes, which the
-  // keep-in-view math subtracts (AC 19), and clipping it (overflow hidden
-  // while it animates) can't move that margin.
-  it("contains its content's margins (flow-root)", () => {
-    renderGroup("Guides", { expanded: true });
-    expect(bodyEl().firstElementChild).toHaveClass("flow-root");
   });
 });

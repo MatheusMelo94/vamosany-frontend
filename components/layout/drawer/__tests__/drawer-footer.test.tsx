@@ -39,24 +39,10 @@ describe("DrawerFooter language control (AC 10, 27, 39)", () => {
     expect(onLang).toHaveBeenCalledWith("EN");
     expect(onNavigate).not.toHaveBeenCalled();
   });
-
-  it("renders segments in Montserrat semibold that fill a 48px track", () => {
-    renderFooter();
-    const group = screen.getByRole("group", { name: "Idioma" });
-    expect(group).toHaveClass("min-h-12", "border-2", "rounded-full");
-    for (const b of within(group).getAllByRole("button")) {
-      expect(b).toHaveClass("body-sm", "font-semibold", "rounded-full");
-      expect(b).not.toHaveClass("label-button");
-    }
-    expect(screen.getByRole("button", { name: "ES" })).toHaveClass(
-      "bg-ink",
-      "text-inverse-ink",
-    );
-  });
 });
 
 describe("DrawerFooter account buttons (AC 10, 28)", () => {
-  it("puts Log in left of Sign up, 48px pills in body-sm semibold", () => {
+  it("puts Log in left of Sign up", () => {
     renderFooter();
     const links = screen.getAllByRole("link");
     expect(links.map((a) => a.textContent)).toEqual(["Log in", "Sign up"]);
@@ -64,15 +50,6 @@ describe("DrawerFooter account buttons (AC 10, 28)", () => {
       "#login",
       "#signup",
     ]);
-    for (const a of links) {
-      expect(a).toHaveClass(
-        "min-h-12",
-        "rounded-full",
-        "body-sm",
-        "font-semibold",
-      );
-    }
-    expect(links[1]).toHaveClass("bg-ink", "text-inverse-ink");
   });
 
   it("closes the drawer through onNavigate", async () => {

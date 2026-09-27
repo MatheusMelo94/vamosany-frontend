@@ -758,6 +758,96 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
   });
 });
 
+// The painted result the unit tests used to pin as Tailwind class names
+// (RV-0021): colors and shapes as the browser computes them, from the tokens.
+test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature-mobile-nav", () => {
+  test.beforeEach(({ page }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+  });
+
+  test("column headings ink-muted; rows ink semibold over a surface-1 rule; tags and the header dot brand; Sign up and the pressed segment ink on inverse", async ({
+    page,
+  }) => {
+    await page.goto("/sobre-mi");
+    await page.evaluate(() => document.fonts.ready);
+    const drawer = await openDrawer(page);
+    await drawer
+      .getByRole("button", { name: "Itineraries", exact: true })
+      .click();
+    await waitForGsapIdle(page);
+    const paint = await drawer.evaluate((nav) => {
+      const token = (name: string) => {
+        const probe = document.createElement("i");
+        probe.style.color = `var(${name})`;
+        document.body.append(probe);
+        const value = getComputedStyle(probe).color;
+        probe.remove();
+        return value;
+      };
+      const cs = (el: Element | null) => {
+        if (!el) throw new Error("missing element");
+        return getComputedStyle(el);
+      };
+      const body = nav.querySelector("[data-drawer-body]:not([hidden])");
+      const row = body?.querySelector("a") ?? null;
+      const tag = body?.querySelector("[data-row-tag]") ?? null;
+      const dot = nav.querySelector("[data-header-dot]");
+      const es = [...nav.querySelectorAll("button")].find(
+        (b) => b.textContent === "ES",
+      );
+      const signup = [...nav.querySelectorAll("a")].find(
+        (a) => a.textContent === "Sign up",
+      );
+      return {
+        tokens: {
+          brand: token("--color-brand"),
+          ink: token("--color-ink"),
+          inkMuted: token("--color-ink-muted"),
+          surface1: token("--color-surface-1"),
+          inverse: token("--color-inverse-ink"),
+        },
+        h3: cs(body?.querySelector("h3") ?? null).color,
+        row: {
+          rule: [
+            cs(row).borderBottomStyle,
+            cs(row).borderBottomWidth,
+            cs(row).borderBottomColor,
+          ],
+          title: [
+            cs(row?.querySelector("[data-row-title]") ?? null).color,
+            cs(row?.querySelector("[data-row-title]") ?? null).fontWeight,
+          ],
+        },
+        tag: [cs(tag).backgroundColor, cs(tag).color, tag?.textContent],
+        tagRound:
+          parseFloat(cs(tag).borderTopLeftRadius) >=
+          (tag?.getBoundingClientRect().height ?? 0) / 2,
+        dot: [
+          cs(dot).backgroundColor,
+          dot?.getBoundingClientRect().width,
+          dot?.getBoundingClientRect().height,
+          parseFloat(cs(dot).borderTopLeftRadius) >= 3,
+        ],
+        es: [
+          es?.getAttribute("aria-pressed"),
+          cs(es ?? null).backgroundColor,
+          cs(es ?? null).color,
+        ],
+        signup: [cs(signup ?? null).backgroundColor, cs(signup ?? null).color],
+      };
+    });
+    const { brand, ink, inkMuted, surface1, inverse } = paint.tokens;
+    expect(paint.h3).toBe(inkMuted);
+    expect(paint.row.rule).toEqual(["solid", "1px", surface1]);
+    expect(paint.row.title).toEqual([ink, "600"]);
+    expect(paint.tag).toEqual([brand, ink, "Best seller"]);
+    expect(paint.tagRound).toBe(true);
+    expect(paint.dot).toEqual([brand, 6, 6, true]);
+    expect(paint.es).toEqual(["true", ink, inverse]);
+    expect(paint.signup).toEqual([ink, inverse]);
+  });
+});
+
 test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav", () => {
   test("desktop: no drawer, and the language button still reads EN", async ({
     page,
