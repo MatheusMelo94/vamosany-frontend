@@ -132,9 +132,12 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
       .getByRole("button", { name: "Toggle menu" })
       .click();
     const column = page
-      .locator("header[data-nav] > div.overflow-y-auto ul ul")
+      .locator("header[data-nav]")
+      .getByRole("navigation", { name: "Menu" })
+      .locator("ul ul")
       .last();
     const items = column.locator("a");
+    await expect(items.first()).toBeVisible();
     const count = await items.count();
     expect(count).toBeGreaterThan(1);
     // Hit regions measured through each item's centre: [top, bottom] in px.
