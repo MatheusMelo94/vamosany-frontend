@@ -170,6 +170,3 @@ export const NAV: NavGroup[] = [
   },
   SOBRE_MI_NAV,
 ];
-
-/** Routes whose navbar capsule renders the reading bar (DDR-0004, M4). */
-export const READING_BAR_ROUTES: readonly string[] = ["/colaboraciones"];

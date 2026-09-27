@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
-import { NAV, READING_BAR_ROUTES } from "@/components/layout/nav-config";
+import { NAV } from "@/components/layout/nav-config";
 
 vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => "/") }));
 
@@ -130,10 +130,6 @@ async function openPanel(label: string) {
 describe("nav-config", () => {
   it("is the single source of the five groups, in navbar order", () => {
     expect(NAV.map((g) => g.label)).toEqual(Object.keys(EXPECTED));
-  });
-
-  it("lists the routes that get the navbar reading bar", () => {
-    expect(READING_BAR_ROUTES).toEqual(["/colaboraciones"]);
   });
 });
 
