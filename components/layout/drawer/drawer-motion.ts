@@ -1,0 +1,381 @@
+import { gsap, motionEnabled } from "@/lib/gsap";
+import { getEases } from "@/lib/gsap-ease";
+import { DRAWER_EASE, DRAWER_MOTION } from "./motion-values";
+
+/**
+ * The phone drawer's motion builders (mobile-navigation plan § 7; spec
+ * § Motion Intent M1–M9; DDR-0006). Part of the lazy drawer chunk only: the
+ * Navbar imports no GSAP. MobileDrawer runs them inside `useGSAP`.
+ *
+ * - Every builder checks the gate when it is called (plan § 7.1), so
+ *   removing `.gsap` at runtime also gives the instant path (AC 46).
+ * - Reveals of focusable content use `opacity`, never `autoAlpha` (ADR-0008);
+ *   `clip-path: inset()` is animated per ADR-0010 and cleared at the end.
+ * - The accordion animates the body wrapper's `height` (ADR-0009, this
+ *   module only) and retargets from the current value, never queues.
+ * - Everything ends with `clearProps`: the settled drawer is its plain CSS
+ *   state, pixel-equal to the drawer baselines.
+ */
+
+export type DrawerTargets = {
+  veil: HTMLElement;
+  panel: HTMLElement;
+  /** The burger's <svg>, outside the drawer's scope (element ref, M2). */
+  icon: Element | null;
+  groups: HTMLElement[];
+  footer: HTMLElement | null;
+  /** The current group's header dot, if the current page is in the index. */
+  dot: HTMLElement | null;
+};
+
+const O = DRAWER_MOTION.open;
+const C = DRAWER_MOTION.close;
+const A = DRAWER_MOTION.accordion;
+const REVEALED = "[data-drawer-group], [data-drawer-footer]";
+const ROW = "[data-drawer-body] li";
+
+/**
+ * The motion gate (ADR-0002), read at call time. Reduced motion never gets
+ * `.gsap`; the `gsap.matchMedia()` branch states it here too (A§ Animation).
+ */
+export function animates(): boolean {
+  if (!motionEnabled()) return false;
+  let reduced = false;
+  const mm = gsap.matchMedia();
+  mm.add("(prefers-reduced-motion: reduce)", () => {
+    reduced = true;
+  });
+  mm.revert();
+  return !reduced;
+}
+
+/**
+ * The panel's `clip-path` (ADR-0010): an `inset()` open by `bottom`% from the
+ * bottom edge, rounded with the panel's radius token (--radius-3xl =
+ * rounded-3xl). The one place the shape is built.
+ */
+export function panelClip(bottom: number): string {
+  const radius =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--radius-3xl")
+      .trim() || O.panel.clip.radiusFallback;
+  return `inset(0% 0% ${bottom}% 0% round ${radius})`;
+}
+
+const clip = (edge: "from" | "to"): string =>
+  panelClip(edge === "from" ? O.panel.clip.bottomFrom : O.panel.clip.bottomTo);
+
+/**
+ * Removes the panel's inline transform without `clearProps`. GSAP re-parses
+ * a cleared transform, and for a fixed box with an identity matrix (its
+ * offsetParent is null) it sets `display: block` to read it: the list's flex
+ * height collapses and its scrollTop is lost. The cache already holds the
+ * identity, so the next tween needs no parse either.
+ */
+function dropTransform(el: HTMLElement) {
+  for (const p of ["transform", "translate", "rotate", "scale"])
+    el.style.removeProperty(p);
+}
+
+/** Clears the icon's motion styles: the X is upright, the swap is clean (M9). */
+function settleIcon(icon: Element | null) {
+  if (icon) gsap.set(icon, { clearProps: "transform,opacity" });
+}
+
+/** M1–M6, the "unfold". `null` (and no tween) when motion is off. */
+export function playOpen(t: DrawerTargets): gsap.core.Timeline | null {
+  if (!animates()) return null;
+  const { arrive } = getEases();
+  const tl = gsap.timeline();
+  tl.fromTo(
+    t.veil,
+    { opacity: 0 },
+    {
+      opacity: 1,
+      duration: O.veil.duration,
+      ease: O.veil.ease,
+      clearProps: "opacity",
+    },
+    0,
+  );
+  if (t.icon)
+    tl.from(
+      t.icon,
+      {
+        rotate: O.icon.rotate,
+        scale: O.icon.scale,
+        opacity: 0,
+        duration: O.icon.duration,
+        ease: arrive,
+        clearProps: "transform,opacity",
+      },
+      0,
+    );
+  tl.fromTo(
+    t.panel,
+    { clipPath: clip("from"), y: O.panel.y },
+    {
+      clipPath: clip("to"),
+      y: 0,
+      duration: O.panel.duration,
+      ease: arrive,
+      clearProps: "clipPath",
+      onComplete: () => dropTransform(t.panel),
+    },
+    0,
+  );
+  // One tween per group (not a stagger), so the focus safeguard can
+  // complete exactly the group that received focus.
+  t.groups.forEach((group, i) =>
+    tl.from(
+      group,
+      {
+        y: O.rows.y,
+        opacity: 0,
+        duration: O.rows.duration,
+        ease: O.rows.ease,
+        clearProps: "transform,opacity",
+      },
+      O.rows.at + i * O.rows.stagger,
+    ),
+  );
+  if (t.footer)
+    tl.from(
+      t.footer,
+      {
+        y: O.footer.y,
+        opacity: 0,
+        duration: O.footer.duration,
+        ease: arrive,
+        clearProps: "transform,opacity",
+      },
+      O.footer.at,
+    );
+  if (t.dot)
+    tl.from(
+      t.dot,
+      {
+        scale: 0,
+        duration: O.dot.duration,
+        ease: DRAWER_EASE.pop,
+        clearProps: "transform",
+      },
+      O.dot.at,
+    );
+  return tl;
+}
+
+/**
+ * The focus safeguard (ADR-0008 condition 2): Tab reached a control whose
+ * group or footer is still rising, so its reveal completes at once.
+ */
+export function revealFocused(
+  tl: gsap.core.Timeline | null,
+  el: Element,
+): void {
+  // An accordion row (M13): its own standalone tween.
+  const row = el.closest(ROW);
+  if (row) for (const tween of gsap.getTweensOf(row)) tween.progress(1);
+  const revealed = tl && el.closest(REVEALED);
+  if (!revealed) return;
+  for (const tween of tl.getChildren(true, true, false)) {
+    if ((tween as gsap.core.Tween).targets()[0] !== revealed) continue;
+    tl.remove(tween);
+    tween.progress(1);
+  }
+}
+
+/**
+ * M7–M8, the roll-up, from the current values (`to`, never `fromTo`), so a
+ * close during the unfold starts wherever the panel is. `onDone` unmounts
+ * (M9); without motion it runs synchronously.
+ */
+export function playClose(
+  t: DrawerTargets,
+  onDone: () => void,
+): gsap.core.Timeline | null {
+  if (!animates()) {
+    settleIcon(t.icon);
+    onDone();
+    return null;
+  }
+  // A settled panel has no clip: give it the full one to roll up from.
+  if (!t.panel.style.clipPath) gsap.set(t.panel, { clipPath: clip("to") });
+  const tl = gsap.timeline({
+    onComplete: () => {
+      settleIcon(t.icon);
+      onDone();
+    },
+  });
+  tl.to(
+    t.panel,
+    {
+      clipPath: clip("from"),
+      y: C.panel.y,
+      duration: C.panel.duration,
+      ease: C.panel.ease,
+    },
+    0,
+  );
+  tl.to(t.veil, { opacity: 0, duration: C.veil.duration }, C.veil.at);
+  return tl;
+}
+
+/**
+ * A reopen during the close (plan § 7.3): everything goes to its settled
+ * values, from where it is, with the open durations. Instant without motion.
+ */
+export function playReopen(t: DrawerTargets): gsap.core.Timeline | null {
+  const rest = [...t.groups, t.footer, t.dot].filter(
+    (el): el is HTMLElement => el !== null,
+  );
+  if (!animates()) {
+    gsap.set([t.veil, ...rest], { clearProps: "opacity,transform" });
+    gsap.set(t.panel, { clearProps: "clipPath" });
+    dropTransform(t.panel);
+    settleIcon(t.icon);
+    return null;
+  }
+  const { arrive } = getEases();
+  const tl = gsap.timeline();
+  tl.to(
+    t.veil,
+    {
+      opacity: 1,
+      duration: O.veil.duration,
+      ease: O.veil.ease,
+      clearProps: "opacity",
+    },
+    0,
+  );
+  tl.to(
+    t.panel,
+    {
+      clipPath: clip("to"),
+      y: 0,
+      duration: O.panel.duration,
+      ease: arrive,
+      clearProps: "clipPath",
+      onComplete: () => dropTransform(t.panel),
+    },
+    0,
+  );
+  const settled = { y: 0, scale: 1, rotate: 0, opacity: 1 };
+  if (t.icon)
+    tl.to(
+      t.icon,
+      {
+        ...settled,
+        duration: O.icon.duration,
+        ease: arrive,
+        clearProps: "transform,opacity",
+      },
+      0,
+    );
+  if (rest.length)
+    tl.to(
+      rest,
+      {
+        ...settled,
+        duration: O.rows.duration,
+        ease: O.rows.ease,
+        clearProps: "transform,opacity",
+      },
+      0,
+    );
+  return tl;
+}
+
+/** Drops a body's (and its rows') motion: the plain CSS state, at once. */
+function settleBody(body: HTMLElement, rows: HTMLElement[]) {
+  // Per target: killTweensOf([a, b]) only strips a tween of [a] partially,
+  // and the stripped tween would still complete (and call onDone).
+  for (const el of [body, ...rows]) gsap.killTweensOf(el);
+  gsap.set(body, { clearProps: "height,overflow" });
+  if (rows.length) gsap.set(rows, { clearProps: "opacity,transform" });
+}
+
+/**
+ * M11–M13: expands (`height` → auto, rows rise) or collapses (`height` → 0)
+ * one group body, from wherever it is (ADR-0009: retarget, no queue). A
+ * collapse reports its end through `onDone`, so the caller can stop
+ * painting the body; a retarget kills it first, so it never reports.
+ * Without motion everything is instant and `onDone` runs synchronously.
+ */
+export function toggleBody(
+  body: HTMLElement,
+  expand: boolean,
+  onDone?: () => void,
+  { instant = false }: { instant?: boolean } = {},
+): void {
+  const rows = [...body.querySelectorAll<HTMLElement>("li")];
+  if (instant || !animates()) {
+    settleBody(body, rows);
+    onDone?.();
+    return;
+  }
+  const from = body.style.height;
+  settleBody(body, rows);
+  // A body mid-way keeps its height; a fresh expand starts at 0.
+  gsap.set(body, {
+    height: from || (expand ? 0 : undefined),
+    overflow: "hidden",
+  });
+  if (!expand) {
+    gsap.to(body, {
+      height: 0,
+      duration: A.collapse.duration,
+      ease: A.collapse.ease,
+      onComplete: onDone,
+    });
+    return;
+  }
+  gsap.to(body, {
+    height: "auto",
+    duration: A.expand.duration,
+    ease: A.expand.ease,
+    clearProps: "height,overflow",
+  });
+  // One tween per row, so the focus safeguard can complete exactly one.
+  const stagger = Math.min(
+    A.rows.stagger,
+    (A.rows.maxStart - A.rows.at) / Math.max(1, rows.length - 1),
+  );
+  rows.forEach((row, i) =>
+    gsap.fromTo(
+      row,
+      { opacity: 0, y: A.rows.y },
+      {
+        opacity: 1,
+        y: 0,
+        duration: A.rows.duration,
+        delay: A.rows.at + i * stagger,
+        clearProps: "opacity,transform",
+      },
+    ),
+  );
+}
+
+/**
+ * AC 19: an opened header whose final top (after the bodies above it have
+ * collapsed) is above the list's scrollTop is brought to the list's top,
+ * over the collapse; instant without motion.
+ */
+export function keepInView(
+  list: HTMLElement,
+  top: number,
+  { instant = false }: { instant?: boolean } = {},
+): void {
+  if (instant || !animates()) {
+    gsap.killTweensOf(list);
+    if (top < list.scrollTop) list.scrollTop = top;
+    return;
+  }
+  if (top >= list.scrollTop) return;
+  gsap.to(list, {
+    scrollTop: top,
+    duration: A.collapse.duration,
+    ease: A.collapse.ease,
+    overwrite: true,
+  });
+}

@@ -17,6 +17,15 @@ export type NavColumn = { heading: string; items: NavItem[] };
 
 export type NavGroup = { label: string; columns: NavColumn[] };
 
+/** Language menu options, shared by the desktop menu and the drawer. */
+export const LANGUAGES = [
+  { code: "EN", label: "English" },
+  { code: "ES", label: "Español" },
+  { code: "PT", label: "Português" },
+] as const;
+
+export type Lang = (typeof LANGUAGES)[number]["code"];
+
 export const NAV: NavGroup[] = [
   {
     label: "Itineraries",

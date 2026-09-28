@@ -95,6 +95,57 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     });
   });
 
+  // Here, not in mobile-nav.spec.ts: toHaveScreenshot resolves "navbar-closed.png"
+  // per spec file, and this is the file that owns the committed baseline.
+  test("drawer closes silently at ≥ 1024 and leaves the closed navbar (mobile-navigation AC 30) @feature-mobile-nav", async ({
+    page,
+  }) => {
+    test.skip(!isDesktop(page), "resizes from 768 to the desktop project");
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await open(page);
+    await header(page).getByRole("button", { name: "Abrir menú" }).click();
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
+    await expect(drawer).toBeVisible();
+    await expect(page.locator("[inert]").first()).toBeAttached();
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(drawer).toHaveCount(0);
+    await expect(header(page).locator(".fixed.inset-0")).toHaveCount(0);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
+    await expect(page.locator("[inert]")).toHaveCount(0);
+    // The burger's tap point is over the desktop "Blog" trigger at 1280:
+    // move the pointer away, as AC 42 does, so the capture isn't hovered.
+    await page.mouse.move(1, 1);
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await isolate(page);
+    await expect(page).toHaveScreenshot("navbar-closed.png", {
+      clip: await box(header(page)),
+      animations: "disabled",
+    });
+  });
+
+  // mobile-navigation AC 42: the roll-up ends in today's closed navbar.
+  test("drawer close rolls up and leaves the closed navbar (mobile-navigation AC 42) @feature-mobile-nav", async ({
+    page,
+  }) => {
+    test.skip(isDesktop(page), "drawer exists below 1024 only");
+    await open(page);
+    const burger = header(page).getByRole("button", { name: "Abrir menú" });
+    await burger.click();
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
+    await expect(drawer).toBeVisible();
+    await waitForGsapIdle(page);
+    await header(page).getByRole("button", { name: "Cerrar menú" }).click();
+    await expect(drawer).toHaveCount(0);
+    await page.mouse.move(1, 1);
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await isolate(page);
+    await expect(page).toHaveScreenshot("navbar-closed.png", {
+      clip: await box(header(page)),
+      animations: "disabled",
+    });
+  });
+
   test.describe("reduced motion", () => {
     test.use({ reducedMotion: "reduce" });
 
@@ -144,21 +195,68 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
     });
   });
 
-  test("drawer: top and last group", async ({ page }) => {
+  // Redefined by mobile-navigation T010 (plan § 12; DDR-0006 › Baselines):
+  // same names, new content. drawer-top = S2 on "/" (the first level, list
+  // at the top); drawer-last-group = S5 on /sobre-mi (the last group open
+  // by default, with the header dot, the row dot and the pinned footer, list
+  // scrolled to its end). GSAP is idle before each capture:
+  // `animations: "disabled"` doesn't stop GSAP.
+  test("drawer: top and last group @feature-mobile-nav", async ({ page }) => {
     test.skip(isDesktop(page), "drawer exists below 1024 only");
     await open(page);
-    await header(page).getByRole("button", { name: "Toggle menu" }).click();
-    const drawer = header(page).getByRole("navigation", { name: "Menu" });
+    await header(page).getByRole("button", { name: "Abrir menú" }).click();
+    let drawer = header(page).getByRole("navigation", { name: "Menú" });
     await expect(drawer).toBeVisible();
+    // Pointer off the X: the drawer baselines hold no frozen-navbar hover (QA-0009).
+    await page.mouse.move(1, 1);
     await isolate(page);
+    await waitForGsapIdle(page);
     await expect(page).toHaveScreenshot("drawer-top.png", {
       animations: "disabled",
     });
-    await drawer.evaluate((el) => {
+
+    await page.goto("/sobre-mi");
+    await page.evaluate(() => document.fonts.ready);
+    await header(page).getByRole("button", { name: "Abrir menú" }).click();
+    drawer = header(page).getByRole("navigation", { name: "Menú" });
+    await expect(
+      drawer.getByRole("button", { name: "Sobre mí", exact: true }),
+    ).toHaveAttribute("aria-expanded", "true");
+    await drawer.locator("[data-drawer-list]").evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
+    await page.mouse.move(1, 1);
+    await isolate(page);
+    await waitForGsapIdle(page);
     await expect(page).toHaveScreenshot("drawer-last-group.png", {
       animations: "disabled",
+    });
+  });
+
+  // mobile-navigation AC 52: with JavaScript off the drawer can't open (a
+  // pre-existing gap, spec S7), and the closed navbar is still today's.
+  // The isolation style is injected into the HTML response: no scripts run.
+  test.describe("no JavaScript", () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("closed navbar matches its baseline (mobile-navigation AC 52) @feature-mobile-nav", async ({
+      page,
+    }) => {
+      await page.route("**/*", async (route) => {
+        if (route.request().resourceType() !== "document")
+          return route.continue();
+        const response = await route.fetch();
+        const html = (await response.text()).replace(
+          "</head>",
+          `<style>${ISOLATE}</style></head>`,
+        );
+        await route.fulfill({ response, body: html });
+      });
+      await page.goto("/");
+      await expect(page).toHaveScreenshot("navbar-closed.png", {
+        clip: await box(header(page)),
+        animations: "disabled",
+      });
     });
   });
 });
@@ -190,9 +288,11 @@ test.describe("navbar Sobre mí group (DDR-0002) @feature-sobre-mi", () => {
   }) => {
     test.skip(isDesktop(page), "drawer exists below 1024 only");
     await open(page);
-    const toggle = header(page).getByRole("button", { name: "Toggle menu" });
+    const toggle = header(page).getByRole("button", { name: "Abrir menú" });
     await toggle.click();
-    const drawer = header(page).getByRole("navigation", { name: "Menu" });
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
+    // On "/" every group starts closed (mobile-navigation S2): open Sobre mí.
+    await drawer.getByRole("button", { name: "Sobre mí", exact: true }).click();
     for (const [title, href] of SOBRE_MI_ITEMS) {
       await expect(
         drawer.getByRole("link", { name: title, exact: true }),
@@ -587,8 +687,8 @@ test.describe("navbar marker on a Sobre mí route (AC 5, 6, 9) @feature-sobre-mi
   }) => {
     test.skip(isDesktop(page), "drawer exists below 1024 only");
     await page.goto("/colaboraciones");
-    await header(page).getByRole("button", { name: "Toggle menu" }).click();
-    const drawer = header(page).getByRole("navigation", { name: "Menu" });
+    await header(page).getByRole("button", { name: "Abrir menú" }).click();
+    const drawer = header(page).getByRole("navigation", { name: "Menú" });
     const current = drawer.locator('[aria-current="page"]');
     await expect(current).toHaveCount(1);
     await expect(current).toHaveAttribute("href", "/colaboraciones");

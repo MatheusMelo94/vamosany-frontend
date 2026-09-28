@@ -12,17 +12,24 @@ const NEW_KEYS = [
   "form",
 ] as const;
 
-function withoutNewKeys(motion: Record<string, unknown>) {
+/** EASE keys added after the freeze; every other key is pinned below. */
+const NEW_EASE_KEYS: readonly string[] = [];
+
+function without(
+  record: Record<string, unknown>,
+  keys: readonly string[],
+): Record<string, unknown> {
   return Object.fromEntries(
-    Object.entries(motion).filter(
-      ([key]) => !(NEW_KEYS as readonly string[]).includes(key),
-    ),
+    Object.entries(record).filter(([key]) => !keys.includes(key)),
   );
 }
 
+const withoutNewKeys = (motion: Record<string, unknown>) =>
+  without(motion, NEW_KEYS);
+
 describe("lib/motion.ts existing values (frozen by ADR-0006)", () => {
   it("keeps every EASE key and value", () => {
-    expect(EASE).toMatchInlineSnapshot(`
+    expect(without(EASE, NEW_EASE_KEYS)).toMatchInlineSnapshot(`
       {
         "arrive": "M0,0 C0.06,0.42 0.14,0.82 0.4,0.965 0.55,1.02 0.66,1.022 0.76,1.006 0.86,0.995 0.93,1 1,1",
         "ds": "0.2, 0.8, 0.2, 1",
@@ -217,5 +224,12 @@ describe("lib/motion.ts Sobre mí additions (plan § 8.4, DDR-0003, DDR-0004)", 
         lines: { y: 12, duration: 0.4, stagger: 0.08, delay: 0.25 },
       },
     });
+  });
+});
+
+describe("lib/motion.ts holds no drawer-only values (RV-0018)", () => {
+  it("leaves the drawer's values to the lazy chunk's own module", () => {
+    expect(MOTION).not.toHaveProperty("drawer");
+    expect(EASE).not.toHaveProperty("pop");
   });
 });

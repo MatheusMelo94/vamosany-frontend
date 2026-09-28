@@ -1,0 +1,778 @@
+import { test, expect, type Locator, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import {
+  gsapPending,
+  sampleFrames,
+  waitForGsapIdle,
+  waitForLandingMotion,
+} from "./support/motion";
+
+/**
+ * QA evidence spec, mobile-navigation "Índice" test pass v1 (2026-09-27).
+ * Probes what the Engineer's mobile-nav.spec.ts doesn't: fonts across every
+ * panel text node, tap targets on every visible control at more viewports,
+ * overflow at 320 / landscape / 200% text, keyboard with a group open,
+ * focus-not-obscured, rapid open/close, real-time motion sampling (settle
+ * and frame pacing), and layout shift during the accordion.
+ */
+
+const header = (page: Page) => page.locator("header[data-nav]");
+const burger = (page: Page) =>
+  header(page).getByRole("button", { name: /^(Abrir|Cerrar) menú$/ });
+const panel = (page: Page) =>
+  header(page).getByRole("navigation", { name: "Menú" });
+const GROUPS = ["Itineraries", "Guides", "Blog", "Services", "Sobre mí"];
+const isDesktop = (page: Page) => (page.viewportSize()?.width ?? 0) >= 1024;
+
+async function land(page: Page, path = "/") {
+  await page.goto(path);
+  await page.evaluate(() => document.fonts.ready);
+  if (path === "/") await waitForLandingMotion(page);
+  else await waitForGsapIdle(page);
+}
+
+async function open(page: Page): Promise<Locator> {
+  await burger(page).click();
+  await expect(panel(page)).toBeVisible();
+  await waitForGsapIdle(page);
+  return panel(page);
+}
+
+async function openGroup(page: Page, label: string) {
+  const h = panel(page).getByRole("button", { name: label, exact: true });
+  if ((await h.getAttribute("aria-expanded")) !== "true") await h.click();
+  await waitForGsapIdle(page);
+}
+
+/* ------------------------------------------------------------------ */
+/* Fonts (spec v1.1 § Typography; AC 6, 10, 17)                        */
+/* ------------------------------------------------------------------ */
+
+type TextNode = {
+  text: string;
+  family: string;
+  weight: string;
+  transform: string;
+  role: string;
+};
+
+function panelText(page: Page): Promise<TextNode[]> {
+  return panel(page).evaluate((nav) => {
+    const out: TextNode[] = [];
+    const walker = document.createTreeWalker(nav, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const text = n.textContent?.trim() ?? "";
+      const el = n.parentElement;
+      if (!text || !el || el.closest("[hidden]")) continue;
+      const cs = getComputedStyle(el);
+      const role = el.closest("h3")
+        ? "column"
+        : el.closest("[data-row-price]")
+          ? "price"
+          : el.id.endsWith("-scent")
+            ? "scent"
+            : el.closest("[data-row-tag]")
+              ? "tag"
+              : el.closest("[data-row-title]")
+                ? "title"
+                : el.closest("h2")
+                  ? "label"
+                  : el.closest("[role=group]")
+                    ? "segment"
+                    : el.closest("a")
+                      ? "pill"
+                      : "other";
+      out.push({
+        text,
+        family: cs.fontFamily,
+        weight: cs.fontWeight,
+        transform: cs.textTransform,
+        role,
+      });
+    }
+    return out;
+  });
+}
+
+test.describe("QA fonts match the desktop menu (v1.1)", () => {
+  test.beforeEach(({ page }) => test.skip(isDesktop(page), "drawer < 1024"));
+
+  for (const path of ["/", "/sobre-mi"]) {
+    test(`${path}: Courier only for column headings, scent lines and prices; Montserrat elsewhere`, async ({
+      page,
+    }) => {
+      await land(page, path);
+      await open(page);
+      const loaded = await page.evaluate(() => ({
+        mont: document.fonts.check("700 18px Montserrat"),
+        courier: [...document.fonts].some(
+          (f) => /courier/i.test(f.family) && f.status === "loaded",
+        ),
+        montFaces: [...document.fonts]
+          .filter((f) => /montserrat/i.test(f.family))
+          .map((f) => `${f.weight}:${f.status}`),
+      }));
+      expect(loaded.courier, JSON.stringify(loaded)).toBe(true);
+      const seen: TextNode[] = [];
+      for (const g of GROUPS) {
+        await openGroup(page, g);
+        seen.push(...(await panelText(page)));
+      }
+      const bad: string[] = [];
+      for (const t of seen) {
+        const courier = /courier/i.test(t.family);
+        const shouldCourier = ["column", "scent", "price"].includes(t.role);
+        if (courier !== shouldCourier)
+          bad.push(`${t.role} "${t.text}" → ${t.family}`);
+        if (!courier && !/^"?montserrat/i.test(t.family))
+          bad.push(`${t.role} "${t.text}" not Montserrat-first: ${t.family}`);
+        if (!courier && t.transform !== "none")
+          bad.push(`${t.role} "${t.text}" text-transform ${t.transform}`);
+        const w = Number(t.weight);
+        const want: Record<string, number> = {
+          label: 700,
+          title: 600,
+          tag: 600,
+          segment: 600,
+          pill: 600,
+          price: 700,
+        };
+        if (want[t.role] && w !== want[t.role])
+          bad.push(`${t.role} "${t.text}" weight ${w}`);
+      }
+      expect(seen.filter((t) => t.role === "other")).toEqual([]);
+      expect(bad).toEqual([]);
+    });
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/* Tap targets on every visible control (AC 15, 39; spec § Targets)     */
+/* ------------------------------------------------------------------ */
+
+const VIEWPORTS: Array<[number, number]> = [
+  [360, 780],
+  [390, 844],
+  [360, 640],
+  [320, 780],
+  [768, 1024],
+  [780, 360],
+  [640, 360],
+];
+
+function targets(page: Page) {
+  return panel(page).evaluate((nav) => {
+    const list = nav.querySelector("[data-drawer-list]")!.getBoundingClientRect();
+    return [...nav.querySelectorAll<HTMLElement>("a[href], button")]
+      .filter((el) => !el.closest("[hidden]"))
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        const kind = el.closest("h2")
+          ? "header"
+          : el.closest("[role=group]")
+            ? "segment"
+            : el.closest("[data-drawer-footer]")
+              ? "pill"
+              : "row";
+        return {
+          kind,
+          name: (el.textContent ?? "").trim().slice(0, 30),
+          h: Math.round(r.height * 10) / 10,
+          w: Math.round(r.width * 10) / 10,
+          listW: Math.round(list.width - 40),
+        };
+      });
+  });
+}
+
+test.describe("QA tap targets at every viewport of record", () => {
+  test.skip(({ browserName }) => browserName !== "chromium");
+  for (const [w, h] of VIEWPORTS) {
+    test(`${w} × ${h}: rows ≥44 full width, headers ≥56, pills 48, segments ≥44 × 44`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await land(page);
+      await open(page);
+      const bad: string[] = [];
+      for (const g of GROUPS) {
+        await openGroup(page, g);
+        for (const t of await targets(page)) {
+          const min = { header: 56, segment: 44, pill: 48, row: 44 }[t.kind]!;
+          if (t.h < min - 0.5) bad.push(`${g}/${t.kind} "${t.name}" h=${t.h}`);
+          if (t.kind === "segment" && t.w < 44)
+            bad.push(`${t.kind} "${t.name}" w=${t.w}`);
+          if (t.kind === "row" && Math.abs(t.w - t.listW) > 1)
+            bad.push(`row "${t.name}" w=${t.w} vs list ${t.listW}`);
+        }
+      }
+      const b = await burger(page).boundingBox();
+      test.info().annotations.push({
+        type: "burger",
+        description: `${b?.width}×${b?.height}`,
+      });
+      expect(bad).toEqual([]);
+    });
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/* Overflow: 320, landscape, 639/640, 200% text (AC 50, 51; § A11y)     */
+/* ------------------------------------------------------------------ */
+
+function overflow(page: Page) {
+  return page.evaluate(() => {
+    const nav = document.querySelector<HTMLElement>(
+      "header[data-nav] nav[aria-label='Menú']",
+    )!;
+    const pr = nav.getBoundingClientRect();
+    const out: string[] = [];
+    if (document.documentElement.scrollWidth > innerWidth)
+      out.push(`doc ${document.documentElement.scrollWidth} > ${innerWidth}`);
+    for (const el of nav.querySelectorAll<HTMLElement>("*")) {
+      if (el.closest("[hidden]")) continue;
+      if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== "visible")
+        out.push(`scroll-x ${el.tagName}.${el.className.toString().slice(0, 40)}`);
+      const r = el.getBoundingClientRect();
+      if (r.width && (r.right > pr.right + 0.5 || r.left < pr.left - 0.5))
+        out.push(`${el.tagName} "${(el.textContent ?? "").trim().slice(0, 24)}" ${r.left.toFixed(1)}–${r.right.toFixed(1)} outside ${pr.left}–${pr.right}`);
+      // Truncation: text clipped with ellipsis or hidden overflow on a text leaf.
+      const cs = getComputedStyle(el);
+      if (cs.textOverflow === "ellipsis") out.push(`ellipsis ${el.tagName}`);
+    }
+    return out;
+  });
+}
+
+test.describe("QA overflow", () => {
+  test.skip(({ browserName }) => browserName !== "chromium");
+  const cases: Array<[string, number, number, boolean]> = [
+    ["320 × 780", 320, 780, false],
+    ["360 × 640", 360, 640, false],
+    ["639 × 900", 639, 900, false],
+    ["640 × 900", 640, 900, false],
+    ["780 × 360 landscape", 780, 360, false],
+    ["640 × 360 landscape", 640, 360, false],
+    ["360 × 780 at 200% text", 360, 780, true],
+    ["768 × 1024 at 200% text", 768, 1024, true],
+  ];
+  for (const [name, w, h, zoom] of cases) {
+    test(`${name}: nothing overflows the panel in S2 and with each group open`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await land(page);
+      if (zoom)
+        await page.addStyleTag({ content: "html{font-size:200% !important}" });
+      await open(page);
+      const all: string[] = [];
+      all.push(...(await overflow(page)).map((s) => `S2: ${s}`));
+      for (const g of GROUPS) {
+        await openGroup(page, g);
+        all.push(...(await overflow(page)).map((s) => `${g}: ${s}`));
+      }
+      const dims = await panel(page).evaluate((nav) => {
+        const l = nav.querySelector<HTMLElement>("[data-drawer-list]")!;
+        const f = nav.querySelector<HTMLElement>("[data-drawer-footer]")!;
+        return {
+          panel: nav.getBoundingClientRect().height,
+          list: l.clientHeight,
+          footer: f.getBoundingClientRect().height,
+        };
+      });
+      test.info().annotations.push({ type: "dims", description: JSON.stringify(dims) });
+      expect([...new Set(all)]).toEqual([]);
+    });
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/* Landscape / short phone: every last row reachable above the footer   */
+/* ------------------------------------------------------------------ */
+
+test.describe("QA reachability in short viewports (AC 48, landscape)", () => {
+  test.skip(({ browserName }) => browserName !== "chromium");
+  for (const [w, h] of [
+    [360, 640],
+    [780, 360],
+    [640, 360],
+  ] as const) {
+    test(`${w} × ${h}: each group's last row scrolls fully into the list area; footer always visible`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: w, height: h });
+      await land(page);
+      await open(page);
+      const bad: string[] = [];
+      for (const g of GROUPS) {
+        await openGroup(page, g);
+        const r = await panel(page).evaluate((nav) => {
+          const list = nav.querySelector<HTMLElement>("[data-drawer-list]")!;
+          const foot = nav.querySelector<HTMLElement>("[data-drawer-footer]")!;
+          list.scrollTop = list.scrollHeight;
+          const rows = [...nav.querySelectorAll<HTMLElement>("[data-drawer-body]:not([hidden]) a")];
+          const last = rows.at(-1)!.getBoundingClientRect();
+          const lr = list.getBoundingClientRect();
+          const fr = foot.getBoundingClientRect();
+          return {
+            last: rows.at(-1)!.textContent,
+            lastBottom: last.bottom,
+            listBottom: lr.bottom,
+            footTop: fr.top,
+            footBottom: fr.bottom,
+            vh: innerHeight,
+            listH: list.clientHeight,
+          };
+        });
+        if (r.lastBottom > r.listBottom + 0.5 || r.lastBottom > r.footTop + 0.5)
+          bad.push(`${g}: "${r.last}" bottom ${r.lastBottom} > list ${r.listBottom}`);
+        if (r.footBottom > r.vh) bad.push(`${g}: footer off-screen`);
+        test.info().annotations.push({ type: g, description: `list area ${r.listH}px` });
+      }
+      expect(bad).toEqual([]);
+    });
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/* Keyboard with a group open; focus not obscured (AC 33, 35; 2.4.11)   */
+/* ------------------------------------------------------------------ */
+
+test.describe("QA keyboard with a group open", () => {
+  test.beforeEach(({ page }) => test.skip(isDesktop(page), "drawer < 1024"));
+
+  test("Itineraries open: header → its 12 rows → Guides …; every focused row is inside the list's visible rect", async ({
+    page,
+  }) => {
+    await land(page);
+    await burger(page).focus();
+    await page.keyboard.press("Enter");
+    await expect(panel(page)).toBeVisible();
+    await waitForGsapIdle(page);
+    const it = panel(page).getByRole("button", { name: "Itineraries" });
+    await expect(it).toBeFocused();
+    await page.keyboard.press("Space");
+    await waitForGsapIdle(page);
+    await expect(it).toHaveAttribute("aria-expanded", "true");
+    await expect(it).toBeFocused();
+    const order: string[] = [];
+    const hidden: string[] = [];
+    for (let i = 0; i < 22; i++) {
+      await page.keyboard.press("Tab");
+      await page.waitForTimeout(30);
+      const f = await page.evaluate(() => {
+        const a = document.activeElement as HTMLElement;
+        const list = document.querySelector<HTMLElement>("[data-drawer-list]");
+        const r = a.getBoundingClientRect();
+        const l = list?.getBoundingClientRect();
+        const inList = !!list?.contains(a);
+        const ol = getComputedStyle(a);
+        return {
+          name: (a.getAttribute("aria-label") ?? (a.querySelector("[data-row-title]") ?? a.querySelector("[id$='-label']") ?? a).textContent ?? "").trim(),
+          visible: !inList || (!!l && r.top >= l.top - 1 && r.bottom <= l.bottom + 1),
+          ring: `${ol.outlineStyle} ${ol.outlineWidth} ${ol.outlineOffset}`,
+        };
+      });
+      order.push(f.name);
+      if (!f.visible) hidden.push(f.name);
+      if (!/solid 2px 2px/.test(f.ring)) hidden.push(`no ring on ${f.name}: ${f.ring}`);
+    }
+    expect(order.slice(0, 13)).toEqual([
+      "3 Days — First Timer",
+      "5 Days — The Classic",
+      "7 Days — Deep Cut",
+      "Weekend Escape",
+      "Christmas in New York",
+      "Autumn in the Parks",
+      "Summer Rooftops",
+      "Winter on a Budget",
+      "Foodie New York",
+      "Art & Museums",
+      "Family New York",
+      "Film Locations",
+      "Guides",
+    ]);
+    expect(order).toContain("Cerrar menú");
+    expect(hidden).toEqual([]);
+    // Esc from a row returns focus to the burger.
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Escape");
+    await expect(burger(page)).toBeFocused();
+    await expect(burger(page)).toHaveAccessibleName("Abrir menú");
+    await expect(panel(page)).toHaveCount(0);
+  });
+
+  test("Enter on a row navigates and closes; Space on the X closes", async ({ page }) => {
+    await land(page, "/sobre-mi");
+    await burger(page).focus();
+    await page.keyboard.press("Enter");
+    // First open per page load: wait for the lazy panel (see Bug 0006).
+    await expect(panel(page)).toBeVisible();
+    await waitForGsapIdle(page);
+    // Sobre mí is open by default: Itineraries … Sobre mí, then its rows.
+    for (let i = 0; i < 6; i++) await page.keyboard.press("Tab");
+    await expect(page.locator(":focus")).toHaveText("Colaboraciones");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/colaboraciones$/);
+    await expect(panel(page)).toHaveCount(0);
+    await burger(page).focus();
+    await page.keyboard.press("Space");
+    await expect(panel(page)).toBeVisible();
+    await burger(page).focus();
+    await page.keyboard.press("Space");
+    await expect(panel(page)).toHaveCount(0);
+    await expect(burger(page)).toBeFocused();
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Screen-reader tree (proxy for the VoiceOver check)                   */
+/* ------------------------------------------------------------------ */
+
+test.describe("QA accessibility tree", () => {
+  test.beforeEach(({ page, browserName }) => {
+    test.skip(isDesktop(page) || browserName !== "chromium", "CDP, drawer < 1024");
+  });
+  test("/sobre-mi: 5 h2 + open group's h3; header names = labels; scent lines as descriptions; Idioma group with pressed state", async ({
+    page,
+  }) => {
+    await land(page, "/sobre-mi");
+    await open(page);
+    const cdp = await page.context().newCDPSession(page);
+    const { nodes } = await cdp.send("Accessibility.getFullAXTree");
+    const live = nodes.filter((n) => !n.ignored);
+    const headings = live
+      .filter((n) => n.role?.value === "heading")
+      .map((n) => {
+        const lvl = n.properties?.find((p) => p.name === "level")?.value.value;
+        return `h${lvl} ${n.name?.value}`;
+      });
+    const buttons = live
+      .filter((n) => n.role?.value === "button")
+      .map((n) => ({
+        name: n.name?.value,
+        desc: n.description?.value ?? "",
+        pressed: n.properties?.find((p) => p.name === "pressed")?.value.value,
+        expanded: n.properties?.find((p) => p.name === "expanded")?.value.value,
+      }));
+    const group = live.find((n) => n.role?.value === "group" && n.name?.value === "Idioma");
+    await cdp.detach();
+    test.info().annotations.push({ type: "headings", description: headings.join(" | ") });
+    test.info().annotations.push({ type: "buttons", description: JSON.stringify(buttons) });
+    const inDrawer = headings.filter((h) => /^h[23] /.test(h));
+    expect(inDrawer).toEqual([
+      "h2 Itineraries",
+      "h2 Guides",
+      "h2 Blog",
+      "h2 Services",
+      "h2 Sobre mí",
+      "h3 VAMOS A NEW YORK",
+      "h3 AYUDA",
+    ]);
+    expect(group).toBeTruthy();
+    const it = buttons.find((b) => b.name === "Itineraries");
+    // eyebrow's text-transform reaches the accessible description (DDR-0006 item 22).
+    expect(it?.desc?.toLowerCase()).toBe("by length · by season · by appetite");
+    const es = buttons.find((b) => b.name === "ES");
+    expect(es?.pressed).toBe("true");
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* axe on states the Engineer's audit doesn't cover                     */
+/* ------------------------------------------------------------------ */
+
+test.describe("QA axe beyond S2/S3/S5", () => {
+  test.beforeEach(({ page, browserName }) =>
+    test.skip(isDesktop(page) || browserName !== "chromium", "drawer < 1024"),
+  );
+  for (const [name, path, group, lang] of [
+    ["S3 Services (prices, tag)", "/", "Services", null],
+    ["S4 on /colaboraciones (Guides open)", "/colaboraciones", "Guides", null],
+    ["PT selected", "/", null, "PT"],
+  ] as const) {
+    test(`axe: ${name}`, async ({ page }) => {
+      await land(page, path);
+      await open(page);
+      if (group) await openGroup(page, group);
+      if (lang) await panel(page).getByRole("button", { name: lang }).click();
+      await waitForGsapIdle(page);
+      const r = await new AxeBuilder({ page })
+        .include("header[data-nav]")
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+        .analyze();
+      expect(r.violations.map((v) => `${v.impact} ${v.id} ×${v.nodes.length}`)).toEqual([]);
+    });
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/* Rapid open/close in real time (DDR-0006 › Consequences)              */
+/* ------------------------------------------------------------------ */
+
+async function drawerState(page: Page) {
+  return page.evaluate(() => {
+    const nav = document.querySelector<HTMLElement>("header[data-nav] nav[aria-label='Menú']");
+    return {
+      open: !!nav,
+      clip: nav?.style.clipPath ?? "",
+      inert: document.querySelectorAll("[inert]").length,
+      overflow: document.body.style.overflow,
+      op: nav
+        ? [...nav.querySelectorAll<HTMLElement>("[data-drawer-group],[data-drawer-footer]")].map(
+            (e) => getComputedStyle(e).opacity,
+          )
+        : [],
+      burger: document
+        .querySelector("header[data-nav] button[aria-label$='menú']")
+        ?.getAttribute("aria-label"),
+      iconStyle: document.querySelector("header[data-nav] button[aria-label$='menú'] svg")?.getAttribute("style") ?? "",
+    };
+  });
+}
+
+test.describe("QA rapid taps", () => {
+  test.beforeEach(({ page }) => test.skip(isDesktop(page), "drawer < 1024"));
+  for (const gap of [80, 200, 400]) {
+    test(`7 taps ${gap}ms apart end open and fully settled; 8 end closed and clean`, async ({ page }) => {
+      await land(page);
+      for (let i = 0; i < 7; i++) {
+        await burger(page).click({ delay: 0 });
+        await page.waitForTimeout(gap);
+      }
+      await waitForGsapIdle(page);
+      await page.waitForTimeout(200);
+      const s = await drawerState(page);
+      expect(s.open).toBe(true);
+      expect(s.clip).toBe("");
+      expect(s.op.every((o) => o === "1")).toBe(true);
+      expect(s.overflow).toBe("hidden");
+      expect(s.burger).toBe("Cerrar menú");
+      await burger(page).click();
+      await waitForGsapIdle(page);
+      await expect(panel(page)).toHaveCount(0);
+      const c = await drawerState(page);
+      expect(c).toMatchObject({ open: false, inert: 0, overflow: "", burger: "Abrir menú" });
+      expect(c.iconStyle).toBe("");
+    });
+  }
+
+  test("open a group, close mid-accordion, reopen at once: the default state, list at top, nothing stuck", async ({
+    page,
+  }) => {
+    await land(page, "/contacto");
+    await open(page);
+    await openGroup(page, "Itineraries");
+    await panel(page).getByRole("button", { name: "Guides", exact: true }).click();
+    await page.waitForTimeout(60);
+    await burger(page).click();
+    await page.waitForTimeout(100);
+    await burger(page).click();
+    await waitForGsapIdle(page);
+    const s = await panel(page).evaluate((nav) => ({
+      expanded: [...nav.querySelectorAll("h2 button")].map((b) => b.getAttribute("aria-expanded")),
+      shown: [...nav.querySelectorAll("[data-drawer-body]")].map((b) => !b.hasAttribute("hidden")),
+      heights: [...nav.querySelectorAll<HTMLElement>("[data-drawer-body]")].map((b) => b.style.height),
+      top: nav.querySelector("[data-drawer-list]")!.scrollTop,
+    }));
+    expect(s.expanded).toEqual(["false", "false", "false", "false", "true"]);
+    expect(s.shown).toEqual([false, false, false, false, true]);
+    expect(s.heights.every((h) => h === "")).toBe(true);
+    expect(s.top).toBe(0);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Real-time motion sampling: settle times, frame pacing, CLS            */
+/* ------------------------------------------------------------------ */
+
+type Sample = {
+  t: number;
+  clip: string;
+  veil: number;
+  groups: number[];
+  footer: number;
+};
+
+test.describe("QA motion, real time", () => {
+  test.beforeEach(({ page, browserName }) =>
+    test.skip(isDesktop(page) || browserName !== "chromium", "drawer < 1024"),
+  );
+
+  for (const throttle of [1, 4]) {
+    test(`unfold timeline and frame pacing, CPU ×${throttle}`, async ({ page }) => {
+      test.setTimeout(120_000);
+      await land(page);
+      // Warm the lazy chunk so the first open isn't a network measurement.
+      await burger(page).click();
+      await waitForGsapIdle(page);
+      await burger(page).click();
+      await waitForGsapIdle(page);
+      await expect(panel(page)).toHaveCount(0);
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send("Emulation.setCPUThrottlingRate", { rate: throttle });
+      const runs: Array<Record<string, number>> = [];
+      for (let run = 0; run < 3; run++) {
+        const sampler = await sampleFrames(
+          page,
+          () => {
+            const nav = document.querySelector<HTMLElement>("header[data-nav] nav[aria-label='Menú']");
+            const veil = nav?.previousElementSibling as HTMLElement | null;
+            const op = (e: Element | null) => (e ? Number(getComputedStyle(e).opacity) : 0);
+            return {
+              t: performance.now(),
+              clip: nav ? getComputedStyle(nav).clipPath : "absent",
+              veil: op(veil),
+              groups: nav ? [...nav.querySelectorAll("[data-drawer-group]")].map(op) : [],
+              footer: op(nav?.querySelector("[data-drawer-footer]") ?? null),
+            };
+          },
+          null,
+        );
+        const t0 = await page.evaluate(() => performance.now());
+        await burger(page).click();
+        await page.waitForTimeout(1500 * throttle);
+        const s = (await sampler.stop()) as Sample[];
+        const after = s.filter((x) => x.t >= t0);
+        const first = (p: (x: Sample) => boolean) => {
+          const hit = after.find(p);
+          return hit ? Math.round(hit.t - t0) : -1;
+        };
+        const gaps = after.slice(1).map((x, i) => x.t - after[i]!.t);
+        const windowed = after.filter((x) => x.t - t0 < 900);
+        const wgaps = windowed.slice(1).map((x, i) => x.t - windowed[i]!.t);
+        runs.push({
+          firstPaint: first((x) => x.clip !== "absent"),
+          panelUnclipped: first((x) => x.clip === "none"),
+          lastHeaderOpaque: first((x) => x.groups.length === 5 && x.groups.every((o) => o >= 0.99)),
+          allHeadersReadable: first((x) => x.groups.length === 5 && x.groups.every((o) => o >= 0.8)),
+          footerOpaque: first((x) => x.footer >= 0.99),
+          veilOpaque: first((x) => x.veil >= 0.99),
+          framesIn900: wgaps.length,
+          maxFrameGap: Math.round(Math.max(...wgaps, 0)),
+          longFrames: wgaps.filter((g) => g > 34).length,
+          medianGap: Math.round([...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)] ?? 0),
+        });
+        await burger(page).click();
+        await page.waitForTimeout(600 * throttle);
+        await expect(panel(page)).toHaveCount(0);
+      }
+      await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+      test.info().annotations.push({ type: `unfold ×${throttle}`, description: JSON.stringify(runs) });
+      // Settles within the spec's 0.9s envelope (+1 frame) at ×1.
+      if (throttle === 1) for (const r of runs) expect(r.lastHeaderOpaque).toBeLessThan(950);
+    });
+  }
+
+  test("tap-to-next-paint latency on the burger (INP proxy), ×1 and ×4", async ({ page }) => {
+    test.setTimeout(120_000);
+    await land(page);
+    await burger(page).click();
+    await waitForGsapIdle(page);
+    await burger(page).click();
+    await waitForGsapIdle(page);
+    const cdp = await page.context().newCDPSession(page);
+    const out: Record<string, number[]> = {};
+    for (const rate of [1, 4]) {
+      await cdp.send("Emulation.setCPUThrottlingRate", { rate });
+      await page.evaluate(() => {
+        (window as unknown as { __inp: number[] }).__inp = [];
+        new PerformanceObserver((l) => {
+          for (const e of l.getEntries())
+            (window as unknown as { __inp: number[] }).__inp.push(Math.round(e.duration));
+        }).observe({ type: "event", durationThreshold: 16, buffered: false } as PerformanceObserverInit);
+      });
+      for (let i = 0; i < 6; i++) {
+        await burger(page).tap().catch(() => burger(page).click());
+        await page.waitForTimeout(1200 * rate);
+      }
+      out[`x${rate}`] = await page.evaluate(() => (window as unknown as { __inp: number[] }).__inp);
+    }
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+    test.info().annotations.push({ type: "event durations (ms)", description: JSON.stringify(out) });
+  });
+
+  test("accordion: layout-shift entries and header stability during expand/collapse", async ({ page }) => {
+    await land(page);
+    await open(page);
+    await page.evaluate(() => {
+      const w = window as unknown as { __ls: Array<{ v: number; input: boolean; srcs: string[] }> };
+      w.__ls = [];
+      new PerformanceObserver((l) => {
+        for (const e of l.getEntries() as Array<PerformanceEntry & { value: number; hadRecentInput: boolean; sources?: Array<{ node?: Node }> }>)
+          w.__ls.push({
+            v: e.value,
+            input: e.hadRecentInput,
+            srcs: (e.sources ?? []).map((s) => (s.node as Element | undefined)?.textContent?.trim().slice(0, 20) ?? "?"),
+          });
+      }).observe({ type: "layout-shift", buffered: false });
+    });
+    // Sample the tapped header's top and the capsule/main during each tap.
+    const tops: Record<string, number[]> = {};
+    for (const g of ["Guides", "Blog", "Guides", "Itineraries", "Sobre mí", "Sobre mí"]) {
+      const sampler = await sampleFrames(
+        page,
+        (label: string) => {
+          const b = [...document.querySelectorAll("header[data-nav] h2 button")].find(
+            (x) => x.textContent?.includes(label),
+          )!;
+          return {
+            top: Math.round(b.getBoundingClientRect().top * 10) / 10,
+            cap: document.querySelector(".nav-capsule")?.getBoundingClientRect().top ?? 0,
+          };
+        },
+        g,
+      );
+      await panel(page).getByRole("button", { name: g, exact: true }).click();
+      await page.waitForTimeout(700);
+      const s = (await sampler.stop()) as Array<{ top: number; cap: number }>;
+      tops[`${g}#${Object.keys(tops).length}`] = [...new Set(s.map((x) => x.top))];
+      expect(new Set(s.map((x) => x.cap)).size).toBe(1);
+    }
+    const ls = await page.evaluate(() => (window as unknown as { __ls: unknown[] }).__ls);
+    test.info().annotations.push({ type: "layout-shift", description: JSON.stringify(ls) });
+    test.info().annotations.push({ type: "tapped header tops", description: JSON.stringify(tops) });
+    const unexpected = (ls as Array<{ v: number; input: boolean }>).filter((e) => !e.input);
+    const cls = unexpected.reduce((a, e) => a + e.v, 0);
+    expect(cls).toBeLessThan(0.1);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion: nothing hidden, no inline motion styles               */
+/* ------------------------------------------------------------------ */
+
+test.describe("QA reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
+  test.beforeEach(({ page }) => test.skip(isDesktop(page), "drawer < 1024"));
+  for (const path of ["/", "/sobre-mi", "/preguntas-frecuentes"]) {
+    test(`${path}: first frame after each tap is fully visible (no opacity < 1, no clip, no transform)`, async ({
+      page,
+    }) => {
+      await land(page, path);
+      await expect(page.locator("html")).not.toHaveClass(/gsap/);
+      const check = () =>
+        page.evaluate(() => {
+          const nav = document.querySelector<HTMLElement>("header[data-nav] nav[aria-label='Menú']");
+          if (!nav) return ["absent"];
+          const bad: string[] = [];
+          for (const el of [nav, nav.previousElementSibling as HTMLElement, ...nav.querySelectorAll<HTMLElement>("*")]) {
+            if (!el || el.closest("[hidden]")) continue;
+            const cs = getComputedStyle(el);
+            if (Number(cs.opacity) < 1) bad.push(`opacity ${cs.opacity} ${el.tagName}`);
+            if (cs.clipPath !== "none") bad.push(`clip ${el.tagName}`);
+            if (el.getAttribute("style")) bad.push(`inline ${el.tagName} ${el.getAttribute("style")}`);
+          }
+          return bad;
+        });
+      await burger(page).click();
+      await expect(panel(page)).toBeAttached();
+      expect(await check()).toEqual([]);
+      for (const g of ["Itineraries", "Guides", "Guides"]) {
+        await panel(page).getByRole("button", { name: g, exact: true }).click();
+        expect(await check()).toEqual([]);
+      }
+      expect(await gsapPending(page)).toBe(0);
+    });
+  }
+});

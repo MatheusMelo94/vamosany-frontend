@@ -1,0 +1,316 @@
+QA probe scripts, mobile-nav test pass v1 (2026-09-27). Run from the repo root against a production build on port 3417 (node <file>.cjs). Saved as .txt to stay out of tsc/ESLint.
+
+==================== § zoom (qa-zoom.cjs) ====================
+// QA scratch (untracked): panel overflow at text-zoom levels.
+const { chromium } = require("@playwright/test");
+(async () => {
+  const b = await chromium.launch();
+  const cases = [
+    [360, 200, false], [360, 175, false], [360, 150, false], [320, 150, false],
+    [320, 125, false], [390, 200, false], [768, 200, false], [360, 200, true],
+  ];
+  for (const [w, pct, mobile] of cases) {
+    const ctx = await b.newContext({ viewport: { width: w, height: 780 }, isMobile: mobile, hasTouch: mobile, reducedMotion: "reduce" });
+    const p = await ctx.newPage();
+    await p.goto("http://localhost:3417/");
+    await p.addStyleTag({ content: `html{font-size:${pct}% !important}` });
+    await p.getByRole("button", { name: "Abrir menú" }).click();
+    const nav = p.getByRole("navigation", { name: "Menú" });
+    await nav.waitFor();
+    const res = {};
+    for (const g of ["Itineraries", "Guides", "Blog", "Services", "Sobre mí"]) {
+      const h = nav.getByRole("button", { name: g, exact: true });
+      if ((await h.getAttribute("aria-expanded")) !== "true") await h.click();
+      res[g] = await nav.evaluate((n) => {
+        const list = n.querySelector("[data-drawer-list]");
+        const lr = list.getBoundingClientRect();
+        const out = [];
+        for (const a of n.querySelectorAll("[data-drawer-body]:not([hidden]) a"))
+          for (const el of a.querySelectorAll("span")) {
+            const r = el.getBoundingClientRect();
+            if (r.width && r.right > lr.right - 20 + 0.5)
+              out.push(`${el.textContent.trim()} right=${r.right.toFixed(0)} limit=${(lr.right - 20).toFixed(0)}`);
+          }
+        return { over: out, listScrollX: list.scrollWidth - list.clientWidth };
+      });
+    }
+    const doc = await p.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
+    const dims = await nav.evaluate((n) => ({
+      footerH: n.querySelector("[data-drawer-footer]").getBoundingClientRect().height,
+      listH: n.querySelector("[data-drawer-list]").clientHeight,
+    }));
+    const bad = Object.fromEntries(Object.entries(res).filter(([, v]) => v.over.length || v.listScrollX > 0));
+    console.log(w, `${pct}%`, mobile ? "mobile" : "desktop", "doc", doc.join("/"), JSON.stringify(dims), JSON.stringify(bad));
+    await ctx.close();
+  }
+  await b.close();
+})();
+
+
+==================== § first-open (qa-firstopen.cjs) ====================
+// QA scratch (untracked): first-open latency of the lazy drawer, warm chunk.
+const { chromium } = require("@playwright/test");
+(async () => {
+  const b = await chromium.launch();
+  for (const path of ["/", "/sobre-mi"]) {
+    const ctx = await b.newContext({ viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true });
+    const p = await ctx.newPage();
+    await p.goto("http://localhost:3417" + path);
+    await p.waitForTimeout(4000); // idle prefetch has certainly finished
+    const chunkLoaded = await p.evaluate(() =>
+      performance.getEntriesByType("resource").filter((e) => /chunks\/.*\.js/.test(e.name)).length,
+    );
+    const measure = () =>
+      p.evaluate(
+        () =>
+          new Promise((resolve) => {
+            const btn = document.querySelector("header[data-nav] button[aria-label$='menú']");
+            const t0 = performance.now();
+            btn.click();
+            const tick = () => {
+              const nav = document.querySelector("header[data-nav] nav[aria-label='Menú']");
+              if (nav && nav.getBoundingClientRect().height > 0)
+                resolve({ ms: Math.round(performance.now() - t0), active: document.activeElement?.textContent?.trim().slice(0, 20) });
+              else requestAnimationFrame(tick);
+            };
+            tick();
+          }),
+      );
+    const runs = [];
+    for (let i = 0; i < 4; i++) {
+      runs.push(await measure());
+      await p.waitForTimeout(1200);
+      await p.locator("header[data-nav] button[aria-label='Cerrar menú']").click();
+      await p.waitForTimeout(800);
+    }
+    // Keyboard: fresh page, Enter on the burger then Tab after 50ms.
+    const p2 = await ctx.newPage();
+    await p2.goto("http://localhost:3417" + path);
+    await p2.waitForTimeout(4000);
+    await p2.locator("header[data-nav] button[aria-label='Abrir menú']").focus();
+    await p2.keyboard.press("Enter");
+    await p2.waitForTimeout(50);
+    await p2.keyboard.press("Tab");
+    const afterTab = await p2.evaluate(() => document.activeElement?.textContent?.trim().slice(0, 30));
+    await p2.waitForTimeout(1500);
+    const settled = await p2.evaluate(() => document.activeElement?.textContent?.trim().slice(0, 30));
+    console.log(path, "resources", chunkLoaded, "open→visible", JSON.stringify(runs), "| Enter+50ms Tab →", JSON.stringify(afterTab), "then", JSON.stringify(settled));
+    await ctx.close();
+  }
+  await b.close();
+})();
+
+
+==================== § gap (qa-gap.cjs) ====================
+// QA scratch (untracked): what is painted during the first-open gap.
+const { chromium } = require("@playwright/test");
+(async () => {
+  const b = await chromium.launch();
+  for (const run of [1, 2, 3]) {
+    const ctx = await b.newContext({ viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true });
+    const p = await ctx.newPage();
+    await p.goto("http://localhost:3417/");
+    await p.waitForTimeout(4000);
+    const samples = await p.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const btn = document.querySelector("header[data-nav] button[aria-label$='menú']");
+          const out = [];
+          const t0 = performance.now();
+          btn.click();
+          const tick = () => {
+            const t = Math.round(performance.now() - t0);
+            out.push({
+              t,
+              label: btn.getAttribute("aria-label"),
+              expanded: btn.getAttribute("aria-expanded"),
+              nav: !!document.querySelector("header[data-nav] nav[aria-label='Menú']"),
+              inert: document.querySelectorAll("[inert]").length,
+              overflow: document.body.style.overflow,
+              icon: btn.querySelector("svg")?.innerHTML.length,
+            });
+            if (t < 450) requestAnimationFrame(tick);
+            else resolve(out);
+          };
+          requestAnimationFrame(tick);
+        }),
+    );
+    const seen = [];
+    let last = "";
+    for (const s of samples) {
+      const k = JSON.stringify({ ...s, t: 0 });
+      if (k !== last) {
+        seen.push(s);
+        last = k;
+      }
+    }
+    console.log(run, JSON.stringify(seen));
+    await ctx.close();
+  }
+  await b.close();
+})();
+
+
+==================== § shots (qa-shots.cjs) ====================
+// QA scratch (untracked): review captures of drawer states.
+const { chromium } = require("@playwright/test");
+const OUT = "test-results-qa/shots";
+(async () => {
+  const b = await chromium.launch();
+  const shots = [
+    ["s3-services-360", 360, 780, "/", "Services"],
+    ["s5-colaboraciones-360", 360, 780, "/colaboraciones", null],
+    ["s4-colaboraciones-guides-360", 360, 780, "/colaboraciones", "Guides"],
+    ["landscape-780x360-itineraries", 780, 360, "/", "Itineraries"],
+    ["s3-services-320", 320, 780, "/", "Services"],
+  ];
+  for (const [name, w, h, path, group] of shots) {
+    const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, reducedMotion: "reduce" });
+    const p = await ctx.newPage();
+    await p.goto("http://localhost:3417" + path);
+    await p.evaluate(() => document.fonts.ready);
+    await p.getByRole("button", { name: "Abrir menú" }).click();
+    const nav = p.getByRole("navigation", { name: "Menú" });
+    await nav.waitFor();
+    if (group) await nav.getByRole("button", { name: group, exact: true }).click();
+    await p.waitForTimeout(300);
+    await p.screenshot({ path: `${OUT}/${name}.png` });
+    await ctx.close();
+  }
+  await b.close();
+})();
+
+
+==================== § AC 46 triage (Playwright spec; run as tests/e2e/qa-ac46-triage.spec.ts) (tests/e2e/qa-ac46-triage.spec.ts) ====================
+import { test, expect, type Page } from "@playwright/test";
+import sharp from "sharp";
+import { waitForLandingMotion } from "./support/motion";
+
+/**
+ * QA triage of the intermittent AC 46 failure (tablet-768, reduced motion,
+ * closed-header frame compare) reported in the T013 handoff. Replicates
+ * mobile-nav.spec.ts `instantOpenClose` step for step, and on a mismatch
+ * records where the two frames differ and the burger's computed background
+ * at capture time. Variant "settled" waits 300ms after the pointer leaves
+ * the burger (the control).
+ */
+
+const ISOLATE = "main, footer { display: none !important; }";
+const header = (page: Page) => page.locator("header[data-nav]");
+const burger = (page: Page) =>
+  header(page).getByRole("button", { name: /^(Abrir|Cerrar) menú$/ });
+const panel = (page: Page) =>
+  header(page).getByRole("navigation", { name: "Menú" });
+
+async function diffBox(a: Buffer, b: Buffer) {
+  const [ra, rb] = await Promise.all(
+    [a, b].map((x) => sharp(x).raw().ensureAlpha().toBuffer({ resolveWithObject: true })),
+  );
+  const { width, height } = ra!.info;
+  let minX = width, minY = height, maxX = -1, maxY = -1, n = 0;
+  for (let y = 0; y < height; y++)
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      if (
+        ra!.data[i] !== rb!.data[i] ||
+        ra!.data[i + 1] !== rb!.data[i + 1] ||
+        ra!.data[i + 2] !== rb!.data[i + 2]
+      ) {
+        n++;
+        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+      }
+    }
+  return n ? { n, box: [minX, minY, maxX, maxY] } : null;
+}
+
+const bg = (page: Page) =>
+  burger(page).evaluate((b) => getComputedStyle(b).backgroundColor);
+
+for (const variant of ["as-written", "settled"] as const) {
+  test.describe(`AC 46 triage (${variant})`, () => {
+    test.use({ reducedMotion: "reduce" });
+    test(`open/close closed-header compare`, async ({ page }, info) => {
+      test.skip((page.viewportSize()?.width ?? 0) >= 1024);
+      await page.goto("/");
+      await page.evaluate(() => document.fonts.ready);
+      await waitForLandingMotion(page);
+      await page.addStyleTag({ content: ISOLATE });
+      await page.mouse.move(1, 1);
+      const closed = await header(page).screenshot({ animations: "disabled" });
+      await burger(page).click();
+      await expect(panel(page)).toBeAttached();
+      const bgOpen = await bg(page);
+      const opened = await page.screenshot();
+      await page.waitForTimeout(1000);
+      const openedLater = await page.screenshot();
+      const openDiff = opened.equals(openedLater) ? null : await diffBox(opened, openedLater);
+      await burger(page).click();
+      expect(await panel(page).count()).toBe(0);
+      await page.mouse.move(1, 1);
+      if (variant === "settled") await page.waitForTimeout(300);
+      await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+      const bgAtCapture = await bg(page);
+      const after = await header(page).screenshot({ animations: "disabled" });
+      const closeDiff = after.equals(closed) ? null : await diffBox(closed, after);
+      const b = await burger(page).boundingBox();
+      info.annotations.push({
+        type: "triage",
+        description: JSON.stringify({ openDiff, closeDiff, bgOpen, bgAtCapture, burger: b }),
+      });
+      if (closeDiff) {
+        await info.attach("closed-before", { body: closed, contentType: "image/png" });
+        await info.attach("closed-after", { body: after, contentType: "image/png" });
+      }
+      expect({ openDiff, closeDiff }).toEqual({ openDiff: null, closeDiff: null });
+    });
+  });
+}
+
+/** Controls: (a) the header's DOM + computed style before vs after an
+ * open/close; (b) the same closed-header compare with no drawer at all. */
+test.describe("AC 46 triage controls", () => {
+  test.use({ reducedMotion: "reduce" });
+  const snap = (page: Page) =>
+    header(page).evaluate((h) => {
+      const out: string[] = [];
+      for (const el of [h, ...h.querySelectorAll("*")]) {
+        const cs = getComputedStyle(el);
+        out.push(
+          `${el.tagName}|${[...el.attributes].map((a) => `${a.name}=${a.value}`).join(",")}|${cs.transform}|${cs.opacity}|${cs.backgroundColor}|${cs.boxShadow}|${cs.backdropFilter}|${cs.willChange}`,
+        );
+      }
+      return out;
+    });
+  test("header DOM/style unchanged by open+close", async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 1024);
+    await page.goto("/");
+    await waitForLandingMotion(page);
+    await page.addStyleTag({ content: ISOLATE });
+    await page.mouse.move(1, 1);
+    const before = await snap(page);
+    await burger(page).click();
+    await burger(page).click();
+    await page.mouse.move(1, 1);
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await page.waitForTimeout(300);
+    const after = await snap(page);
+    expect(after.filter((x, i) => x !== before[i])).toEqual([]);
+  });
+  test("no drawer: closed header twice", async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 1024);
+    await page.goto("/");
+    await waitForLandingMotion(page);
+    await page.addStyleTag({ content: ISOLATE });
+    await page.mouse.move(1, 1);
+    const a = await header(page).screenshot({ animations: "disabled" });
+    await burger(page).hover();
+    await page.waitForTimeout(1000);
+    await page.mouse.move(1, 1);
+    await page.waitForTimeout(300);
+    const b = await header(page).screenshot({ animations: "disabled" });
+    const d = a.equals(b) ? null : await diffBox(a, b);
+    test.info().annotations.push({ type: "triage", description: JSON.stringify({ closeDiff: d }) });
+    expect(d).toBeNull();
+  });
+});

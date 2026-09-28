@@ -1,8 +1,18 @@
-import { render, screen, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { NAV } from "@/components/layout/nav-config";
+import { fakeViewport } from "@/tests/support/viewport";
 
 vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => "/") }));
 
@@ -182,7 +192,8 @@ describe("Navbar", () => {
         expect(within(panelIn(container)).queryByText(text)).toBeNull();
       }
     }
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
     for (const text of REMOVED) {
       expect(screen.queryByText(text)).toBeNull();
     }
@@ -191,8 +202,9 @@ describe("Navbar", () => {
   it("puts the phone drawer's links inside a labelled navigation landmark (RV-0015)", async () => {
     const user = userEvent.setup();
     render(<Navbar />);
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
-    const menu = screen.getByRole("navigation", { name: "Menu" });
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(within(menu).getByRole("button", { name: "Sobre mí" }));
     for (const [title] of SOBRE_MI_ITEMS) {
       expect(within(menu).getByRole("link", { name: title })).toBeVisible();
     }
@@ -202,10 +214,13 @@ describe("Navbar", () => {
   it("mirrors the Sobre mí group in the drawer; tapping an item closes it (AC 3)", async () => {
     const user = userEvent.setup();
     render(<Navbar />);
-    const toggle = screen.getByRole("button", { name: "Toggle menu" });
+    const toggle = screen.getByRole("button", { name: "Abrir menú" });
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("Vamos a New York")).toBeInTheDocument();
+    // On "/" every group starts closed (mobile-navigation S2): open Sobre mí.
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(within(menu).getByRole("button", { name: "Sobre mí" }));
+    expect(await screen.findByText("Vamos a New York")).toBeInTheDocument();
     expect(screen.getByText("Ayuda")).toBeInTheDocument();
     for (const [title, , href] of SOBRE_MI_ITEMS) {
       expect(screen.getByRole("link", { name: title })).toHaveAttribute(
@@ -245,9 +260,15 @@ describe("Navbar item destinations (RV-0010)", () => {
   it("points every drawer item at a path, never a bare fragment", async () => {
     const user = userEvent.setup();
     render(<Navbar />);
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
-    const hrefs = itemHrefs();
-    expect(hrefs.length).toBeGreaterThan(20);
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    // Single-open accordion: open each group in turn and read its links.
+    const hrefs: string[] = [];
+    for (const group of NAV) {
+      await user.click(within(menu).getByRole("button", { name: group.label }));
+      hrefs.push(...itemHrefs());
+    }
+    expect(hrefs.length).toBeGreaterThan(30);
     for (const href of hrefs) expect(href).toMatch(/^\//);
   });
 });
@@ -375,7 +396,8 @@ describe("Navbar current page (AC 5, AC 9)", () => {
     vi.mocked(usePathname).mockReturnValue("/colaboraciones");
     const user = userEvent.setup();
     const { container } = render(<Navbar />);
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
     const current = container.querySelectorAll('[aria-current="page"]');
     expect(current).toHaveLength(1);
     const link = screen.getByRole("link", { name: "Colaboraciones" });
@@ -391,8 +413,226 @@ describe("Navbar current page (AC 5, AC 9)", () => {
     const { container } = render(<Navbar />);
     await openPanel("Sobre mí");
     expect(container.querySelector('[aria-current="page"]')).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
     expect(container.querySelector('[aria-current="page"]')).toBeNull();
     expect(container.querySelector("[data-current-dot]")).toBeNull();
+  });
+});
+
+describe("Navbar burger (mobile-navigation AC 4, 5)", () => {
+  it("is named Abrir menú, collapsed and controls nothing while closed", () => {
+    render(<Navbar />);
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+  });
+
+  it("becomes Cerrar menú and controls the Menú landmark once tapped", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    const burger = screen.getByRole("button", { name: "Cerrar menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "true");
+    expect(menu.id).not.toBe("");
+    expect(burger).toHaveAttribute("aria-controls", menu.id);
+  });
+
+  it("returns to Abrir menú and drops the drawer when tapped again", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(screen.getByRole("button", { name: "Cerrar menú" }));
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+  });
+
+  it("imports no GSAP: motion lives in the lazy drawer chunk (plan § 7.1)", () => {
+    const source = readFileSync(
+      path.resolve(__dirname, "../navbar.tsx"),
+      "utf8",
+    );
+    expect(source).not.toMatch(/from\s+["'](gsap|@gsap\/|@\/lib\/gsap)/);
+  });
+});
+
+describe("Navbar drawer chunk failure (plan § 9)", () => {
+  const LOADER = "@/components/layout/drawer/load-drawer";
+
+  afterEach(() => {
+    vi.doUnmock(LOADER);
+    vi.resetModules();
+  });
+
+  it("leaves the burger closed when the chunk fails to load, and retries on the next tap", async () => {
+    vi.resetModules();
+    const actual =
+      await vi.importActual<typeof import("../drawer/load-drawer")>(LOADER);
+    let offline = true;
+    const loadDrawer = vi.fn(() =>
+      offline
+        ? Promise.reject(new Error("ChunkLoadError"))
+        : actual.loadDrawer(),
+    );
+    vi.doMock(LOADER, () => ({ loadDrawer }));
+    const { Navbar: FreshNavbar } = await import("@/components/layout/navbar");
+    const user = userEvent.setup();
+    render(<FreshNavbar />);
+
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    await waitFor(() => expect(loadDrawer).toHaveBeenCalled());
+    await act(async () => undefined);
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+    // Nothing else unmounted: no error boundary replaced the page.
+    expect(
+      screen.getByRole("link", { name: "Vamos a NY — home" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Itineraries" }),
+    ).toBeInTheDocument();
+
+    offline = false;
+    const failedCalls = loadDrawer.mock.calls.length;
+    await user.click(burger);
+    expect(
+      await screen.findByRole("navigation", { name: "Menú" }),
+    ).toBeInTheDocument();
+    expect(loadDrawer.mock.calls.length).toBeGreaterThan(failedCalls);
+  });
+});
+
+describe("Navbar first open (QA-0006, RV-0023)", () => {
+  const LOADER = "@/components/layout/drawer/load-drawer";
+  const X_PATH = "m5 5 10 10M15 5 5 15";
+  const iconPath = (burger: HTMLElement) =>
+    burger.querySelector("path")?.getAttribute("d");
+
+  afterEach(() => {
+    vi.doUnmock(LOADER);
+    vi.resetModules();
+  });
+
+  it("with the chunk still loading, a tap claims nothing: no X, not expanded, no aria-controls; all flip with the panel", async () => {
+    vi.resetModules();
+    const actual =
+      await vi.importActual<typeof import("../drawer/load-drawer")>(LOADER);
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const loadDrawer = vi.fn(() => gate.then(actual.loadDrawer));
+    vi.doMock(LOADER, () => ({ loadDrawer }));
+    const { Navbar: FreshNavbar } = await import("@/components/layout/navbar");
+    const user = userEvent.setup();
+    render(<FreshNavbar />);
+
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+    expect(iconPath(burger)).not.toBe(X_PATH);
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+
+    await act(async () => release());
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    expect(burger).toHaveAccessibleName("Cerrar menú");
+    expect(burger).toHaveAttribute("aria-expanded", "true");
+    expect(burger).toHaveAttribute("aria-controls", menu.id);
+    expect(iconPath(burger)).toBe(X_PATH);
+    expect(menu).toContainElement(document.activeElement as HTMLElement);
+  });
+
+  it("once the chunk is warm, the first tap mounts the panel in the same render, with focus inside", async () => {
+    render(<Navbar />);
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    // Warm-up on focus, as a keyboard or pointer user would trigger it.
+    fireEvent.focus(burger);
+    await act(async () => {
+      await import("../drawer/mobile-drawer");
+    });
+
+    act(() => {
+      fireEvent.click(burger);
+    });
+    const menu = screen.queryByRole("navigation", { name: "Menú" });
+    expect(menu).not.toBeNull();
+    expect(burger).toHaveAccessibleName("Cerrar menú");
+    expect(burger).toHaveAttribute("aria-controls", menu?.id);
+    expect(menu).toContainElement(document.activeElement as HTMLElement);
+  });
+});
+
+describe("Navbar cold open after the viewport widens (RV-0024, AC 30)", () => {
+  const LOADER = "@/components/layout/drawer/load-drawer";
+  let viewport: ReturnType<typeof fakeViewport>;
+
+  beforeEach(() => {
+    viewport = fakeViewport(360);
+  });
+
+  afterEach(() => {
+    viewport.restore();
+    vi.doUnmock(LOADER);
+    vi.resetModules();
+  });
+
+  it("doesn't open when the chunk arrives at 1024 or wider: burger closed, page neither inert nor scroll-locked", async () => {
+    vi.resetModules();
+    const actual =
+      await vi.importActual<typeof import("../drawer/load-drawer")>(LOADER);
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const loadDrawer = vi.fn(() => gate.then(actual.loadDrawer));
+    vi.doMock(LOADER, () => ({ loadDrawer }));
+    const { Navbar: FreshNavbar } = await import("@/components/layout/navbar");
+    const user = userEvent.setup();
+    render(<FreshNavbar />);
+
+    // Any panel mounted at all, even one closed right away, is a failure:
+    // it would have made the page inert and moved focus for a frame.
+    let mounted = false;
+    const watch = new MutationObserver((records) => {
+      for (const { addedNodes } of records)
+        for (const node of addedNodes)
+          if (
+            node instanceof Element &&
+            (node.matches('nav[aria-label="Menú"]') ||
+              node.querySelector('nav[aria-label="Menú"]'))
+          )
+            mounted = true;
+    });
+    watch.observe(document.body, { childList: true, subtree: true });
+
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    act(() => viewport.resize(1280));
+    await act(async () => release());
+    await act(async () => {
+      await gate.then(actual.loadDrawer);
+    });
+    watch.disconnect();
+    expect(mounted).toBe(false);
+
+    const burger = screen.getByRole("button", { name: "Abrir menú" });
+    expect(burger).toHaveAttribute("aria-expanded", "false");
+    expect(burger).not.toHaveAttribute("aria-controls");
+    expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
+    expect(document.querySelector("[inert]")).toBeNull();
+    expect(document.body.style.overflow).toBe("");
+
+    // Back below 1024, the warm chunk opens on the next tap as usual.
+    act(() => viewport.resize(360));
+    await user.click(burger);
+    expect(
+      await screen.findByRole("navigation", { name: "Menú" }),
+    ).toBeInTheDocument();
   });
 });

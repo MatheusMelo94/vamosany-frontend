@@ -1,0 +1,587 @@
+<title>Vamos a NY Mobile Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Montserrat:wght@400;600;700&display=swap">
+<style>
+/* Tokens from app/globals.css (light only, as the product is). */
+:root{
+  --brand:#ffd800; --ink:#080a0b; --ink-muted:#484846; --ink-tertiary:#a8a8a4;
+  --canvas:#ffffff; --surface-1:#f7f7f5; --surface-2:#eeeeea; --hairline:#eeeeea;
+  --font-display:"Courier Prime","Roboto Slab",Rockwell,serif;
+  --font-sans:Montserrat,Arial,Helvetica,sans-serif;
+  --shadow-nav:0 8px 30px rgb(0 0 0/.06); --shadow-drawer:0 18px 50px rgb(0 0 0/.1); --shadow-menu:0 18px 50px rgb(0 0 0/.08);
+  --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--canvas);color:var(--ink);font-family:var(--font-sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;margin:0}
+::selection{background:var(--brand)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+h1,h2,h3,h4,p,ul,ol,figure{margin:0}
+ul,ol{list-style:none;padding:0}
+a{color:inherit}
+.wrap{max-width:1320px;margin-inline:auto;padding-inline:20px}
+@media (min-width:768px){.wrap{padding-inline:32px}}
+
+.disp{font-family:var(--font-display);font-weight:700;text-transform:uppercase;text-wrap:balance}
+.dxl{font-size:clamp(1.75rem,4.6vw,3.5rem);line-height:1.1;letter-spacing:.04em}
+.dmd{font-size:clamp(1.5rem,2.4vw,2.1rem);line-height:1.05;letter-spacing:.03em}
+.hl{font-size:clamp(1.25rem,1.7vw,1.5rem);line-height:1.1;letter-spacing:.03em}
+.eb{font-family:var(--font-display);font-weight:700;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted)}
+.muted{color:var(--ink-muted)}
+.bsm{font-size:.875rem}
+.mono{font-family:var(--font-display)}
+.hi{background-image:linear-gradient(to right,var(--brand) 0 5.2%,transparent 5.2% 5.68%,var(--brand) 5.68% 10.88%,transparent 10.88% 11.36%,var(--brand) 11.36% 16.56%,transparent 16.56% 17.04%,var(--brand) 17.04% 22.24%,transparent 22.24% 22.72%,var(--brand) 22.72% 27.92%,transparent 27.92% 28.4%,var(--brand) 28.4% 33.6%,transparent 33.6% 100%);background-repeat:no-repeat;background-size:300% .4em;background-position:0 .4em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.tag{display:inline-block;background:var(--brand);color:var(--ink);font-size:.7rem;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap;line-height:1.5}
+
+/* ---------- page chrome ---------- */
+.intro{padding-block:48px 28px}
+.intro .meta{font-family:var(--font-display);font-size:.8125rem;color:var(--ink-muted);margin-bottom:14px}
+.intro .dek{margin-top:18px;max-width:64ch;font-size:1.0625rem;color:var(--ink-muted)}
+section.band{padding-block:48px;border-top:2px solid var(--ink)}
+.sec-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px 24px;margin-bottom:24px}
+.sec-h p{max-width:62ch}
+
+.problems{display:grid;gap:0;counter-reset:p}
+@media (min-width:900px){.problems{grid-template-columns:1fr 1fr;column-gap:40px}}
+.problems li{counter-increment:p;display:grid;grid-template-columns:2.4rem 1fr;gap:2px 10px;padding:14px 0;border-bottom:1px solid var(--hairline)}
+.problems li::before{content:counter(p,decimal-leading-zero);font-family:var(--font-display);font-weight:700;color:var(--ink-muted);grid-row:span 2}
+.problems b{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.03em;font-size:.95rem}
+.problems p{font-size:.9rem;color:var(--ink-muted)}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.stat{border:2px solid var(--ink);border-radius:4px;padding:10px 14px;display:grid;gap:2px;min-width:130px}
+.stat b{font-family:var(--font-display);font-size:1.6rem;line-height:1}
+.stat span{font-size:.78rem;color:var(--ink-muted)}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;margin-bottom:20px}
+.grp{display:grid;gap:6px}
+.tabs{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;border:2px solid var(--ink);border-radius:4px}
+.tabs button{padding:8px 14px;border-radius:2px;font-family:var(--font-display);font-weight:700;font-size:.8125rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted)}
+.tabs button[aria-pressed="true"]{background:var(--brand);color:var(--ink)}
+
+.phones{display:grid;gap:36px 24px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));justify-items:center}
+.pcol{display:grid;gap:14px;width:100%;max-width:340px;align-content:start}
+.pcol .lbl{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pcol .lbl .l{font-family:var(--font-display);font-weight:700;font-size:1.6rem;line-height:1;color:var(--ink-tertiary)}
+.pcol.best .lbl .l{color:var(--ink)}
+.pcol .thesis{font-size:.875rem;color:var(--ink-muted)}
+.pcol .hint{font-family:var(--font-display);font-size:.75rem;color:var(--ink-muted)}
+
+/* ---------- phone frame ---------- */
+.phone{position:relative;width:100%;max-width:340px;height:700px;border:8px solid var(--ink);border-radius:40px;overflow:hidden;background:var(--canvas);box-shadow:0 20px 40px rgb(0 0 0/.12);isolation:isolate}
+.phone .screen{position:absolute;inset:0;overflow:hidden;font-size:16px}
+.bgpage{position:absolute;inset:0;padding:84px 18px 18px;display:grid;align-content:start;gap:14px}
+.bgpage h2{font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:1.45rem;line-height:1.1;letter-spacing:.04em}
+.bgpage p{font-size:.85rem;color:var(--ink-muted)}
+.bgpage .img{height:170px;border-radius:12px;background:linear-gradient(135deg,#d9d9d4,#b9b9b2)}
+.bgpage .btn{justify-self:start;background:var(--brand);border:2px solid var(--ink);border-radius:4px;padding:10px 16px;font-family:var(--font-display);font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase}
+
+.cap{position:absolute;left:12px;right:12px;top:12px;height:52px;border-radius:999px;background:rgb(255 255 255/.55);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border:1px solid rgb(8 10 11/.08);box-shadow:var(--shadow-nav);display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 18px;z-index:5}
+.cap img{height:22px;width:auto}
+.burger{width:40px;height:40px;border-radius:50%;display:grid;place-items:center}
+.burger:hover{background:rgb(8 10 11/.05)}
+.burger svg{width:20px;height:20px}
+.veil{position:absolute;inset:0;background:rgb(255 255 255/.75);z-index:3}
+
+.panel{position:absolute;left:12px;right:12px;top:72px;bottom:12px;background:var(--canvas);border-radius:24px;border:1px solid rgb(8 10 11/.08);box-shadow:var(--shadow-drawer);z-index:4;display:flex;flex-direction:column;overflow:hidden}
+.scroll{overflow-y:auto;flex:1;overscroll-behavior:contain;scrollbar-width:thin}
+.foot{border-top:1px solid var(--hairline);padding:12px 16px 14px;display:grid;gap:10px;background:var(--canvas)}
+
+/* current drawer */
+.cur{padding:14px 18px 28px}
+.cur .g{padding-block:18px;border-bottom:1px solid var(--hairline)}
+.cur .g:last-of-type{border-bottom:0}
+.cur .gt{font-family:var(--font-display);font-weight:700;font-size:1.1875rem;letter-spacing:.03em;text-transform:uppercase}
+.cur .col{margin-top:14px}
+.cur .ch{font-family:var(--font-display);font-weight:700;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-tertiary)}
+.cur .items{margin-top:6px;display:grid;gap:8px}
+.cur .it{display:flex;justify-content:space-between;gap:10px;font-size:.84rem;color:var(--ink-muted);line-height:1.6;text-decoration:none}
+.cur .it .pr{font-size:.72rem;font-weight:600;color:var(--ink)}
+.cur .lang{margin-top:22px;border-top:1px solid var(--hairline);padding-top:18px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.84rem;font-weight:600}
+.chips{display:flex;gap:6px}
+.chips span{font-family:var(--font-display);font-weight:700;font-size:.8rem;letter-spacing:.06em;border:2px solid var(--hairline);border-radius:999px;padding:3px 10px}
+.chips span.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.cur .auth{margin-top:18px;display:grid;gap:10px}
+.pill{min-height:46px;border-radius:999px;background:rgb(8 10 11/.05);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+.pill.dark{background:var(--ink);color:#fff}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 1px rgb(8 10 11/.25);flex:none}
+
+/* annotation markers on the "today" phone */
+.flag{position:absolute;z-index:6;background:var(--ink);color:#fff;font-family:var(--font-display);font-weight:700;font-size:.66rem;letter-spacing:.04em;padding:3px 7px;border-radius:999px;pointer-events:none;white-space:nowrap}
+
+/* A: Índice */
+.ax{padding:10px 14px 16px}
+.ax .eyeb{font-family:var(--font-display);font-weight:700;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-tertiary);margin:6px 2px 10px}
+.svc{display:grid;gap:8px}
+.card{display:grid;gap:3px;border:1px solid var(--hairline);border-radius:12px;padding:10px 12px;text-decoration:none;transition:border-color .18s}
+.card:hover{border-color:var(--ink)}
+.card .row{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.card .t{font-size:.84rem;font-weight:600;line-height:1.35}
+.card .b{font-size:.74rem;color:var(--ink-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .pr{font-family:var(--font-display);font-weight:700;font-size:.9rem;white-space:nowrap}
+.acc{margin-top:14px;border-top:1px solid var(--hairline)}
+.acc .grp2{border-bottom:1px solid var(--hairline)}
+.acc .hd{width:100%;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px;text-align:left;min-height:62px;padding:10px 4px}
+.acc .hd .gt{font-family:var(--font-display);font-weight:700;font-size:1.1rem;letter-spacing:.03em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.acc .hd .sc{grid-column:1;font-family:var(--font-display);font-weight:700;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-tertiary)}
+.acc .hd .chev{grid-row:1/span 2;grid-column:2;width:14px;height:14px;transition:transform .2s var(--ease)}
+.acc .hd[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.acc .body{overflow:hidden}
+.acc .body .in{padding:0 4px 12px}
+.acc .ch{font-family:var(--font-display);font-weight:700;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-tertiary);margin:10px 0 2px}
+.acc .row44{display:flex;align-items:center;gap:8px;min-height:44px;font-size:.86rem;font-weight:600;text-decoration:none;border-bottom:1px solid var(--surface-1)}
+.acc .row44 .sp{flex:1}
+.seg{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px}
+.seg .opts{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--hairline);border-radius:999px;padding:3px}
+.seg .opts button{min-height:38px;border-radius:999px;font-family:var(--font-display);font-weight:700;font-size:.82rem;letter-spacing:.06em}
+.seg .opts button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.seg svg{width:16px;height:16px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* B: Líneas */
+.bx{position:relative;height:100%}
+.lvl{position:absolute;inset:0;overflow-y:auto;background:var(--canvas)}
+.st{width:100%;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 10px;text-align:left;padding:16px 18px;min-height:78px;border-bottom:1px solid var(--hairline)}
+.st .n{font-family:var(--font-display);font-weight:700;font-size:1.45rem;letter-spacing:.03em;text-transform:uppercase;line-height:1.05;display:flex;align-items:center;gap:8px}
+.st .sc{font-family:var(--font-display);font-weight:700;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-tertiary)}
+.st .ar{grid-row:1/span 2;grid-column:2;font-family:var(--font-display);font-weight:700;font-size:1.3rem;display:flex;align-items:center;gap:8px}
+.st .ar small{font-size:.72rem;letter-spacing:.04em}
+.l2hd{position:sticky;top:0;background:var(--canvas);display:flex;align-items:center;gap:8px;min-height:56px;padding:6px 10px;border-bottom:1px solid var(--hairline);z-index:1}
+.l2hd button{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 8px;border-radius:999px;font-family:var(--font-display);font-weight:700;font-size:1.05rem;letter-spacing:.03em;text-transform:uppercase}
+.l2hd button:hover{background:rgb(8 10 11/.05)}
+.l2 .in{padding:4px 18px 18px}
+.l2 .ch{font-family:var(--font-display);font-weight:700;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-tertiary);margin:14px 0 2px}
+.l2 .row56{display:grid;gap:1px;min-height:56px;padding:8px 0;border-bottom:1px solid var(--surface-1);text-decoration:none}
+.l2 .row56 .t{font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.l2 .row56 .b{font-size:.76rem;color:var(--ink-muted)}
+.bigcard{border:1px solid var(--hairline);border-radius:12px;padding:12px;display:grid;gap:4px;margin-top:10px}
+.bigcard .t{font-weight:600;font-size:.9rem;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.bigcard .b{font-size:.8rem;color:var(--ink-muted)}
+.bigcard .pr{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.bigcard .pr b{font-family:var(--font-display);font-size:1.3rem}
+.bigcard .pr span{font-family:var(--font-display);font-weight:700;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px}
+
+/* C: Bolsillo */
+.sheet{position:absolute;left:8px;right:8px;bottom:8px;max-height:88%;background:var(--canvas);border-radius:24px 24px 24px 24px;border:1px solid rgb(8 10 11/.08);box-shadow:0 -10px 40px rgb(0 0 0/.12);z-index:4;display:flex;flex-direction:column;overflow:hidden}
+.sheet .top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:6px 8px 0}
+.sheet .grab{width:40px;height:5px;border-radius:9px;background:var(--surface-2);grid-column:2;margin-top:4px}
+.sheet .x{grid-column:3;justify-self:end;width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
+.sheet .x:hover{background:rgb(8 10 11/.05)}
+.sheet .x svg{width:20px;height:20px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px}
+.tile{border:1px solid var(--hairline);border-radius:12px;padding:8px;display:grid;gap:4px;align-content:space-between;min-height:104px;text-decoration:none}
+.tile .t{font-size:.72rem;font-weight:600;line-height:1.3}
+.tile .pr{font-family:var(--font-display);font-weight:700;font-size:.85rem}
+.qchips{display:flex;gap:8px;padding:10px 12px 4px}
+.qchips a{flex:1;min-height:44px;display:grid;place-items:center;border:2px solid var(--ink);border-radius:999px;font-family:var(--font-display);font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;text-decoration:none}
+.cfoot{display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:8px;align-items:center;border-top:1px solid var(--hairline);padding:10px 12px 12px}
+.cfoot .opts button{min-height:36px;font-size:.78rem}
+.cfoot .links{display:flex;gap:4px;justify-content:flex-end}
+.cfoot .links a{min-height:44px;display:grid;place-items:center;padding:0 6px;white-space:nowrap;letter-spacing:.02em !important;font-family:var(--font-display);font-weight:700;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px}
+
+/* comparison + lists */
+.tscroll{overflow-x:auto}
+table.cmp{width:100%;border-collapse:collapse;font-size:.875rem;min-width:640px}
+table.cmp th{text-align:left;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.05em;font-size:.75rem;border-bottom:2px solid var(--ink);padding:8px 10px 8px 0}
+table.cmp td{border-bottom:1px solid var(--hairline);padding:10px 10px 10px 0;vertical-align:top}
+table.cmp td:first-child{color:var(--ink-muted)}
+table.cmp .win{font-weight:700}
+.rec{display:grid;gap:24px}
+@media (min-width:900px){.rec{grid-template-columns:1.2fr 1fr;gap:48px}}
+.rec ol{display:grid;gap:0;counter-reset:r}
+.rec ol li{counter-increment:r;display:grid;grid-template-columns:2rem 1fr;padding:10px 0;border-bottom:1px solid var(--hairline);font-size:.95rem}
+.rec ol li::before{content:counter(r);font-family:var(--font-display);font-weight:700}
+.box{border:2px solid var(--ink);border-radius:4px;padding:16px;display:grid;gap:8px;align-content:start}
+.dec{display:grid;counter-reset:d}
+.dec li{counter-increment:d;display:grid;grid-template-columns:3rem 1fr;gap:4px 12px;padding:14px 0;border-bottom:1px solid var(--hairline)}
+.dec li::before{content:"Q" counter(d);font-family:var(--font-display);font-weight:700;font-size:1.3rem;color:var(--ink-muted);grid-row:span 2}
+.dec b{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.03em}
+.dec p{color:var(--ink-muted);font-size:.93rem;max-width:72ch}
+.refs{display:flex;flex-wrap:wrap;gap:6px}
+.refs a{font-size:.8125rem;border:1px solid var(--ink-tertiary);border-radius:4px;padding:4px 9px;text-decoration:none}
+.refs a:hover{border-color:var(--ink);background:var(--surface-1)}
+.refs a small{color:var(--ink-muted)}
+.foot-note{background:var(--ink);color:#fff;padding-block:36px;margin-top:48px}
+.foot-note p{color:rgb(255 255 255/.72);font-size:.875rem;max-width:74ch}
+
+/* ---------- fonts match the desktop menu exactly ----------
+   Montserrat (like the desktop triggers, items, tags, language button, Log in / Sign up):
+   group names, item titles, descriptions, tags, language control, auth buttons, help chips.
+   Courier Prime (like the desktop column headings, prices, See details): headings, hint lines, prices. */
+:is(.panel,.sheet) :is(.gt,.st .n,.l2hd button){font-family:var(--font-sans)!important;text-transform:none!important;font-weight:700!important;letter-spacing:-.005em!important}
+:is(.panel,.sheet) :is(.pill,.opts button,.qchips a,.cfoot .links a,.chips span){font-family:var(--font-sans)!important;text-transform:none!important;font-weight:600!important;letter-spacing:0!important}
+
+/* ---------- desktop dropdown mock (frozen design, shown for fonts only) ---------- */
+.dwrap{overflow-x:auto;padding-bottom:6px}
+.dmenu{min-width:900px;max-width:1100px;margin-inline:auto;display:grid;gap:8px}
+.dcap{height:56px;border-radius:999px;border:1px solid rgb(8 10 11/.08);box-shadow:var(--shadow-nav);display:flex;align-items:center;justify-content:space-between;padding:0 10px 0 24px;background:#fff}
+.dcap img{height:22px}
+.dcap nav{display:flex;gap:2px}
+.dcap nav span{font-size:.875rem;font-weight:600;padding:6px 12px;border-radius:999px;display:flex;align-items:center;gap:6px}
+.dcap nav span.on{background:rgb(8 10 11/.05)}
+.dpanel{border-radius:24px;border:1px solid rgb(8 10 11/.08);box-shadow:var(--shadow-menu);background:#fff;padding:28px 32px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.dh{font-family:var(--font-display);font-weight:700;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px}
+.dcard{border:1px solid var(--hairline);border-radius:12px;padding:12px;display:grid;gap:4px}
+.dcard .t{font-size:.875rem;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dcard .b{font-size:.875rem;color:var(--ink-muted)}
+.dcard .row{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.dp{font-family:var(--font-display);font-weight:700;font-size:1.5rem;text-transform:uppercase}
+.dsee{font-family:var(--font-display);font-weight:700;font-size:.875rem;letter-spacing:.06em;text-transform:uppercase;text-decoration:underline;text-underline-offset:4px}
+</style>
+
+<main>
+  <div class="wrap intro">
+    <p class="meta">UX Strategist · Mobbin, 18 references · 27·09·2026 · below 1024px only</p>
+    <h1 class="disp dxl"><span class="hi">The menu on your phone</span></h1>
+    <p class="dek">Today's phone menu is the desktop mega-menu poured into one column. Below are four working phones: today's menu and three ways to reorganise it. Tap the menu button, open groups, and switch the page you're "on". Desktop stays exactly as it is.</p>
+  </div>
+
+  <section class="band" aria-labelledby="probH">
+    <div class="wrap">
+      <div class="sec-h"><h2 class="disp dmd" id="probH">What's wrong today</h2><p class="bsm muted">Measured at 360 × 780 from the code, not guessed.</p></div>
+      <div class="stats">
+        <div class="stat"><b>40</b><span>links open at once</span></div>
+        <div class="stat"><b>3.2</b><span>screens of scrolling</span></div>
+        <div class="stat"><b>32</b><span>links with no page yet</span></div>
+        <div class="stat"><b>3rd</b><span>screen before Services</span></div>
+        <div class="stat"><b>22px</b><span>row height (44 needed)</span></div>
+      </div>
+      <ol class="problems">
+        <li><b>Everything is expanded</b><p>5 groups, 14 small headings and 40 links, all visible at once. There is no first level to scan.</p></li>
+        <li><b>What sells is buried</b><p>Services, the only priced items (from €25, €149, €290), starts on the third screen. Descriptions and the "Most popular" tag are dropped on phones.</p></li>
+        <li><b>Most links go nowhere real</b><p>32 of 40 items (all Itineraries, Guides and Blog) fall back to the Services section of the home page. Layout alone can't fix that.</p></li>
+        <li><b>Language and account are last</b><p>After 40 links. The chips are 33px tall and ordered EN · ES · PT with EN selected, while the site is Spanish-first. Sign up and Log in lead nowhere yet.</p></li>
+        <li><b>Too small to tap</b><p>Rows are 22px tall; the invisible tap area only reaches 30px, not 44.</p></li>
+        <li><b>Hard to close, hard to use without sight</b><p>Close is top-right only, Esc doesn't close it, focus isn't trapped, and group titles aren't headings, so a screen reader hears 40 links in a row.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="phonesH" id="phones">
+    <div class="wrap">
+      <div class="sec-h"><h2 class="disp dmd" id="phonesH">Try them</h2><p class="bsm muted">Each phone works on its own. Menu text is exactly what the site has today.</p></div>
+      <div class="controls">
+        <div class="grp"><span class="eb">You are on</span>
+          <div class="tabs" role="group" aria-label="Current page">
+            <button type="button" data-page="home" aria-pressed="true">Home</button>
+            <button type="button" data-page="/sobre-mi" aria-pressed="false">/sobre-mi</button>
+          </div></div>
+        <div class="grp"><span class="eb">Reset</span>
+          <div class="tabs" role="group" aria-label="Reset phones"><button type="button" data-reset>Open all menus</button></div></div>
+      </div>
+      <p class="bsm" style="margin:-4px 0 22px;max-width:72ch;background:var(--surface-1);padding:12px 14px;border-radius:4px"><b>Services is a closed group in A, B and C,</b> in the same order as desktop. Open it to see the three services with their prices and the "Most popular" tag.</p>
+      <div class="phones">
+        <div class="pcol"><div class="lbl"><span class="l">Now</span><span class="eb">Today's menu</span></div>
+          <p class="thesis">The desktop mega-menu in one long column. Scroll it to feel the depth.</p>
+          <div class="phone" data-variant="now" aria-label="Today's menu, phone mockup"></div>
+          <p class="hint">Scroll inside the menu · black tags mark the problems</p></div>
+        <div class="pcol best"><div class="lbl"><span class="l">A · Índice</span><span class="tag">Recommended</span></div>
+          <p class="thesis">A table of contents instead of the whole book: five groups, all closed, each one tap away, language and account always in reach.</p>
+          <div class="phone" data-variant="a" aria-label="Direction A, phone mockup"></div>
+          <p class="hint">Tap a group to open it · one open at a time</p></div>
+        <div class="pcol"><div class="lbl"><span class="l">B · Líneas</span><span class="eb">Two levels</span></div>
+          <p class="thesis">A subway map: five big stations. Tap one and a full panel slides in with everything in that group.</p>
+          <div class="phone" data-variant="b" aria-label="Direction B, phone mockup"></div>
+          <p class="hint">Tap a station · ← to go back</p></div>
+        <div class="pcol"><div class="lbl"><span class="l">C · Bolsillo</span><span class="eb">Bottom sheet</span></div>
+          <p class="thesis">The menu rises from the bottom, where the thumb is: Contacto and FAQ as big buttons, the full list below.</p>
+          <div class="phone" data-variant="c" aria-label="Direction C, phone mockup"></div>
+          <p class="hint">Tap a group · ✕ or the veil closes</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="deskH">
+    <div class="wrap">
+      <div class="sec-h"><h2 class="disp dmd" id="deskH">Desktop dropdown</h2><p class="bsm muted">Unchanged by this redesign. The phone menu now uses exactly these fonts: Montserrat for names, items and buttons; Courier for column headings and prices.</p></div>
+      <div class="dwrap"><div class="dmenu" aria-label="Desktop menu mockup">
+        <div class="dcap"><img src="logo-pretzel-dark.png" alt="Vamos a NY"><nav><span>Itineraries ⌄</span><span>Guides ⌄</span><span>Blog ⌄</span><span class="on">Services ⌃</span><span>Sobre mí ⌄</span></nav></div>
+        <div class="dpanel">
+          <div><p class="dh">Ready-made</p><div class="dcard"><span class="t">Curated by Belén</span><span class="b">Itineraries she walked and wrote. Download and go.</span><span class="row"><span class="dp">from €25</span><span class="dsee">See details</span></span></div></div>
+          <div><p class="dh">One to one</p><div class="dcard"><span class="t">Custom itinerary with Belén <span class="tag">Most popular</span></span><span class="b">A call, your dates and pace, a plan built just for you.</span><span class="row"><span class="dp">€149</span><span class="dsee">See details</span></span></div></div>
+          <div><p class="dh">In person</p><div class="dcard"><span class="t">Walk with Belén</span><span class="b">Half a day on foot with her, in the neighbourhood you pick.</span><span class="row"><span class="dp">€290</span><span class="dsee">See details</span></span></div></div>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="cmpH">
+    <div class="wrap">
+      <div class="sec-h"><h2 class="disp dmd" id="cmpH">Side by side</h2></div>
+      <div class="tscroll"><table class="cmp">
+        <thead><tr><th></th><th>Now</th><th>A · Índice</th><th>B · Líneas</th><th>C · Bolsillo</th></tr></thead>
+        <tbody>
+          <tr><td>First thing you see</td><td>12 itinerary links</td><td class="win">5 closed groups</td><td>5 stations</td><td>2 help buttons + 5 groups</td></tr>
+          <tr><td>Scrolling at first level</td><td>~3.2 screens</td><td class="win">none</td><td class="win">none</td><td class="win">none</td></tr>
+          <tr><td>Services in the menu</td><td>open, 3rd screen</td><td>closed group</td><td>station</td><td>closed group</td></tr>
+          <tr><td>Taps to switch groups</td><td>scroll</td><td class="win">2</td><td>3</td><td class="win">2</td></tr>
+          <tr><td>Descriptions on phone</td><td>none</td><td>none</td><td class="win">all</td><td>none</td></tr>
+          <tr><td>Rows ≥ 44px</td><td>no (22px)</td><td class="win">yes</td><td class="win">yes</td><td class="win">yes</td></tr>
+          <tr><td>One-hand reach</td><td>poor</td><td>good</td><td>good</td><td class="win">best</td></tr>
+          <tr><td>Keeps today's panel shape</td><td>—</td><td class="win">yes</td><td class="win">yes</td><td>no</td></tr>
+          <tr><td>Works without JavaScript</td><td>no menu at all</td><td class="win">good</td><td>weak</td><td>medium</td></tr>
+          <tr><td>Build effort / risk</td><td>—</td><td class="win">low</td><td>high</td><td>medium–high</td></tr>
+          <tr><td>Best when the 32 placeholder pages exist</td><td>—</td><td>OK</td><td class="win">best</td><td>OK</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="recH">
+    <div class="wrap">
+      <div class="sec-h"><h2 class="disp dmd" id="recH">Recommendation: A · Índice</h2><p class="bsm muted">B is the natural next step once Itineraries, Guides and Blog have real pages.</p></div>
+      <div class="rec">
+        <ol>
+          <li>Fixes the disorganisation with the smallest change to the frozen design: same panel, position, radius, veil, type and yellow dot.</li>
+          <li>A short, calm first level: five closed groups instead of 40 open links, so the menu reads as an index, not a wall.</li>
+          <li>Removes the scroll wall: the first level fits on one screen; language and account are pinned at the bottom.</li>
+          <li>Makes 44px real on the visible row, closing QA-0004 and RV-0006 properly.</li>
+          <li>Lowest risk to build: one open/close pattern the FAQ already uses, and it works without JavaScript.</li>
+        </ol>
+        <div class="box">
+          <span class="eb" style="color:var(--ink)">Borrowed from the others</span>
+          <p class="bsm">From B: the one-line hint under each group, and the yellow dot on a closed group that contains the page you're on.</p>
+          <p class="bsm">From C: language and account pinned within thumb reach.</p>
+          <span class="eb" style="color:var(--ink);margin-top:8px">Menu structure</span>
+          <p class="bsm">Services stays in the menu as a normal closed group, in the desktop order. Nothing is renamed; labels belong to the translation work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="decH">
+    <div class="wrap">
+      <div class="sec-h"><h2 class="disp dmd" id="decH">Decisions for you</h2><p class="bsm muted">A works whichever way these go.</p></div>
+      <ol class="dec">
+        <li><b>The 32 placeholder links</b><p>Keep them (recommended for now), hide them on phones until their pages exist, or make each group header point to its one real page. This is the real root cause and deserves its own decision.</p></li>
+        <li><b>Language order</b><p>Show ES · PT · EN (Spanish first, as the constitution says) now, or wait for the translation work? The mockups show ES · PT · EN.</p></li>
+        <li><b>Log in / Sign up</b><p>Keep both, keep one, or hide them until the traveler dashboard exists? Today they lead nowhere.</p></li>
+        <li><b>Tablet (768)</b><p>Same full-width panel, or cap it at about 420px under the menu button? Recommended: cap it.</p></li>
+        <li><b>Price style</b><p>Small Montserrat (today) or Courier caps like the brand's labels? The mockups use Courier.</p></li>
+        <li><b>A small motion</b><p>Let the yellow dot "arrive" when the group you're in opens, using the landing's subway ease? Optional.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="refH">
+    <div class="wrap">
+      <div class="sec-h"><h2 class="disp dmd" id="refH">Mobbin references</h2><p class="bsm muted">Links open on Mobbin and need a login. Phone patterns come mostly from iOS apps; they carry over to mobile web.</p></div>
+      <div class="refs">
+        <a href="https://mobbin.com/flows/9e3341a7-0267-43b7-8cb3-48f9a60e0533" target="_blank" rel="noopener">The Infatuation <small>· caps rows, NYC · B</small></a>
+        <a href="https://mobbin.com/flows/aeb97b0c-a98c-45ef-9e27-e3a90790063d" target="_blank" rel="noopener">Bloomberg <small>· row rhythm · A</small></a>
+        <a href="https://mobbin.com/screens/f842fe90-ecc5-42cf-9bfa-55e1578ca162" target="_blank" rel="noopener">Blue Bottle <small>· accordion + products · A</small></a>
+        <a href="https://mobbin.com/screens/ff0ebe8f-4a10-4871-a8fd-ba4286fbfe9d" target="_blank" rel="noopener">On <small>· commerce above list · A, C</small></a>
+        <a href="https://mobbin.com/screens/78f16a3d-5a4d-4a49-960a-c8d8db128f60" target="_blank" rel="noopener">H&amp;M menu <small>· shop vs service · A</small></a>
+        <a href="https://mobbin.com/screens/d11f4b2f-7dbc-4f1b-9ba8-eef0b5ec481d" target="_blank" rel="noopener">H&amp;M drill-down <small>· B</small></a>
+        <a href="https://mobbin.com/screens/cada6a66-06dd-4b1e-b97f-1cc09a6b4b2c" target="_blank" rel="noopener">Hims <small>· drill-down · B</small></a>
+        <a href="https://mobbin.com/screens/f53e758a-a7d1-4805-b205-01a4d3a5a5d0" target="_blank" rel="noopener">SKIMS <small>· tall caps rows · A, B</small></a>
+        <a href="https://mobbin.com/flows/7803ad49-4a98-4f9b-becc-7d3f1ac28b6e" target="_blank" rel="noopener">Panera <small>· loud first level · B</small></a>
+        <a href="https://mobbin.com/screens/c59ad58b-6c05-4fae-a3ec-18897e0fbae1" target="_blank" rel="noopener">Open <small>· 4 intents · B</small></a>
+        <a href="https://mobbin.com/screens/b25360d0-33e1-4c44-8a02-730c7b34b7d7" target="_blank" rel="noopener">Booking.com <small>· quiet footer · A</small></a>
+        <a href="https://mobbin.com/screens/21da08d8-3bfd-4f53-91fb-4841fb2bca36" target="_blank" rel="noopener">Yami <small>· quick-access sheet · C</small></a>
+        <a href="https://mobbin.com/screens/f97e72c1-9313-4d08-ad4b-3732740f1894" target="_blank" rel="noopener">Opera <small>· actions + list sheet · C</small></a>
+        <a href="https://mobbin.com/screens/5cb69cee-c11f-42fa-ac6b-fffcdee938e8" target="_blank" rel="noopener">Instagram <small>· sheet · C</small></a>
+        <a href="https://mobbin.com/screens/680e0448-c4de-46fd-9401-3ec02151e4ca" target="_blank" rel="noopener">Stake <small>· single-open accordion · A</small></a>
+        <a href="https://mobbin.com/screens/7f893de6-ae13-47dd-aa53-bce9158ee0f8" target="_blank" rel="noopener">Amazon <small>· section breaks · B</small></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot-note"><div class="wrap"><p>Before building: a new DDR (the phone menu's open state is frozen by ADR-0006; closed state and desktop stay pixel-identical), a technical decision on the open/close animation (ADR-0007 only allows it for the FAQ), then a short spec. Full analysis: mobile-menu-analysis.md in the session scratchpad.</p></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+<script>
+(function(){
+const G = window.gsap;
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const motion = !!G && !reduce;
+let ARRIVE = 'power3.out';
+if (motion && window.CustomEase){ G.registerPlugin(window.CustomEase); ARRIVE = window.CustomEase.create('arrive','M0,0 C0.06,0.42 0.14,0.82 0.4,0.965 0.55,1.02 0.66,1.022 0.76,1.006 0.86,0.995 0.93,1 1,1'); }
+
+const NAV = [
+  {id:'itin', label:'Itineraries', scent:'By length · By season · By appetite', cols:[
+    {h:'By length', items:[['3 Days — First Timer','The greatest hits, walkable.'],['5 Days — The Classic','Icons plus real neighbourhoods.','Best seller'],['7 Days — Deep Cut','Five boroughs, no filler.'],['Weekend Escape','48 hours, zero wasted minutes.']]},
+    {h:'By season', items:[['Christmas in New York','Markets, windows, ice rinks.','New'],['Autumn in the Parks','Peak foliage, October light.'],['Summer Rooftops','Long evenings above the grid.'],['Winter on a Budget','Warm rooms, cheap tickets.']]},
+    {h:'By appetite', items:[['Foodie New York','Delis, dumplings, slices.'],['Art & Museums','The Met to Bushwick walls.'],['Family New York','Tested with small legs.'],['Film Locations','Stand where the scene happened.']]}]},
+  {id:'guides', label:'Guides', scent:'Getting around · Neighbourhoods · Before you fly', cols:[
+    {h:'Getting around', items:[['The Subway, Explained','Read the map like a local.'],['From the Airport','JFK, EWR and LGA compared.'],['Walking the Grid','Why the numbers make sense.'],['Yellow Cab vs App','When each one wins.']]},
+    {h:'Neighbourhoods', items:[['Lower East Side','Tenements and late nights.'],['Williamsburg',"Brooklyn's front window."],['Harlem','Jazz, stoops and Sunday.'],['Chinatown & Little Italy','Two blocks, two worlds.']]},
+    {h:'Before you fly', items:[['ESTA & Entry','Paperwork without panic.'],['Budget Calculator','What a day really costs.'],['Packing for the Season','It is colder than you think.'],['Broadway Tickets','Rush, lottery and TKTS.']]}]},
+  {id:'blog', label:'Blog', scent:'Latest · Readers', cols:[
+    {h:'Latest', items:[['Neighbourhood Diaries','One block at a time.'],['Seasonal Guides',"What's on, month by month."],['Food Crawls','Routes built around eating.'],['Photo Spots','Where the light lands.']]},
+    {h:'Readers', items:[['Reader Trips','Real itineraries, real notes.'],['Ask Us Anything','Your questions, answered.'],['Mistakes We Made',"So you don't repeat them."],['Newsletter Archive','Every issue, free.']]}]},
+  {id:'svc', label:'Services', scent:'Ready-made · One to one · In person', cols:[
+    {h:'Ready-made', items:[['Curated by Belén','Itineraries she walked and wrote. Download and go.',null,'from €25']]},
+    {h:'One to one', items:[['Custom itinerary with Belén','A call, your dates and pace, a plan built just for you.','Most popular','€149']]},
+    {h:'In person', items:[['Walk with Belén','Half a day on foot with her, in the neighbourhood you pick.',null,'€290']]}]},
+  {id:'sm', label:'Sobre mí', scent:'Vamos a New York · Ayuda', cols:[
+    {h:'Vamos a New York', items:[['Sobre mí','Quién soy y por qué New York.',null,null,'/sobre-mi'],['Colaboraciones','Cuadernos, agendas, cases y totes.',null,null,'/colaboraciones'],['Trabajá conmigo','Marcas, guías, empresas y agencias.',null,null,'/trabaja-conmigo']]},
+    {h:'Ayuda', items:[['Contacto','Te respondo yo.',null,null,'/contacto'],['FAQ','Antes de viajar.',null,null,'/preguntas-frecuentes']]}]}
+];
+const byId = id => NAV.find(g=>g.id===id);
+const SVC = byId('svc').cols.map(c=>c.items[0]);
+
+let page = 'home';
+const isCur = it => it[4] && it[4] === page;
+const groupHasCur = g => g.cols.some(c=>c.items.some(isCur));
+
+const ICON = {
+  burger:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14"/></svg>',
+  x:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg>',
+  chev:'<svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 4.5 3 3 3-3"/></svg>',
+  globe:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c1.8 2 1.8 10.4 0 12.4M8 1.8c-1.8 2-1.8 10.4 0 12.4"/></svg>'
+};
+const tag = t => t ? `<span class="tag">${t}</span>` : '';
+const dot = on => on ? '<span class="dot" aria-hidden="true"></span>' : '';
+
+const bg = () => `<div class="bgpage" aria-hidden="true"><h2>${page==='home'?'<span class="hi">Tu viaje a New York</span>, resuelto antes de subirte al avión.':'<span class="hi">Sobre mí</span>'}</h2><p>${page==='home'?'Todo lo que aprendí en más de 20 visitas, para que la disfrutes a tu manera.':'Soy Belén, comunicadora, estratega digital y, sobre todo, una persona profundamente enamorada de New York.'}</p><div class="img"></div><span class="btn">${page==='home'?'Armá tu viaje':'Ver itinerarios'}</span></div>`;
+const cap = open => `<div class="cap"><img src="logo-pretzel-dark.png" alt="Vamos a NY"><button type="button" class="burger" data-act="toggle" aria-expanded="${open}" aria-label="${open?'Cerrar menú':'Abrir menú'}">${open?ICON.x:ICON.burger}</button></div>`;
+const lang = () => `<div class="seg">${ICON.globe}<div class="opts" role="group" aria-label="Idioma"><button type="button" aria-pressed="true">ES</button><button type="button" aria-pressed="false">PT</button><button type="button" aria-pressed="false">EN</button></div></div>`;
+
+/* ---------- NOW: today's drawer ---------- */
+function nowPanel(){
+  const groups = NAV.map(g=>`<div class="g"><p class="gt">${g.label}</p>${g.cols.map(c=>`<div class="col"><p class="ch">${c.h}</p><div class="items">${c.items.map(it=>`<a href="#phones" class="it" ${isCur(it)?'aria-current="page"':''}><span>${it[0]}</span>${it[3]?`<span class="pr">${it[3]}</span>`:''}${dot(isCur(it))}</a>`).join('')}</div></div>`).join('')}</div>`).join('');
+  return `<div class="panel" data-anim="panel"><div class="scroll cur">${groups}
+    <div class="lang"><span style="display:flex;gap:8px;align-items:center">${ICON.globe.replace('<svg','<svg width="16" height="16"')} Language</span><span class="chips"><span class="on">EN</span><span>ES</span><span>PT</span></span></div>
+    <div class="auth"><span class="pill">Sign up</span><span class="pill">Log in</span></div></div></div>
+    <span class="flag" style="left:26px;top:86px">40 links open</span><span class="flag" style="right:26px;top:330px">22px rows</span><span class="flag" style="left:26px;bottom:26px">Services is 3 screens down ↓</span>`;
+}
+
+/* ---------- A: Índice ---------- */
+function aItems(g){ return g.cols.map(c=>`<p class="ch">${c.h}</p>${c.items.map(it=>`<a href="#phones" class="row44" ${isCur(it)?'aria-current="page"':''}><span>${it[0]}</span>${tag(it[2])}<span class="sp"></span>${it[3]?`<span class="mono" style="font-weight:700;font-size:.85rem;white-space:nowrap">${it[3]}</span>`:''}${dot(isCur(it))}</a>`).join('')}`).join(''); }
+function aPanel(st){
+  const acc = ['itin','guides','blog','svc','sm'].map(id=>{ const g=byId(id), open=st.open===id;
+    return `<div class="grp2"><h3 style="margin:0"><button type="button" class="hd" data-act="acc" data-g="${id}" aria-expanded="${open}"><span class="gt">${g.label}${dot(groupHasCur(g))}</span><span class="sc">${g.scent}</span>${ICON.chev}</button></h3>${open?`<div class="body" data-body="${id}"><div class="in">${aItems(g)}</div></div>`:''}</div>`;}).join('');
+  return `<div class="panel" data-anim="panel"><div class="scroll ax" data-scroll><div class="acc" style="margin-top:4px">${acc}</div></div>
+    <div class="foot">${lang()}<div class="pair"><span class="pill">Log in</span><span class="pill dark">Sign up</span></div></div></div>`;
+}
+
+/* ---------- B: Líneas ---------- */
+function bLevel1(){
+  return NAV.map(g=>`<button type="button" class="st" data-act="push" data-g="${g.id}"><span class="n">${g.label}${dot(groupHasCur(g))}</span><span class="sc">${g.scent}</span><span class="ar">${g.id==='svc'?'<small>from €25</small>':''}→</span></button>`).join('');
+}
+function bLevel2(g){
+  let inner;
+  if (g.id==='svc') inner = SVC.map(it=>`<div class="bigcard"><span class="t">${it[0]} ${tag(it[2])}</span><span class="b">${it[1]}</span><span class="pr"><b>${it[3]}</b><span>See details</span></span></div>`).join('');
+  else inner = g.cols.map(c=>`<p class="ch">${c.h}</p>${c.items.map(it=>`<a href="#phones" class="row56" ${isCur(it)?'aria-current="page"':''}><span class="t">${it[0]} ${tag(it[2])} ${dot(isCur(it))}</span><span class="b">${it[1]}</span></a>`).join('')}`).join('');
+  return `<div class="l2hd"><button type="button" data-act="back" aria-label="Volver a todas las secciones">← ${g.label}</button></div><div class="in">${inner}</div>`;
+}
+function bPanel(st){
+  const g = st.level && byId(st.level);
+  return `<div class="panel" data-anim="panel"><div class="bx" style="flex:1;position:relative">
+    <div class="lvl" data-l1 ${g?'hidden':''}>${bLevel1()}</div>
+    ${g?`<div class="lvl l2" data-l2>${bLevel2(g)}</div>`:''}</div>
+    <div class="foot">${lang()}<div class="pair"><span class="pill">Log in</span><span class="pill dark">Sign up</span></div></div></div>`;
+}
+
+/* ---------- C: Bolsillo ---------- */
+function cPanel(st){
+  const acc = ['itin','guides','blog','svc','sm'].map(id=>{ const g=byId(id), open=st.open===id;
+    return `<div class="grp2"><h3 style="margin:0"><button type="button" class="hd" data-act="acc" data-g="${id}" aria-expanded="${open}"><span class="gt">${g.label}${dot(groupHasCur(g))}</span><span class="sc">${g.scent}</span>${ICON.chev}</button></h3>${open?`<div class="body" data-body="${id}"><div class="in">${aItems(g)}</div></div>`:''}</div>`;}).join('');
+  return `<div class="sheet" data-anim="sheet" role="dialog" aria-label="Menú"><div class="top"><span class="grab" aria-hidden="true"></span><button type="button" class="x" data-act="toggle" aria-label="Cerrar menú">${ICON.x}</button></div>
+    <div class="scroll">
+    <div class="qchips"><a href="#phones">Contacto</a><a href="#phones">FAQ</a></div>
+    <div class="acc" style="margin:10px 12px 8px">${acc}</div></div>
+    <div class="cfoot"><div class="seg" style="grid-template-columns:1fr"><div class="opts" role="group" aria-label="Idioma"><button type="button" aria-pressed="true">ES</button><button type="button" aria-pressed="false">PT</button><button type="button" aria-pressed="false">EN</button></div></div><div class="links"><a href="#phones">Log in</a><a href="#phones">Sign up</a></div></div></div>`;
+}
+
+/* ---------- phone controller ---------- */
+const phones = [...document.querySelectorAll('.phone')].map(el=>({el, v:el.dataset.variant, st:{menu:true, open:null, level:null}}));
+function defaults(p){
+  p.st.menu = true; p.st.level = null;
+  const cur = NAV.find(g=>g.id!=='svc' && groupHasCur(g));
+  p.st.open = (p.v==='a') && cur ? cur.id : null; // A opens the group you're in
+}
+function render(p, anim){
+  const {v, st} = p;
+  let menu = '';
+  if (st.menu){
+    menu = (v==='c' ? '' : '') + '<div class="veil" data-act="toggle" aria-hidden="true"></div>' +
+      (v==='now'?nowPanel():v==='a'?aPanel(st):v==='b'?bPanel(st):cPanel(st));
+  }
+  p.el.innerHTML = `<div class="screen">${bg()}${cap(st.menu && v!=='c' ? true : st.menu && v==='c')}${menu}</div>`;
+  if (!motion || !anim) return;
+  const s = p.el;
+  if (anim==='open'){
+    const pn = s.querySelector('[data-anim]'), veil = s.querySelector('.veil');
+    const icon = s.querySelector('.cap .burger svg');
+    const tl = G.timeline();
+    tl.from(veil,{opacity:0,duration:.25,ease:'power1.out'},0);
+    tl.from(icon,{rotate:-90,scale:.6,opacity:0,duration:.35,ease:ARRIVE},0);
+    if (pn.dataset.anim==='sheet'){
+      tl.from(pn,{yPercent:100,duration:.45,ease:ARRIVE},0);
+    } else {
+      // the panel unfolds down out of the capsule, like a blind being pulled
+      tl.fromTo(pn,{clipPath:'inset(0% 0% 100% 0% round 24px)',y:-10},{clipPath:'inset(0% 0% 0% 0% round 24px)',y:0,duration:.55,ease:ARRIVE,clearProps:'clipPath'},0);
+    }
+    const rows = s.querySelectorAll('.acc .grp2, .cur .g, .lvl[data-l1] .st, .qchips a');
+    tl.from(rows,{y:14,opacity:0,duration:.35,stagger:.05,ease:'power2.out'},.15);
+    const foot = s.querySelector('.foot, .cfoot');
+    if (foot) tl.from(foot,{y:24,opacity:0,duration:.4,ease:ARRIVE},.3);
+    const dots = s.querySelectorAll('.acc .hd .dot, .st .dot');
+    if (dots.length) tl.from(dots,{scale:0,duration:.4,ease:'back.out(3)'},.45);
+  }
+  if (anim.startsWith('acc:')){
+    const b = s.querySelector(`[data-body="${anim.slice(4)}"]`);
+    if (b){ G.from(b,{height:0,duration:.3,ease:'power2.out',clearProps:'height'}); G.from(b.querySelectorAll('.row44'),{opacity:0,y:6,duration:.22,stagger:.03,delay:.05}); }
+  }
+  if (anim==='push'){
+    const l2 = s.querySelector('[data-l2]'); G.from(l2,{xPercent:100,duration:.3,ease:'power2.out'});
+  }
+  if (anim==='back'){
+    const l1 = s.querySelector('[data-l1]'); G.from(l1,{xPercent:-24,opacity:0,duration:.3,ease:'power2.out'});
+  }
+}
+function act(p, a, gid){
+  const st = p.st;
+  if (a==='toggle'){
+    if (st.menu && motion){
+      const pn = p.el.querySelector('[data-anim]'), veil = p.el.querySelector('.veil');
+      const tl = G.timeline({onComplete:()=>{ st.menu=false; render(p); }});
+      tl.to(veil,{opacity:0,duration:.2},0.05);
+      if (pn.dataset.anim==='sheet') tl.to(pn,{yPercent:100,duration:.25,ease:'power2.in'},0);
+      else tl.to(pn,{clipPath:'inset(0% 0% 100% 0% round 24px)',y:-6,duration:.25,ease:'power2.in'},0);
+      return;
+    }
+    st.menu = !st.menu; if (st.menu){ st.level=null; } render(p, st.menu?'open':null); return;
+  }
+  if (a==='acc'){
+    const closing = st.open===gid;
+    const keepScroll = p.el.querySelector('[data-scroll], .sheet .scroll');
+    const top = keepScroll ? keepScroll.scrollTop : 0;
+    const finish = ()=>{ st.open = closing?null:gid; render(p, closing?null:'acc:'+gid); const sc = p.el.querySelector('[data-scroll], .sheet .scroll'); if (sc) sc.scrollTop = top; };
+    const openBody = st.open && p.el.querySelector(`[data-body="${st.open}"]`);
+    if (openBody && motion){ G.to(openBody,{height:0,duration:.2,ease:'power2.in',onComplete:finish}); } else finish();
+    return;
+  }
+  if (a==='push'){ st.level = gid; render(p,'push'); return; }
+  if (a==='back'){
+    if (motion){ const l2 = p.el.querySelector('[data-l2]'); G.to(l2,{xPercent:100,duration:.25,ease:'power2.in',onComplete:()=>{ st.level=null; render(p,'back'); }}); }
+    else { st.level=null; render(p); }
+    return;
+  }
+}
+phones.forEach(p=>{
+  defaults(p); render(p);
+  p.el.addEventListener('click', e=>{
+    const t = e.target.closest('[data-act]'); if (t){ e.preventDefault(); act(p, t.dataset.act, t.dataset.g); return; }
+    const opt = e.target.closest('.opts button');
+    if (opt){ opt.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b===opt)); return; }
+    const link = e.target.closest('a[href="#phones"]'); if (link) e.preventDefault();
+  });
+  p.el.addEventListener('keydown', e=>{
+    if (e.key==='Escape' && p.v!=='now'){
+      if (p.v==='b' && p.st.level){ act(p,'back'); } else if (p.st.menu){ act(p,'toggle'); }
+    }
+  });
+});
+document.addEventListener('click', e=>{
+  const pg = e.target.closest('[data-page]');
+  if (pg){ page = pg.dataset.page; document.querySelectorAll('[data-page]').forEach(b=>b.setAttribute('aria-pressed', b===pg)); phones.forEach(p=>{ defaults(p); render(p); }); return; }
+  if (e.target.closest('[data-reset]')){ phones.forEach(p=>{ defaults(p); render(p,'open'); }); }
+});
+})();
+</script>

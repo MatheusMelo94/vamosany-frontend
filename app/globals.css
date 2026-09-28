@@ -520,6 +520,13 @@ main > .pin-spacer {
   transform: scaleX(0);
 }
 
+/* Drawer group chevron (mobile-navigation M10): it turns through the
+   `rotate` property; the transition exists only under the motion gate, so
+   no .gsap and reduced motion are instant (plan § 6, AC 46). */
+.gsap [data-drawer-chevron] {
+  transition: rotate 200ms var(--ease-default);
+}
+
 /* Anchors (FAQ groups and questions) scroll clear of the sticky navbar. */
 [data-sm-anchor] {
   scroll-margin-top: calc(var(--spacing) * 24);
