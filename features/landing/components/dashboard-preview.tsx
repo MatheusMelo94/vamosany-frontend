@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import {
-  BuildingIcon,
   CardIcon,
   CheckIcon,
   CircleTargetIcon,
@@ -18,89 +17,83 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { cn } from "@/lib/utils";
 
 /* Fictional account state for the preview — nothing here is live. */
-const USER = { name: "Marta", trip: "14 – 19 Oct 2026", daysToGo: 23 };
+const USER = { name: "Sofía", trip: "14 – 19 oct 2026", daysToGo: 23 };
 
 const TILES = [
   {
-    label: "Days to go",
+    label: "Días para el viaje",
     value: "23",
-    note: "Flight lands 14 Oct, 07:40",
+    note: "Tu vuelo llega el 14 de octubre, 07:40.",
     meter: null,
   },
   {
-    label: "Days planned",
-    value: "3 of 5",
-    note: "Day 4 and 5 still open",
+    label: "Días planificados",
+    value: "3 de 5",
+    note: "Faltan el día 4 y el 5.",
     meter: 60,
   },
   {
-    label: "Bookings confirmed",
-    value: "4 of 6",
-    note: "Two still to book",
+    label: "Reservas confirmadas",
+    value: "4 de 6",
+    note: "Te faltan 2.",
     meter: 67,
   },
   {
-    label: "Budget used",
-    value: "€1,240",
-    note: "of €2,000 planned",
+    label: "Presupuesto usado",
+    value: "USD 1.240",
+    note: "de USD 2.000 previstos.",
     meter: 62,
   },
 ];
 
 const TODAY = [
-  ["07:10", "Bridge crossing, Manhattan → Brooklyn", "40 min"],
-  ["08:15", "Breakfast in Dumbo", "45 min"],
+  ["07:10", "Cruce del puente, de Manhattan a Brooklyn", "40 min"],
+  ["08:15", "Desayuno en Dumbo", "45 min"],
   ["10:30", "Brooklyn Heights Promenade", "30 min"],
-  ["13:00", "Ferry back to Wall Street", "25 min"],
+  ["13:00", "Ferry de vuelta a Wall Street", "25 min"],
 ];
 
 const OWNED = [
   {
-    title: "Icons & Neighbourhoods",
-    meta: "5 days · updated 12 Sep",
-    state: "Downloaded",
+    title: "Íconos y barrios",
+    meta: "5 días · actualizado el 12 sep",
+    state: "Descargado",
     done: true,
   },
   {
-    title: "Eat Your Way Down",
-    meta: "4 days · updated 3 Sep",
-    state: "Update available",
+    title: "Comé de punta a punta",
+    meta: "4 días · actualizado el 3 sep",
+    state: "Actualización disponible",
     done: false,
   },
 ];
 
 const BOOKINGS = [
-  { what: "The Met — timed entry", when: "Day 3, 09:30", done: true },
-  { what: "Broadway rush tickets", when: "Day 3, evening", done: true },
-  { what: "Top of the Rock", when: "Day 5, 17:00 · sells out", done: false },
-  { what: "NYC Ferry day pass", when: "Day 2", done: false },
+  { what: "The Met — entrada con horario", when: "Día 3, 09:30", done: true },
+  { what: "Entradas rush de Broadway", when: "Día 3, noche", done: true },
+  { what: "Top of the Rock", when: "Día 5, 17:00 · se agota", done: false },
+  { what: "Pase diario de NYC Ferry", when: "Día 2", done: false },
 ];
 
 const NAV = [
   {
-    heading: "Trip",
+    heading: "Viaje",
     items: [
-      { Icon: GridIcon, label: "Overview", active: true },
-      { Icon: DocIcon, label: "My itineraries", badge: "2" },
-      { Icon: LaptopIcon, label: "Day plans" },
-      { Icon: GlobeIcon, label: "Map" },
-      { Icon: CardIcon, label: "Bookings", badge: "2 left" },
-      { Icon: CircleTargetIcon, label: "Budget" },
+      { Icon: GridIcon, label: "Resumen", active: true },
+      { Icon: DocIcon, label: "Mis itinerarios" },
+      { Icon: LaptopIcon, label: "Plan por día" },
+      { Icon: GlobeIcon, label: "Mapa" },
+      { Icon: CardIcon, label: "Reservas", badge: "2 pendientes" },
+      { Icon: CircleTargetIcon, label: "Presupuesto" },
     ],
   },
   {
     heading: "Belén",
-    items: [
-      { Icon: SparkleIcon, label: "Ask Belén" },
-      { Icon: BuildingIcon, label: "Walk with Belén" },
-    ],
+    items: [{ Icon: SparkleIcon, label: "Preguntale a Belén" }],
   },
   {
-    heading: "Account",
-    items: [
-      { Icon: ShieldIcon, label: "Settings" },
-      { Icon: DocIcon, label: "Receipts" },
-    ],
+    heading: "Cuenta",
+    items: [{ Icon: ShieldIcon, label: "Configuración" }],
   },
 ];
 
@@ -155,7 +148,7 @@ function MapSketch() {
       viewBox="0 0 100 100"
       className="h-full w-full"
       role="img"
-      aria-label="Sketch of the day's route across the map"
+      aria-label="Bosquejo del recorrido del día en el mapa"
     >
       <rect width="100" height="100" fill="var(--color-canvas)" />
       {Array.from({ length: 9 }, (_, i) => (
@@ -230,18 +223,18 @@ export function DashboardPreview(): JSX.Element {
       {/* Call to action above the app window */}
       <div className="mx-auto mb-10 flex max-w-3xl flex-col items-center text-center sm:mb-14">
         <SectionHeading
-          eyebrow="Your trip, in one place"
-          title="Plan it once. Carry it everywhere."
-          description="Every itinerary you buy lands in your dashboard: the countdown, each day's route, what still needs booking and the map that works offline. This is what it looks like."
+          eyebrow="Tu viaje, en un solo lugar"
+          title="Tu próximo viaje a New York empieza acá"
+          description="Armá tu viaje conmigo o sumate a la newsletter para recibir piques, lugares que vale la pena conocer y ser la primera en enterarte de los próximos viajes acompañados y lanzamientos."
           align="center"
           highlight
         />
         <div data-reveal className="mt-8 flex flex-wrap justify-center gap-3">
           <Button href="#services" size="lg">
-            Get your itinerary
+            Armá tu viaje
           </Button>
           <Button href="#how" variant="secondary" size="lg">
-            See how it works
+            Ver viajes acompañados
           </Button>
         </div>
       </div>
@@ -253,7 +246,7 @@ export function DashboardPreview(): JSX.Element {
       <div
         data-reveal
         className="border-hairline bg-canvas max-w-dashboard shadow-panel mx-auto flex min-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-7rem)]"
-        aria-label="Preview of the traveller dashboard"
+        aria-label="Vista previa del panel del viajero"
       >
         <div className="border-hairline bg-surface-1 flex items-center gap-2 border-b px-4 py-2.5">
           <span className="flex gap-1.5" aria-hidden>
@@ -265,7 +258,7 @@ export function DashboardPreview(): JSX.Element {
             ))}
           </span>
           <span className="caption text-ink-tertiary ml-2">
-            vamosany.com/account
+            vamosany.com/cuenta
           </span>
         </div>
 
@@ -280,7 +273,7 @@ export function DashboardPreview(): JSX.Element {
               </span>
             </div>
 
-            <nav className="mt-7 flex-1 space-y-6" aria-label="Dashboard menu">
+            <nav className="mt-7 flex-1 space-y-6" aria-label="Menú del panel">
               {NAV.map((group) => (
                 <div key={group.heading}>
                   <p className="eyebrow px-2">{group.heading}</p>
@@ -311,20 +304,20 @@ export function DashboardPreview(): JSX.Element {
             </nav>
 
             <div className="border-hairline bg-canvas mt-6 rounded-sm border p-3">
-              <p className="caption text-ink-tertiary">Next trip</p>
+              <p className="caption text-ink-tertiary">Próximo viaje</p>
               <p className="body-sm text-ink mt-1 font-semibold">New York</p>
               <p className="caption text-ink-subtle">{USER.trip}</p>
             </div>
             <div className="mt-3 flex items-center gap-2.5 px-1">
               <span className="bg-brand font-display text-ink grid size-8 place-items-center rounded-full text-xs font-bold">
-                M
+                S
               </span>
               <div className="min-w-0">
                 <p className="body-sm text-ink truncate font-semibold">
                   {USER.name} Ibáñez
                 </p>
                 <p className="caption text-ink-tertiary truncate">
-                  marta@email.com
+                  sofia@email.com
                 </p>
               </div>
             </div>
@@ -334,13 +327,13 @@ export function DashboardPreview(): JSX.Element {
           <div className="min-w-0 p-5 sm:p-8 lg:p-10">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="eyebrow">Overview</p>
+                <p className="eyebrow">Resumen</p>
                 <h3 className="headline text-ink mt-2">
-                  Good morning, {USER.name}.
+                  ¡Buen día, {USER.name}!
                 </h3>
               </div>
               <span className="label-button bg-brand text-ink rounded-sm px-3 py-2">
-                {USER.daysToGo} days to New York
+                Faltan {USER.daysToGo} días para New York
               </span>
             </div>
 
@@ -371,13 +364,13 @@ export function DashboardPreview(): JSX.Element {
               <div className="border-hairline rounded-lg border p-4 sm:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="caption text-ink-subtle">Day 2 · Tuesday</p>
+                    <p className="caption text-ink-subtle">Día 2 · Martes</p>
                     <p className="card-title text-ink mt-1">
-                      Brooklyn Bridge before the crowds
+                      Brooklyn Bridge antes que la multitud
                     </p>
                   </div>
                   <span className="caption border-hairline text-ink-subtle shrink-0 rounded-sm border px-2 py-0.5">
-                    4 stops · 6.1 km
+                    4 paradas · 6,1 km
                   </span>
                 </div>
                 <ol className="border-hairline mt-4 border-t">
@@ -398,7 +391,7 @@ export function DashboardPreview(): JSX.Element {
                   ))}
                 </ol>
                 <p className="caption text-ink-tertiary mt-3">
-                  Rain tomorrow — the indoor version of Day 3 is ready.
+                  Mañana llueve: la versión bajo techo del día 3 ya está lista.
                 </p>
               </div>
 
@@ -406,14 +399,14 @@ export function DashboardPreview(): JSX.Element {
               <div className="border-hairline overflow-hidden rounded-lg border">
                 <div className="border-hairline flex items-center justify-between border-b px-4 py-2.5">
                   <span className="body-sm text-ink font-semibold">
-                    Route map
+                    Mapa del recorrido
                   </span>
                   <span className="caption text-ink-subtle inline-flex items-center gap-1.5">
                     <span
                       className="bg-brand size-1.5 rounded-full"
                       aria-hidden
                     />
-                    Offline copy saved
+                    Copia sin conexión guardada
                   </span>
                 </div>
                 <div className="aspect-4/3">
@@ -425,7 +418,9 @@ export function DashboardPreview(): JSX.Element {
             <div className="mt-3 grid gap-3 lg:grid-cols-2">
               {/* Owned itineraries */}
               <div className="border-hairline rounded-lg border p-4 sm:p-5">
-                <p className="body-sm text-ink font-semibold">My itineraries</p>
+                <p className="body-sm text-ink font-semibold">
+                  Mis itinerarios
+                </p>
                 <ul className="divide-hairline mt-3 divide-y">
                   {OWNED.map((it) => (
                     <li
@@ -450,8 +445,10 @@ export function DashboardPreview(): JSX.Element {
               {/* To book */}
               <div className="border-hairline rounded-lg border p-4 sm:p-5">
                 <div className="flex items-center justify-between">
-                  <p className="body-sm text-ink font-semibold">Book ahead</p>
-                  <span className="caption text-ink-tertiary">2 left</span>
+                  <p className="body-sm text-ink font-semibold">
+                    Reservar con tiempo
+                  </p>
+                  <span className="caption text-ink-tertiary">Faltan 2</span>
                 </div>
                 <ul className="divide-hairline mt-3 divide-y">
                   {BOOKINGS.map((bk) => (
@@ -474,7 +471,7 @@ export function DashboardPreview(): JSX.Element {
                       </div>
                       <StatusPill
                         done={bk.done}
-                        label={bk.done ? "Booked" : "To do"}
+                        label={bk.done ? "Reservado" : "Pendiente"}
                       />
                     </li>
                   ))}
