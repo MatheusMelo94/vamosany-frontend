@@ -351,7 +351,9 @@ test.describe("drawer first open (QA-0006, RV-0023) @feature-mobile-nav", () => 
     await expect.poll(() => requested).toBeGreaterThan(0);
     // A rotation on a slow network: 1024+ before the chunk arrives.
     await page.setViewportSize({ width: 1280, height });
-    await expect.poll(() => served, { timeout: 5000 }).toBe(requested);
+    // Live counts: the desktop layout can request more chunks after the resize,
+    // so `toBe(requested)` would freeze the target at the click-time count.
+    await expect.poll(() => requested - served, { timeout: 5000 }).toBe(0);
     await page.waitForTimeout(300);
 
     await expect(panel(page)).toHaveCount(0);
