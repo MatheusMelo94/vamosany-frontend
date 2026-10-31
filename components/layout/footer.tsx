@@ -4,63 +4,47 @@ import { ArrowRight } from "@/components/ui/icons";
 import { BrandLogo } from "@/components/ui/brand-logo";
 
 const TOP_LINKS = [
-  "Our story",
-  "How we research",
-  "Press",
-  "Work with us",
-  "Contact",
+  "Mi historia",
+  "Cómo investigo",
+  "Prensa",
+  "Trabajá conmigo",
+  "Contacto",
 ];
 
 const COLUMNS = [
   {
-    heading: "Itineraries",
+    heading: "Guías",
     links: [
-      "3 Days — First Timer",
-      "5 Days — The Classic",
-      "7 Days — Deep Cut",
-      "Weekend Escape",
-      "Christmas in New York",
-      "Foodie New York",
-      "Family New York",
-      "New York on a Budget",
-    ],
-  },
-  {
-    heading: "Guides",
-    links: [
-      "The Subway, Explained",
-      "From the Airport",
-      "Neighbourhood Guides",
-      "Broadway Tickets",
-      "Best Viewpoints",
-      "Budget Calculator",
-      "Packing List",
-      "ESTA & Entry",
+      "El subte, explicado",
+      "Desde el aeropuerto",
+      "Taxi, Uber o subte",
+      "Cómo moverte por New York",
+      "Visa a Estados Unidos",
+      "Cuánto cuesta un día en New York",
+      "Qué llevar según la temporada",
+      "Entradas para Broadway",
     ],
   },
   {
     heading: "Blog",
     links: [
-      "Neighbourhood Diaries",
-      "Seasonal Guides",
-      "Food Crawls",
-      "Photo Spots",
-      "Reader Trips",
-      "Mistakes We Made",
-      "Newsletter Archive",
-      "Live Updates",
+      "Dónde comer",
+      "Cine y series",
+      "Tips prácticos",
+      "Barrios",
+      "Archivo del newsletter",
+      "Novedades en vivo",
     ],
   },
   {
-    heading: "Help",
+    heading: "Ayuda",
     links: [
-      "Contact",
-      "Refunds",
-      "FAQ",
-      "What's included",
-      "Gift an itinerary",
-      "Affiliate programme",
-      "Accessibility",
+      "Contacto",
+      "Reembolsos",
+      "Preguntas frecuentes",
+      "Qué incluye",
+      "Programa de afiliados",
+      "Accesibilidad",
     ],
   },
 ];
@@ -70,23 +54,28 @@ const SOCIALS = ["X", "in", "f", "IG"];
 /* CC BY / CC BY-SA photography requires visible attribution. */
 const PHOTO_CREDITS = [
   [
-    "Brooklyn, Manhattan & Williamsburg Bridges",
+    "Puentes de Brooklyn, Manhattan y Williamsburg",
     "Axel Tschentscher",
     "CC BY-SA 4.0",
   ],
-  ["Central Park in autumn", "Ed Yourdon", "CC BY-SA 2.0"],
+  ["Central Park en otoño", "Ed Yourdon", "CC BY-SA 2.0"],
   ["451 Broome Street, SoHo", "Axel Tschentscher", "CC BY-SA 4.0"],
-  ["Chinatown, Manhattan", "Derek Jensen", "Public domain"],
+  ["Chinatown, Manhattan", "Derek Jensen", "Dominio público"],
   ["Grand Central Terminal", "Diliff", "CC BY 2.5"],
   ["The High Line", "King of Hearts", "CC BY-SA 4.0"],
-  ["Union Square subway", "TLK in 3", "CC BY-SA 3.0"],
-  ["Brooklyn Bridge at sunset", "MusikAnimal", "CC BY-SA 4.0"],
-  ["Mott Street at night", "MusikAnimal", "CC BY-SA 4.0"],
-  ["Central Park & Midtown", "Gzzz", "CC BY-SA 3.0"],
-  ["Yellow cab after the snow", "Corentin Villemeur", "CC BY-SA 4.0"],
+  ["Subte de Union Square", "TLK in 3", "CC BY-SA 3.0"],
+  ["Puente de Brooklyn al atardecer", "MusikAnimal", "CC BY-SA 4.0"],
+  ["Mott Street de noche", "MusikAnimal", "CC BY-SA 4.0"],
+  ["Central Park y Midtown", "Gzzz", "CC BY-SA 3.0"],
+  ["Taxi amarillo después de la nieve", "Corentin Villemeur", "CC BY-SA 4.0"],
 ];
 
-const LEGAL = ["Terms", "Privacy Policy", "Cookie Settings", "Photo credits"];
+const LEGAL = [
+  "Términos",
+  "Política de privacidad",
+  "Configuración de cookies",
+  "Créditos de fotos",
+];
 
 export function Footer(): JSX.Element {
   return (
@@ -105,7 +94,7 @@ export function Footer(): JSX.Element {
           ))}
         </ul>
 
-        <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           {COLUMNS.map((column) => (
             <div key={column.heading}>
               <p className="label-button text-inverse-ink">{column.heading}</p>
@@ -117,7 +106,7 @@ export function Footer(): JSX.Element {
                       className="body-sm text-inverse-ink/55 hover:text-inverse-ink inline-flex items-center gap-1.5 transition-colors"
                     >
                       {link}
-                      {link === "Live Updates" ? (
+                      {link === "Novedades en vivo" ? (
                         <span
                           aria-hidden
                           className="bg-brand size-1.5 rounded-full"
@@ -150,51 +139,51 @@ export function Footer(): JSX.Element {
           </div>
 
           <p className="subhead text-inverse-ink text-balance">
-            One email a month: a route, a place to eat, and something worth
-            walking to.
+            Un mail por mes: un recorrido, un lugar para comer y algo que vale
+            la pena caminar.
           </p>
 
           <form
             className="w-full"
             action="#"
             method="post"
-            aria-label="Newsletter signup"
+            aria-label="Suscripción al newsletter"
           >
             <div className="border-inverse-ink/25 bg-inverse-ink/10 focus-within:border-inverse-ink flex items-center gap-2 rounded-sm border-2 p-1 pl-3">
               <label htmlFor="newsletter-email" className="sr-only">
-                Email address
+                Correo electrónico
               </label>
               <input
                 id="newsletter-email"
                 type="email"
                 required
-                placeholder="you@email.com"
+                placeholder="tu@email.com"
                 className="body-sm text-inverse-ink placeholder:text-inverse-ink/45 h-10 min-w-0 flex-1 bg-transparent focus:outline-none"
               />
               <button
                 type="submit"
-                aria-label="Subscribe"
+                aria-label="Suscribirme"
                 className="bg-brand text-ink hover:bg-brand-hover grid size-10 shrink-0 place-items-center rounded-sm transition-colors"
               >
                 <ArrowRight className="size-4" />
               </button>
             </div>
             <p className="caption text-inverse-ink/45 mt-3">
-              I confirm that I have read the{" "}
+              Confirmo que leí la{" "}
               <Link
                 href="#"
                 className="text-inverse-ink/70 hover:text-inverse-ink underline underline-offset-2"
               >
-                Privacy Policy
+                Política de privacidad
               </Link>{" "}
-              and agree with it.
+              y estoy de acuerdo.
             </p>
           </form>
         </div>
 
         <details className="caption border-inverse-ink/15 text-inverse-ink/45 mt-12 border-t pt-8">
           <summary className="hover:text-inverse-ink cursor-pointer transition-colors">
-            Photography credits
+            Créditos de fotografía
           </summary>
           <ul className="mt-4 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
             {PHOTO_CREDITS.map(([subject, author, license]) => (
@@ -205,13 +194,13 @@ export function Footer(): JSX.Element {
             ))}
           </ul>
           <p className="text-inverse-ink/35 mt-4">
-            All photographs via Wikimedia Commons, used under their respective
-            licences.
+            Todas las fotos vienen de Wikimedia Commons y se usan bajo sus
+            respectivas licencias.
           </p>
         </details>
 
         <div className="caption border-inverse-ink/15 text-inverse-ink/45 mt-8 flex flex-col gap-4 border-t pt-8 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Vamos a NY. Made in Madrid, walked in New York.</p>
+          <p>© 2026 Vamos a NY. Hecho en Madrid, caminado en New York.</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {LEGAL.map((item) => (
               <li key={item}>
