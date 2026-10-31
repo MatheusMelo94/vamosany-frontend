@@ -87,7 +87,7 @@ export function Recommendations(): JSX.Element {
   const [active, setActive] = useState(TABS[0].id);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const base = useId();
-  const tab = TABS.find((t) => t.id === active)!;
+  const tab = TABS.find((t) => t.id === active) ?? TABS[0];
 
   /* Tabs WAI-ARIA: flechas, Inicio y Fin mueven el foco y activan la pestaña. */
   const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -125,7 +125,7 @@ export function Recommendations(): JSX.Element {
       <div
         role="tablist"
         aria-label="Categorías de recomendados"
-        className="border-ink mx-auto mt-10 flex w-fit max-w-full [scrollbar-width:none] gap-1 overflow-x-auto rounded-sm border-2 p-1 [&::-webkit-scrollbar]:hidden"
+        className="border-ink mx-auto mt-10 flex w-fit max-w-full flex-wrap justify-center gap-1 rounded-sm border-2 p-1"
       >
         {TABS.map((t, i) => {
           const selected = t.id === active;
@@ -144,7 +144,7 @@ export function Recommendations(): JSX.Element {
               onClick={() => setActive(t.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cn(
-                "label-button shrink-0 rounded-xs px-3.5 py-2 transition-colors",
+                "label-button rounded-xs px-3.5 py-2 transition-colors duration-(--duration-base) ease-(--ease-default)",
                 selected
                   ? "bg-brand text-ink"
                   : "text-ink-subtle hover:text-ink",
@@ -160,9 +160,13 @@ export function Recommendations(): JSX.Element {
         id={`${base}-panel`}
         role="tabpanel"
         aria-labelledby={`${base}-tab-${tab.id}`}
+        /* El panel persiste entre pestañas: se revela una vez, entero. Un
+           data-reveal-group en la lista dejaria ocultas las tarjetas que
+           aparecen despues de cambiar de pestaña (RV-0024). */
+        data-reveal
         className="mt-12"
       >
-        <ul data-reveal-group className="grid gap-4 md:grid-cols-3">
+        <ul className="grid gap-4 md:grid-cols-3">
           {tab.picks.map((pick) => (
             <li key={pick.title}>
               <article className="border-hairline bg-surface-1 flex h-full flex-col rounded-lg border p-6">
@@ -177,9 +181,7 @@ export function Recommendations(): JSX.Element {
                 <div className="mt-auto pt-6">
                   {pick.code ? (
                     <p className="border-ink mb-3 flex items-center justify-between gap-3 rounded-sm border-2 border-dashed px-3 py-2">
-                      <span className="caption text-ink-tertiary">
-                        Mi código
-                      </span>
+                      <span className="caption text-ink-subtle">Mi código</span>
                       <span className="label-button text-ink">{pick.code}</span>
                     </p>
                   ) : null}
@@ -204,7 +206,7 @@ export function Recommendations(): JSX.Element {
           </a>
           .
         </p>
-        <p className="caption text-ink-tertiary mt-3 text-pretty">
+        <p className="caption text-ink-subtle mt-3 text-pretty">
           Algunos de estos links son de afiliados: si comprás a través de ellos,
           recibo una pequeña comisión sin costo extra para vos. Solo recomiendo
           lo que uso y me gusta.

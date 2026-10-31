@@ -94,9 +94,8 @@ for (const motion of ["no-preference", "reduce"] as const) {
     test("every recommendations tab shows its cards (AC DDR-0008 §4)", async ({
       page,
     }) => {
-      // QA-0010: with motion on, the cards of the Broadway and Internet tabs
-      // stay at opacity 0 (CSS `.gsap [data-reveal-group] > *` hides the new <li>s).
-      test.fixme(motion === "no-preference", "QA-0010");
+      // QA-0010 (fixed): the panel, not each card, carries the reveal, so the
+      // cards of a tab opened later are visible with motion on.
       await openRecommendations(page);
       const counts: Record<string, number> = {
         "Pases y atracciones": 3,
@@ -198,12 +197,25 @@ test.describe(`Mis recomendados tabs ${TAG}`, () => {
 });
 
 test.describe(`Mis recomendados contrast ${TAG}`, () => {
-  test("text meets 4.5:1 (WCAG 1.4.3)", async ({ page }) => {
-    test.fixme(true, "QA-0011");
+  test("text meets 4.5:1 (WCAG 1.4.3), eyebrows aside", async ({ page }) => {
     await openRecommendations(page);
     await waitForMotionToSettle(page);
     const r = await new AxeBuilder({ page })
       .include("#recomendados")
+      .exclude("#recomendados .eyebrow")
+      .withRules(["color-contrast"])
+      .analyze();
+    expect(r.violations).toEqual([]);
+  });
+
+  test("eyebrows meet 4.5:1 (WCAG 1.4.3)", async ({ page }) => {
+    // QA-0011: `.eyebrow` uses --color-ink-tertiary (#a8a8a4, ~2.3:1) on every
+    // section of the site. Changing the token is a design decision (DDR, ADR-0006).
+    test.fixme(true, "QA-0011: site-wide eyebrow token, pending DDR");
+    await openRecommendations(page);
+    await waitForMotionToSettle(page);
+    const r = await new AxeBuilder({ page })
+      .include("#recomendados .eyebrow")
       .withRules(["color-contrast"])
       .analyze();
     expect(r.violations).toEqual([]);

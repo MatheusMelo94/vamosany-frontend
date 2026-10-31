@@ -32,7 +32,7 @@ const COLUMNS = [
       "Cine y series",
       "Tips prácticos",
       "Barrios",
-      "Archivo del newsletter",
+      "Archivo de la newsletter",
       "Novedades en vivo",
     ],
   },
@@ -147,7 +147,7 @@ export function Footer(): JSX.Element {
             className="w-full"
             action="#"
             method="post"
-            aria-label="Suscripción al newsletter"
+            aria-label="Suscripción a la newsletter"
           >
             <div className="border-inverse-ink/25 bg-inverse-ink/10 focus-within:border-inverse-ink flex items-center gap-2 rounded-sm border-2 p-1 pl-3">
               <label htmlFor="newsletter-email" className="sr-only">

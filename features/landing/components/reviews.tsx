@@ -127,7 +127,11 @@ export function Reviews(): JSX.Element {
               key={review.quote}
               className="border-hairline bg-surface-1 flex w-76 shrink-0 snap-start flex-col rounded-lg border p-8 sm:w-96"
             >
-              <span className="text-brand" aria-label="Cinco de cinco">
+              <span
+                className="text-brand"
+                role="img"
+                aria-label="5 de 5 estrellas"
+              >
                 {"★".repeat(5)}
               </span>
               <blockquote className="body-lg text-ink mt-5 flex-1 text-pretty">

@@ -22,9 +22,11 @@ A landing sai do congelamento do ADR-0006 nas seções abaixo, conforme § 6. Ti
 5. **Números:** +200 viajeros ya confiaron en mí · +20 viajes a NYC · +1000 km caminados por la ciudad (três colunas; o contador formata em `es`).
 6. **Reseñas:** as dez resenhas reais do brief (nome, serviço, mês e ano). Título "Lo que dicen mis viajeros".
 7. **CTA:** "Tu próximo viaje a New York empieza acá", botões "Armá tu viaje" / "Ver viajes acompañados", formulário da newsletter ("tu@email.com", "Suscribirme", "Sin spam. Te das de baja cuando quieras."). O formulário continua sem serviço de envio.
-8. **Resto do site em espanhol:** menu (desktop e drawer, incluindo os itens de Servicios alinhados à oferta nova), rodapé, Blog, ticker, 404, página de erro, `lang="es"` no `<html>` e metadata.
+8. **Resto do site em espanhol:** menu (desktop e drawer). O grupo **Itinerarios sai do menu** (produtos de exemplo que não existem; decisão do usuário). **Servicios** fica com quatro itens: os três cartões da home e **Visa de Estados Unidos** (Trámites, USD 70, serviço para uruguaios — página do brief, decisão do usuário), todos levando a `/#services` até as páginas de serviço existirem. Guías e Blog usam os textos do brief, rodapé, Blog, ticker, 404, página de erro, `lang="es"` no `<html>` e metadata.
 
 **Botões sem destino:** os botões novos ou alterados renderizam como `<button type="button">`, sem `href`, por decisão do usuário; os links entram depois. Sem fotos novas.
+
+**Risco aceito (RV-0025):** até os links chegarem, cerca de dez botões não fazem nada ao clicar ou ativar pelo teclado, e leitores de tela os anunciam como botões. Risco conhecido, levado ao usuário em 2026-10-31 junto com a alternativa de marcá-los "próximamente" (`aria-disabled`); os links são a próxima tarefa de conteúdo.
 
 ## User Impact
 O visitante lê o site inteiro na sua língua e vê a oferta real, com preços em USD e resenhas de viajantes de verdade. A página fica mais curta (três seções a menos). Leitores de tela passam a anunciar a página como espanhol. Enquanto os links não chegam, os botões não levam a lugar nenhum, e "Mis recomendados" mostra textos provisórios.
