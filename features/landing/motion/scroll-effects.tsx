@@ -71,7 +71,7 @@ export function ScrollEffects(): null {
       const suffix = el.dataset.suffix ?? "";
       const counter = { value: 0 };
       const render = (v: number) =>
-        `${prefix}${Math.round(v).toLocaleString("en-US")}${suffix}`;
+        `${prefix}${Math.round(v).toLocaleString("es")}${suffix}`;
 
       el.textContent = render(0);
 

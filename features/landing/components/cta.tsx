@@ -26,53 +26,55 @@ export function CTA(): JSX.Element {
             data-split-lines
             className="display-lg text-inverse-ink text-balance"
           >
-            Your week in New York, already figured out
+            Tu próximo viaje a New York empieza acá
           </h2>
           <p
             data-heading-lede
             className="body-lg text-inverse-ink/75 mt-5 text-pretty"
           >
-            Buy an itinerary, or take the free version first — one email a month
-            with a route, a place to eat and something worth walking to.
+            Armá tu viaje conmigo o sumate a la newsletter para recibir piques,
+            lugares que vale la pena conocer y ser la primera en enterarte de
+            los próximos viajes acompañados y lanzamientos.
           </p>
 
           <div
             data-heading-actions
             className="mt-9 flex flex-wrap justify-center gap-3"
           >
-            <Button href="#services" size="lg">
-              Browse itineraries
+            {/* Sin destino por ahora: los links los define el equipo de contenido. */}
+            <Button type="button" size="lg">
+              Armá tu viaje
             </Button>
             <Button
-              href="#blog"
+              type="button"
               size="lg"
               className="border-inverse-ink text-inverse-ink hover:bg-inverse-ink/10 bg-transparent"
             >
-              Read the blog
+              Ver viajes acompañados
             </Button>
           </div>
 
           <form
             action="#"
             method="post"
-            aria-label="Newsletter signup"
+            aria-label="Suscripción a la newsletter"
             data-heading-actions
             className="mx-auto mt-10 flex max-w-md items-center gap-2"
           >
             <label htmlFor="cta-email" className="sr-only">
-              Email address
+              Tu email
             </label>
             <input
               id="cta-email"
               type="email"
               required
-              placeholder="you@email.com"
+              placeholder="tu@email.com"
               className="body-sm border-inverse-ink bg-inverse-ink/10 text-inverse-ink placeholder:text-inverse-ink/55 focus:bg-inverse-ink/20 h-12 min-w-0 flex-1 rounded-sm border-2 px-4 focus:outline-none"
             />
-            <Button size="lg">Join</Button>
+            <Button size="lg">Suscribirme</Button>
           </form>
           <p className="caption text-inverse-ink/55 mt-3">
-            No spam. Unsubscribe in one click.
+            Sin spam. Te das de baja cuando quieras.
           </p>
         </div>
       </div>

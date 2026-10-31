@@ -4,58 +4,70 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { cn } from "@/lib/utils";
 
-const TIERS = [
+type Tier = {
+  kicker: string;
+  title: string;
+  /** Texto chico antes del precio ("Desde", "Reservá tu lugar con"). */
+  pre?: string;
+  price: string;
+  per?: string;
+  blurb: string;
+  features: string[];
+  cta: string;
+  featured: boolean;
+  tag?: string;
+};
+
+/* Los botones todavia no tienen destino: los links los define el equipo de contenido. */
+const TIERS: Tier[] = [
   {
-    kicker: "Ready-made",
-    title: "Curated by Belén",
-    price: "from €25",
-    per: "per itinerary",
+    kicker: "Asesoramiento",
+    title: "Consultoría de viaje",
+    price: "USD 150",
+    per: "por consultoría",
     blurb:
-      "The itineraries in the shop: routes she walked and wrote herself, with the offline map and a year of updates.",
+      "Una hora por videollamada para resolver todas tus dudas y darle forma a tu viaje, con recomendaciones pensadas para tu perfil.",
     features: [
-      "Day-by-day PDF and live map",
-      "Real walking and subway times",
-      "Rain and heat swaps for every day",
-      "Free updates for a year",
+      "Videollamada privada de 1 hora",
+      "Idea de itinerario que armamos juntas",
+      "Restaurantes, tiendas y atracciones según tu perfil",
+      "Mail de seguimiento con links y cómo reservar",
     ],
-    cta: "Browse itineraries",
-    href: "#services",
+    cta: "Agendar consultoría",
     featured: false,
   },
   {
-    kicker: "One to one",
-    title: "Custom itinerary with Belén",
-    price: "€149",
-    per: "per trip",
+    kicker: "A medida",
+    title: "Itinerario personalizado",
+    pre: "Desde",
+    price: "USD 160",
     blurb:
-      "A 45-minute call about your dates, your pace and what you actually like, then a plan built around it, delivered in five days.",
+      "Nos conocemos en una reunión virtual, me contás qué te gusta y cómo querés vivir New York, y armo tu viaje día a día.",
     features: [
-      "45-minute planning call",
-      "Day-by-day plan written for you",
-      "Bookings list with what sells out",
-      "Two rounds of changes",
-      "WhatsApp line during the trip",
+      "Reunión virtual para conocernos",
+      "Itinerario día a día con actividades y tips",
+      "Dónde comer según cada día y zona",
+      "Guía virtual con el plan de cada jornada",
+      "Ayuda con entradas, hotel y traslados",
     ],
-    cta: "Book a call",
-    href: "#services",
+    cta: "Quiero mi itinerario",
     featured: true,
-    tag: "Most popular",
+    tag: "El más completo",
   },
   {
-    kicker: "In person",
-    title: "Walk with Belén",
-    price: "€290",
-    per: "half day, up to 4 people",
+    kicker: "En grupo",
+    title: "Viajes grupales",
+    pre: "Reservá tu lugar con",
+    price: "USD 300",
     blurb:
-      "Four hours on foot with her in the neighbourhood you pick: the places, the shortcuts and the food she would never put in a PDF.",
+      "Viajes temáticos a New York con todo organizado y conmigo acompañándote. Próximas salidas en 2027: fines de abril, principios de septiembre y vacaciones de septiembre.",
     features: [
-      "Four hours, one neighbourhood",
-      "Up to four people",
-      "Lunch stop included in the route",
-      "Notes sent the same evening",
+      "Te acompaño durante todo el viaje",
+      "Cada viaje con su propia temática",
+      "Para todas las edades, de niños a adultos",
+      "Te buscamos compañero de cuarto si querés compartir",
     ],
-    cta: "Check dates",
-    href: "#services",
+    cta: "Ver próximas salidas",
     featured: false,
   },
 ];
@@ -64,9 +76,9 @@ export function Services(): JSX.Element {
   return (
     <section id="services" className="container-ds py-16 sm:py-20">
       <SectionHeading
-        eyebrow="Services"
-        title="Three ways to travel with Belén"
-        description="Pick how much of the planning you want to do yourself. Everything is walked before it is sold."
+        eyebrow="Servicios"
+        title="Tres formas de viajar conmigo"
+        description="Elegí cuánta ayuda querés para armar tu viaje: desde una charla para ordenar ideas hasta viajar juntos."
         align="center"
       />
 
@@ -88,9 +100,14 @@ export function Services(): JSX.Element {
                 ) : null}
               </div>
               <h3 className="card-title text-ink mt-3">{tier.title}</h3>
-              <p className="mt-5 flex items-baseline gap-2">
+              <p className="mt-5 flex flex-wrap items-baseline gap-x-2">
+                {tier.pre ? (
+                  <span className="caption text-ink-tertiary">{tier.pre}</span>
+                ) : null}
                 <span className="display-md text-ink">{tier.price}</span>
-                <span className="caption text-ink-tertiary">{tier.per}</span>
+                {tier.per ? (
+                  <span className="caption text-ink-tertiary">{tier.per}</span>
+                ) : null}
               </p>
               <p className="body-sm text-ink-subtle mt-4">{tier.blurb}</p>
 
@@ -109,7 +126,7 @@ export function Services(): JSX.Element {
               </ul>
 
               <Button
-                href={tier.href}
+                type="button"
                 variant={tier.featured ? "primary" : "secondary"}
                 className="mt-8 w-full"
               >

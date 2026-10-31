@@ -223,18 +223,19 @@ export function DashboardPreview(): JSX.Element {
       {/* Call to action above the app window */}
       <div className="mx-auto mb-10 flex max-w-3xl flex-col items-center text-center sm:mb-14">
         <SectionHeading
-          eyebrow="Tu viaje, en un solo lugar"
-          title="Tu próximo viaje a New York empieza acá"
-          description="Armá tu viaje conmigo o sumate a la newsletter para recibir piques, lugares que vale la pena conocer y ser la primera en enterarte de los próximos viajes acompañados y lanzamientos."
+          eyebrow="Tu viaje en un solo lugar"
+          title="Tu itinerario, siempre a mano."
+          description="Cuando recibís tu itinerario, lo encontrás en tu cuenta: la cuenta regresiva, el plan de cada día, lo que te falta reservar y el mapa de cada recorrido. Así se ve."
           align="center"
           highlight
         />
         <div data-reveal className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button href="#services" size="lg">
-            Armá tu viaje
+          {/* Sin destino por ahora: los links los define el equipo de contenido. */}
+          <Button type="button" size="lg">
+            Quiero mi itinerario
           </Button>
-          <Button href="#how" variant="secondary" size="lg">
-            Ver viajes acompañados
+          <Button type="button" variant="secondary" size="lg">
+            Ver cómo funciona
           </Button>
         </div>
       </div>
