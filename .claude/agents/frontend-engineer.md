@@ -29,7 +29,7 @@ description: |
   The Engineer never invents patterns. Convention gaps route up to the Architect or proceed under explicit Pre-Convention labeling.
   </commentary>
   </example>
-model: inherit
+model: sonnet
 color: green
 ---
 

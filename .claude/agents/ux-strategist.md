@@ -29,7 +29,7 @@ description: |
   The DDR Trigger framework fires when a design/product decision deserves durable rationale. Same pattern as the backend team's PDRs and the Architect's ADRs, scoped to experience decisions.
   </commentary>
   </example>
-model: inherit
+model: sonnet
 color: purple
 ---
 

@@ -29,7 +29,7 @@ description: |
   The Architect accepts informal briefs but labels output Draft Plan; missing contracts don't block planning but are labeled Pre-Contract and routed to the backend team via the user.
   </commentary>
   </example>
-model: inherit
+model: sonnet
 color: blue
 ---
 
