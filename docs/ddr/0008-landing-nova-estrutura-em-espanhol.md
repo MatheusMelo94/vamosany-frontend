@@ -26,7 +26,11 @@ A landing sai do congelamento do ADR-0006 nas seções abaixo, conforme § 6. Ti
 
 **Botões sem destino:** os botões novos ou alterados renderizam como `<button type="button">`, sem `href`, por decisão do usuário; os links entram depois. Sem fotos novas.
 
-**Risco aceito (RV-0025):** até os links chegarem, cerca de dez botões não fazem nada ao clicar ou ativar pelo teclado, e leitores de tela os anunciam como botões. Risco conhecido, levado ao usuário em 2026-10-31 junto com a alternativa de marcá-los "próximamente" (`aria-disabled`); os links são a próxima tarefa de conteúdo.
+**Risco aceito (RV-0025):** até os links chegarem, cerca de dez botões não fazem nada ao clicar ou ativar pelo teclado, e leitores de tela os anunciam como botões. O usuário escolheu, em 2026-10-31, mantê-los assim (em vez de marcá-los "próximamente" com `aria-disabled`) até adicionar os links, que são a próxima tarefa de conteúdo.
+
+**Newsletter:** o formulário continua sem serviço de envio (Finding 0009, QA-0012); o usuário escolheu mantê-lo visível até contratar um serviço.
+
+**Reseñas:** os nomes aparecem como no brief, exceto "Laura P.", abreviado por decisão do usuário (Finding 0017). **Rodapé:** "Hecho en Montevideo, caminado en New York."
 
 ## User Impact
 O visitante lê o site inteiro na sua língua e vê a oferta real, com preços em USD e resenhas de viajantes de verdade. A página fica mais curta (três seções a menos). Leitores de tela passam a anunciar a página como espanhol. Enquanto os links não chegam, os botões não levam a lugar nenhum, e "Mis recomendados" mostra textos provisórios.

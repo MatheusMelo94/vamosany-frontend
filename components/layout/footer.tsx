@@ -200,7 +200,7 @@ export function Footer(): JSX.Element {
         </details>
 
         <div className="caption border-inverse-ink/15 text-inverse-ink/45 mt-8 flex flex-col gap-4 border-t pt-8 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Vamos a NY. Hecho en Madrid, caminado en New York.</p>
+          <p>© 2026 Vamos a NY. Hecho en Montevideo, caminado en New York.</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {LEGAL.map((item) => (
               <li key={item}>

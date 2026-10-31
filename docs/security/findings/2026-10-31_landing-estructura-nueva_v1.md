@@ -83,8 +83,8 @@ What the future affiliate links need, in one place:
 - **OWASP Top 10:2025:** A06 — Insecure Design (privacy by design)
 - **Framework citation(s):** WSTG-INFO-05 (Review Webpage Content for Information Leakage); ASVS V8.3.4 (sensitive personal data identified and handled per policy)
 - **Surface:** Client Component (content)
-- **Affected component:** `features/landing/components/reviews.tsx` (entry `person: "Laura P."`, added in `eef1030`)
-- **Status:** Open
+- **Affected component:** `features/landing/components/reviews.tsx` (one review entry)
+- **Status:** Resolved (2026-10-31): the user chose to shorten the surname to an initial ("Laura P."). The unpushed branch history was rewritten before the first push, so the full name never reached the public repo. The text of this finding was redacted the same way.
 - **Posture:** Production
 - **Blocking at this posture:** No
 
