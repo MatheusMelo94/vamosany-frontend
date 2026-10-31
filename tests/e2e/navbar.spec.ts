@@ -260,6 +260,43 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
   });
 });
 
+test.describe("navbar Servicios group (DDR-0009)", () => {
+  for (const width of [1024, 1280, 1440]) {
+    test(`service cards share one size and one bottom row at ${width}px`, async ({
+      page,
+    }) => {
+      test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
+      await page.setViewportSize({ width, height: 800 });
+      await open(page);
+      await header(page)
+        .getByRole("button", { name: "Servicios", exact: true })
+        .hover();
+      const panel = megaPanel(page);
+      await expect(panel).toBeVisible();
+      const cards = panel.locator("[data-nav-item]");
+      await expect(cards).toHaveCount(4);
+      const boxes = await cards.evaluateAll((els) =>
+        els.map((el) => {
+          const r = el.getBoundingClientRect();
+          const link = Array.from(el.querySelectorAll("span")).find(
+            (s) => s.textContent === "Ver detalles",
+          );
+          return {
+            top: Math.round(r.top),
+            height: Math.round(r.height),
+            width: Math.round(r.width),
+            linkBottom: Math.round(link?.getBoundingClientRect().bottom ?? -1),
+          };
+        }),
+      );
+      for (const key of ["top", "height", "width", "linkBottom"] as const) {
+        const values = new Set(boxes.map((b) => b[key]));
+        expect(values.size, `${key}: ${[...values].join(", ")}`).toBe(1);
+      }
+    });
+  }
+});
+
 test.describe("navbar Sobre mí group (DDR-0002) @feature-sobre-mi", () => {
   test("desktop panel links each item to its route (AC 1)", async ({
     page,
