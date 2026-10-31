@@ -79,9 +79,9 @@ export function Navbar(): JSX.Element {
   const burgerRef = useRef<HTMLButtonElement>(null);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const onDrawerExited = useCallback(() => setDrawerMounted(false), []);
-  const [lang, setLang] = useState<Lang>("EN");
+  const [lang, setLang] = useState<Lang>("ES");
   /* The drawer's own language (plan § 5): ES on first open, kept across
-     reopen; the desktop keeps `lang` (EN, frozen). */
+     reopen; the desktop keeps its own `lang` (ES since DDR-0008). */
   const [drawerLang, setDrawerLang] = useState<Lang>("ES");
   const [langOpen, setLangOpen] = useState(false);
   /* Current page is derived from the URL, never stored (DDR-0002/0003). */
@@ -153,7 +153,7 @@ export function Navbar(): JSX.Element {
         <Link
           href="/"
           className="tap-target shrink-0"
-          aria-label="Vamos a NY — home"
+          aria-label="Vamos a NY — inicio"
         >
           <BrandLogo className="h-6" priority />
         </Link>
@@ -273,7 +273,7 @@ export function Navbar(): JSX.Element {
                                 >
                                   {/* pr-4: room for the marker dot, which sits
                                       24px in from the item's right edge (DDR-0003) */}
-                                  <span className="body-sm text-ink flex items-center gap-2 pr-4 font-semibold">
+                                  <span className="body-sm text-ink flex flex-wrap items-center gap-x-2 gap-y-1 pr-4 font-semibold">
                                     <span
                                       data-nav-title
                                       className="underline-offset-4 group-hover:underline"
@@ -281,7 +281,7 @@ export function Navbar(): JSX.Element {
                                       {item.title}
                                     </span>
                                     {item.tag ? (
-                                      <span className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap">
+                                      <span className="caption bg-brand text-ink max-w-full shrink-0 rounded-full px-2 py-0.5 font-semibold">
                                         {item.tag}
                                       </span>
                                     ) : null}
@@ -290,12 +290,12 @@ export function Navbar(): JSX.Element {
                                     {item.blurb}
                                   </span>
                                   {item.price ? (
-                                    <span className="mt-3 flex items-center justify-between">
-                                      <span className="headline text-ink">
+                                    <span className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                                      <span className="headline text-ink max-w-full shrink-0 text-balance">
                                         {item.price}
                                       </span>
-                                      <span className="label-button text-ink underline-offset-4 group-hover:underline">
-                                        See details
+                                      <span className="label-button text-ink ml-auto whitespace-nowrap underline-offset-4 group-hover:underline">
+                                        Ver detalles
                                       </span>
                                     </span>
                                   ) : null}
@@ -320,7 +320,7 @@ export function Navbar(): JSX.Element {
               onClick={() => setLangOpen((v) => !v)}
               aria-haspopup="listbox"
               aria-expanded={langOpen}
-              aria-label="Change language"
+              aria-label="Cambiar idioma"
               className={cn(
                 textLink,
                 "flex items-center gap-1.5",
@@ -351,7 +351,7 @@ export function Navbar(): JSX.Element {
               // arbitrary: offset do dropdown = altura do trigger + 12px, nao e um step da escala
               <ul
                 role="listbox"
-                aria-label="Language"
+                aria-label="Idioma"
                 className="border-ink/[0.08] bg-canvas shadow-menu absolute top-[calc(100%+0.75rem)] right-0 w-44 rounded-2xl border p-1.5"
               >
                 {LANGUAGES.map((l) => (
@@ -391,13 +391,13 @@ export function Navbar(): JSX.Element {
             href="#login"
             className={cn(textLink, "bg-ink/5 hover:bg-ink/10")}
           >
-            Log in
+            Ingresar
           </Link>
           <Link
             href="#signup"
             className={cn(textLink, "bg-ink/5 hover:bg-ink/10")}
           >
-            Sign up
+            Crear cuenta
           </Link>
         </div>
 

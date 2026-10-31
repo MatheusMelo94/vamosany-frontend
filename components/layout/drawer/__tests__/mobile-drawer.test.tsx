@@ -121,7 +121,7 @@ describe("MobileDrawer focus (AC 29, 32, 33)", () => {
   });
 });
 
-const LABELS = ["Itineraries", "Guides", "Blog", "Services", "Sobre mí"];
+const LABELS = ["Guías", "Blog", "Servicios", "Sobre mí"];
 const SOBRE_MI_PATHS = [
   "/sobre-mi",
   "/colaboraciones",
@@ -130,7 +130,7 @@ const SOBRE_MI_PATHS = [
   "/preguntas-frecuentes",
 ];
 
-/** The five group headers, in DOM order. */
+/** The four group headers, in DOM order. */
 const headers = (panel: HTMLElement) =>
   within(panel)
     .getAllByRole("heading", { level: 2 })
@@ -150,11 +150,11 @@ describe("MobileDrawer index (AC 6, 11, 13, 14, 20, 23, 24, 32, 35)", () => {
     vi.mocked(usePathname).mockReturnValue("/");
   });
 
-  it("shows five closed h2 headers in desktop order and no item link on /", async () => {
+  it("shows four closed h2 headers in desktop order and no item link on /", async () => {
     const { panel } = await openDrawer();
     const hs = headers(panel);
     expect(hs.map((b) => b.getAttribute("aria-expanded"))).toEqual(
-      Array(5).fill("false"),
+      Array(4).fill("false"),
     );
     for (const [i, label] of LABELS.entries()) {
       expect(hs[i]).toHaveAccessibleName(label);
@@ -165,31 +165,27 @@ describe("MobileDrawer index (AC 6, 11, 13, 14, 20, 23, 24, 32, 35)", () => {
         .getAllByRole("link")
         .map((a) => a.textContent)
         .sort(),
-    ).toEqual(["Log in", "Sign up"]);
+    ).toEqual(["Crear cuenta", "Ingresar"]);
   });
 
-  it("focuses the Itineraries header on open", async () => {
+  it("focuses the Guías header on open", async () => {
     const { panel } = await openDrawer();
-    expect(
-      within(panel).getByRole("button", { name: "Itineraries" }),
-    ).toHaveFocus();
+    expect(within(panel).getByRole("button", { name: "Guías" })).toHaveFocus();
   });
 
   it("keeps one group open at a time; tapping the open header closes it", async () => {
     const { user, panel } = await openDrawer();
-    await user.click(
-      within(panel).getByRole("button", { name: "Itineraries" }),
-    );
-    expect(expandedLabels(panel)).toEqual(["Itineraries"]);
+    await user.click(within(panel).getByRole("button", { name: "Guías" }));
+    expect(expandedLabels(panel)).toEqual(["Guías"]);
     expect(
-      within(panel).getByRole("link", { name: "Weekend Escape" }),
+      within(panel).getByRole("link", { name: "Desde el aeropuerto" }),
     ).toBeVisible();
-    await user.click(within(panel).getByRole("button", { name: "Guides" }));
-    expect(expandedLabels(panel)).toEqual(["Guides"]);
+    await user.click(within(panel).getByRole("button", { name: "Blog" }));
+    expect(expandedLabels(panel)).toEqual(["Blog"]);
     expect(
-      within(panel).queryByRole("link", { name: "Weekend Escape" }),
+      within(panel).queryByRole("link", { name: "Desde el aeropuerto" }),
     ).toBeNull();
-    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    await user.click(within(panel).getByRole("button", { name: "Blog" }));
     expect(expandedLabels(panel)).toEqual([]);
   });
 
@@ -219,7 +215,7 @@ describe("MobileDrawer index (AC 6, 11, 13, 14, 20, 23, 24, 32, 35)", () => {
       const sobreMi = within(panel).getByRole("button", { name: "Sobre mí" });
       expect(sobreMi.querySelector("[data-header-dot]")).not.toBeNull();
       expect(
-        within(panel).getByRole("button", { name: "Services" }),
+        within(panel).getByRole("button", { name: "Servicios" }),
       ).toHaveAttribute("aria-expanded", "false");
     },
   );
@@ -239,7 +235,7 @@ describe("MobileDrawer index (AC 6, 11, 13, 14, 20, 23, 24, 32, 35)", () => {
   it("restores the default state on reopen: nothing remembered, list at the top", async () => {
     vi.mocked(usePathname).mockReturnValue("/sobre-mi");
     const { user, panel, burger } = await openDrawer();
-    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    await user.click(within(panel).getByRole("button", { name: "Blog" }));
     const list = panel.querySelector("[data-drawer-list]");
     if (list) list.scrollTop = 120;
     await user.click(burger);
@@ -251,7 +247,7 @@ describe("MobileDrawer index (AC 6, 11, 13, 14, 20, 23, 24, 32, 35)", () => {
 });
 
 describe("MobileDrawer language and keyboard cycle (AC 2, 27, 33)", () => {
-  it("starts on ES, keeps a choice across close and reopen, and leaves the desktop EN", async () => {
+  it("starts on ES, keeps a choice across close and reopen, and leaves the desktop on its own ES", async () => {
     const { user, panel, burger } = await openDrawer();
     const idioma = within(panel).getByRole("group", { name: "Idioma" });
     expect(within(idioma).getByRole("button", { name: "ES" })).toHaveAttribute(
@@ -268,24 +264,23 @@ describe("MobileDrawer language and keyboard cycle (AC 2, 27, 33)", () => {
       .map((b) => b.textContent);
     expect(pressed).toEqual(["PT"]);
     expect(
-      screen.getByRole("button", { name: "Change language" }),
-    ).toHaveTextContent("EN");
+      screen.getByRole("button", { name: "Cambiar idioma" }),
+    ).toHaveTextContent("ES");
   });
 
-  it("tabs from Itineraries through the index, the footer and the X, and back", async () => {
+  it("tabs from Guías through the index, the footer and the X, and back", async () => {
     const { user } = await openDrawer();
     const order = [
-      "Guides",
       "Blog",
-      "Services",
+      "Servicios",
       "Sobre mí",
       "ES",
       "PT",
       "EN",
-      "Log in",
-      "Sign up",
+      "Ingresar",
+      "Crear cuenta",
       "Cerrar menú",
-      "Itineraries",
+      "Guías",
     ];
     const name = () =>
       (document.activeElement as HTMLElement | null)?.getAttribute(
@@ -306,7 +301,7 @@ describe("MobileDrawer language and keyboard cycle (AC 2, 27, 33)", () => {
       await user.tab({ shift: true });
       back.push(name());
     }
-    expect(back).toEqual([...order].reverse().slice(1).concat("Itineraries"));
+    expect(back).toEqual([...order].reverse().slice(1).concat("Guías"));
   });
 });
 
@@ -371,7 +366,7 @@ describe("MobileDrawer motion (AC 41–43, 46; plan § 7)", () => {
       "[data-drawer-group]",
     )[1];
     expect(guides?.style.opacity).toBe("0");
-    within(panel).getByRole("button", { name: "Guides" }).focus();
+    within(panel).getByRole("button", { name: "Blog" }).focus();
     expect(guides?.style.opacity).toBe("");
   });
 
@@ -379,7 +374,7 @@ describe("MobileDrawer motion (AC 41–43, 46; plan § 7)", () => {
     vi.mocked(usePathname).mockReturnValue("/sobre-mi");
     const { user, panel, burger } = await openDrawer();
     finishMotion();
-    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    await user.click(within(panel).getByRole("button", { name: "Blog" }));
     const list = panel.querySelector("[data-drawer-list]");
     if (list) list.scrollTop = 120;
     await user.click(burger);
@@ -403,31 +398,29 @@ describe("MobileDrawer motion (AC 41–43, 46; plan § 7)", () => {
   it("a collapsing body stays painted and inert until its collapse ends (M12)", async () => {
     const { user, panel } = await openDrawer();
     finishMotion();
-    await user.click(
-      within(panel).getByRole("button", { name: "Itineraries" }),
-    );
+    await user.click(within(panel).getByRole("button", { name: "Guías" }));
     finishMotion();
-    await user.click(within(panel).getByRole("button", { name: "Guides" }));
-    const it = bodyOf(panel, "Itineraries");
-    expect(expandedLabels(panel)).toEqual(["Guides"]);
+    await user.click(within(panel).getByRole("button", { name: "Blog" }));
+    const it = bodyOf(panel, "Guías");
+    expect(expandedLabels(panel)).toEqual(["Blog"]);
     expect(it).not.toHaveAttribute("hidden");
     expect(it).toHaveAttribute("inert");
     expect(focusables(panel).some((el) => it.contains(el))).toBe(false);
-    expect(bodyOf(panel, "Guides").style.height).toBe("0px");
+    expect(bodyOf(panel, "Blog").style.height).toBe("0px");
     finishMotion();
     expect(it).toHaveAttribute("hidden");
-    expect(bodyOf(panel, "Guides").getAttribute("style") ?? "").toBe("");
+    expect(bodyOf(panel, "Blog").getAttribute("style") ?? "").toBe("");
   });
 
   it("a double tap on a header leaves it collapsed, with nothing left running (AC 44)", async () => {
     const { user, panel } = await openDrawer();
     finishMotion();
-    const guides = within(panel).getByRole("button", { name: "Guides" });
+    const guides = within(panel).getByRole("button", { name: "Blog" });
     await user.click(guides);
     await user.click(guides);
     expect(guides).toHaveAttribute("aria-expanded", "false");
     finishMotion();
-    expect(bodyOf(panel, "Guides")).toHaveAttribute("hidden");
+    expect(bodyOf(panel, "Blog")).toHaveAttribute("hidden");
     expect(
       gsap.globalTimeline
         .getChildren(true, true, false)
@@ -438,11 +431,9 @@ describe("MobileDrawer motion (AC 41–43, 46; plan § 7)", () => {
   it("a reopen during the close drops any collapsing body at once", async () => {
     const { user, panel, burger } = await openDrawer();
     finishMotion();
-    await user.click(
-      within(panel).getByRole("button", { name: "Itineraries" }),
-    );
+    await user.click(within(panel).getByRole("button", { name: "Guías" }));
     finishMotion();
-    await user.click(within(panel).getByRole("button", { name: "Guides" }));
+    await user.click(within(panel).getByRole("button", { name: "Blog" }));
     await user.click(burger);
     await user.click(burger);
     expect(expandedLabels(panel)).toEqual([]);

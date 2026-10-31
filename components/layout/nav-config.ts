@@ -19,97 +19,72 @@ export type NavGroup = { label: string; columns: NavColumn[] };
 
 /** Language menu options, shared by the desktop menu and the drawer. */
 export const LANGUAGES = [
-  { code: "EN", label: "English" },
   { code: "ES", label: "Español" },
   { code: "PT", label: "Português" },
+  { code: "EN", label: "English" },
 ] as const;
 
 export type Lang = (typeof LANGUAGES)[number]["code"];
 
 export const NAV: NavGroup[] = [
   {
-    label: "Itineraries",
+    label: "Guías",
     columns: [
       {
-        heading: "By length",
+        heading: "Moverte por la ciudad",
         items: [
           {
-            title: "3 Days — First Timer",
-            blurb: "The greatest hits, walkable.",
+            title: "El subte, explicado",
+            blurb: "Leé el mapa como una local.",
           },
           {
-            title: "5 Days — The Classic",
-            blurb: "Icons plus real neighbourhoods.",
-            tag: "Best seller",
+            title: "Desde el aeropuerto",
+            blurb: "JFK, Newark y LaGuardia comparados.",
           },
-          { title: "7 Days — Deep Cut", blurb: "Five boroughs, no filler." },
-          { title: "Weekend Escape", blurb: "48 hours, zero wasted minutes." },
-        ],
-      },
-      {
-        heading: "By season",
-        items: [
+          { title: "Taxi, Uber o subte", blurb: "Cuándo conviene cada uno." },
           {
-            title: "Christmas in New York",
-            blurb: "Markets, windows, ice rinks.",
-            tag: "New",
-          },
-          {
-            title: "Autumn in the Parks",
-            blurb: "Peak foliage, October light.",
-          },
-          { title: "Summer Rooftops", blurb: "Long evenings above the grid." },
-          { title: "Winter on a Budget", blurb: "Warm rooms, cheap tickets." },
-        ],
-      },
-      {
-        heading: "By appetite",
-        items: [
-          { title: "Foodie New York", blurb: "Delis, dumplings, slices." },
-          { title: "Art & Museums", blurb: "The Met to Bushwick walls." },
-          { title: "Family New York", blurb: "Tested with small legs." },
-          { title: "Film Locations", blurb: "Stand where the scene happened." },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Guides",
-    columns: [
-      {
-        heading: "Getting around",
-        items: [
-          {
-            title: "The Subway, Explained",
-            blurb: "Read the map like a local.",
-          },
-          { title: "From the Airport", blurb: "JFK, EWR and LGA compared." },
-          { title: "Walking the Grid", blurb: "Why the numbers make sense." },
-          { title: "Yellow Cab vs App", blurb: "When each one wins." },
-        ],
-      },
-      {
-        heading: "Neighbourhoods",
-        items: [
-          { title: "Lower East Side", blurb: "Tenements and late nights." },
-          { title: "Williamsburg", blurb: "Brooklyn's front window." },
-          { title: "Harlem", blurb: "Jazz, stoops and Sunday." },
-          {
-            title: "Chinatown & Little Italy",
-            blurb: "Two blocks, two worlds.",
+            title: "Cómo moverte por New York",
+            blurb: "A pie, en subte, bus o ferry.",
           },
         ],
       },
       {
-        heading: "Before you fly",
+        heading: "Barrios",
         items: [
-          { title: "ESTA & Entry", blurb: "Paperwork without panic." },
-          { title: "Budget Calculator", blurb: "What a day really costs." },
           {
-            title: "Packing for the Season",
-            blurb: "It is colder than you think.",
+            title: "West Village",
+            blurb: "Calles arboladas, brownstones y cafés con encanto.",
           },
-          { title: "Broadway Tickets", blurb: "Rush, lottery and TKTS." },
+          {
+            title: "Murray Hill",
+            blurb: "Tranquilo, céntrico y una gran base para alojarte.",
+          },
+          {
+            title: "Financial District",
+            blurb: "Wall Street, el Oculus y el Memorial del 11S.",
+          },
+          {
+            title: "Williamsburg",
+            blurb: "El Brooklyn creativo, con el skyline de frente.",
+          },
+        ],
+      },
+      {
+        heading: "Antes de viajar",
+        items: [
+          { title: "Visa a Estados Unidos", blurb: "El trámite, sin vueltas." },
+          {
+            title: "Cuánto cuesta un día en New York",
+            blurb: "Para armar tu presupuesto.",
+          },
+          {
+            title: "Qué llevar según la temporada",
+            blurb: "Siempre hace más frío (o más calor) de lo que pensás.",
+          },
+          {
+            title: "Entradas para Broadway",
+            blurb: "Dónde y cómo conseguirlas.",
+          },
         ],
       },
     ],
@@ -118,61 +93,62 @@ export const NAV: NavGroup[] = [
     label: "Blog",
     columns: [
       {
-        heading: "Latest",
+        heading: "Categorías",
         items: [
-          { title: "Neighbourhood Diaries", blurb: "One block at a time." },
-          { title: "Seasonal Guides", blurb: "What's on, month by month." },
-          { title: "Food Crawls", blurb: "Routes built around eating." },
-          { title: "Photo Spots", blurb: "Where the light lands." },
-        ],
-      },
-      {
-        heading: "Readers",
-        items: [
-          { title: "Reader Trips", blurb: "Real itineraries, real notes." },
-          { title: "Ask Us Anything", blurb: "Your questions, answered." },
-          { title: "Mistakes We Made", blurb: "So you don't repeat them." },
-          { title: "Newsletter Archive", blurb: "Every issue, free." },
+          { title: "Dónde comer", blurb: "Lugares a los que vuelvo." },
+          { title: "Cine y series", blurb: "La ciudad de la pantalla." },
+          { title: "Tips prácticos", blurb: "Para aprovechar cada día." },
+          { title: "Barrios", blurb: "Rincones de cada zona." },
         ],
       },
     ],
   },
   {
-    label: "Services",
+    label: "Servicios",
     columns: [
       {
-        heading: "Ready-made",
+        heading: "Asesoramiento",
         items: [
           {
-            title: "Curated by Belén",
-            blurb: "Itineraries she walked and wrote. Download and go.",
-            price: "from €25",
+            title: "Consultoría de viaje",
+            blurb: "Una hora por videollamada para darle forma a tu viaje.",
+            price: "USD 150",
             href: "/#services",
           },
         ],
       },
       {
-        heading: "One to one",
+        heading: "A medida",
         items: [
           {
-            // Non-breaking space: Montserrat is wider than Arial, and at 1280 the
-            // title wrapped leaving "Belén" alone on a line (DDR-0005).
-            title: "Custom itinerary with\u00a0Belén",
-            blurb: "A call, your dates and pace, a plan built just for you.",
-            price: "€149",
-            tag: "Most popular",
-            href: "/#services",
-          },
-        ],
-      },
-      {
-        heading: "In person",
-        items: [
-          {
-            title: "Walk with Belén",
+            title: "Itinerario personalizado",
             blurb:
-              "Half a day on foot with her, in the neighbourhood you pick.",
-            price: "€290",
+              "Me contás cómo querés vivir New York y armo tu viaje día a día.",
+            price: "Desde USD 160",
+            tag: "El más completo",
+            href: "/#services",
+          },
+        ],
+      },
+      {
+        heading: "En grupo",
+        items: [
+          {
+            title: "Viajes grupales",
+            blurb:
+              "Viajes temáticos con todo organizado y conmigo acompañándote.",
+            price: "Reservá con USD 300",
+            href: "/#services",
+          },
+        ],
+      },
+      {
+        heading: "Trámites",
+        items: [
+          {
+            title: "Visa de Estados Unidos",
+            blurb: "Te acompaño en todo el trámite. Servicio para uruguayos.",
+            price: "USD 70",
             href: "/#services",
           },
         ],

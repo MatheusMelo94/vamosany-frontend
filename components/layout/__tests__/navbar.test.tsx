@@ -18,78 +18,41 @@ vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => "/") }));
 
 /** Menu content rendered by the desktop mega-menu (DDR-0002: "About" became "Sobre mí"). */
 const EXPECTED: Record<string, Array<[heading: string, titles: string[]]>> = {
-  Itineraries: [
+  Guías: [
     [
-      "By length",
+      "Moverte por la ciudad",
       [
-        "3 Days — First Timer",
-        "5 Days — The Classic",
-        "7 Days — Deep Cut",
-        "Weekend Escape",
+        "El subte, explicado",
+        "Desde el aeropuerto",
+        "Taxi, Uber o subte",
+        "Cómo moverte por New York",
       ],
     ],
     [
-      "By season",
+      "Barrios",
+      ["West Village", "Murray Hill", "Financial District", "Williamsburg"],
+    ],
+    [
+      "Antes de viajar",
       [
-        "Christmas in New York",
-        "Autumn in the Parks",
-        "Summer Rooftops",
-        "Winter on a Budget",
-      ],
-    ],
-    [
-      "By appetite",
-      ["Foodie New York", "Art & Museums", "Family New York", "Film Locations"],
-    ],
-  ],
-  Guides: [
-    [
-      "Getting around",
-      [
-        "The Subway, Explained",
-        "From the Airport",
-        "Walking the Grid",
-        "Yellow Cab vs App",
-      ],
-    ],
-    [
-      "Neighbourhoods",
-      ["Lower East Side", "Williamsburg", "Harlem", "Chinatown & Little Italy"],
-    ],
-    [
-      "Before you fly",
-      [
-        "ESTA & Entry",
-        "Budget Calculator",
-        "Packing for the Season",
-        "Broadway Tickets",
+        "Visa a Estados Unidos",
+        "Cuánto cuesta un día en New York",
+        "Qué llevar según la temporada",
+        "Entradas para Broadway",
       ],
     ],
   ],
   Blog: [
     [
-      "Latest",
-      [
-        "Neighbourhood Diaries",
-        "Seasonal Guides",
-        "Food Crawls",
-        "Photo Spots",
-      ],
-    ],
-    [
-      "Readers",
-      [
-        "Reader Trips",
-        "Ask Us Anything",
-        "Mistakes We Made",
-        "Newsletter Archive",
-      ],
+      "Categorías",
+      ["Dónde comer", "Cine y series", "Tips prácticos", "Barrios"],
     ],
   ],
-  Services: [
-    ["Ready-made", ["Curated by Belén"]],
-    ["One to one", ["Custom itinerary with Belén"]],
-    ["In person", ["Walk with Belén"]],
+  Servicios: [
+    ["Asesoramiento", ["Consultoría de viaje"]],
+    ["A medida", ["Itinerario personalizado"]],
+    ["En grupo", ["Viajes grupales"]],
+    ["Trámites", ["Visa de Estados Unidos"]],
   ],
   "Sobre mí": [
     ["Vamos a New York", ["Sobre mí", "Colaboraciones", "Trabajá conmigo"]],
@@ -138,13 +101,13 @@ async function openPanel(label: string) {
 }
 
 describe("nav-config", () => {
-  it("is the single source of the five groups, in navbar order", () => {
+  it("is the single source of the four groups, in navbar order", () => {
     expect(NAV.map((g) => g.label)).toEqual(Object.keys(EXPECTED));
   });
 });
 
 describe("Navbar", () => {
-  it("renders the five dropdown triggers", () => {
+  it("renders the four dropdown triggers", () => {
     render(<Navbar />);
     for (const label of Object.keys(EXPECTED)) {
       expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
@@ -208,7 +171,7 @@ describe("Navbar", () => {
     for (const [title] of SOBRE_MI_ITEMS) {
       expect(within(menu).getByRole("link", { name: title })).toBeVisible();
     }
-    expect(within(menu).getByRole("link", { name: "Log in" })).toBeVisible();
+    expect(within(menu).getByRole("link", { name: "Ingresar" })).toBeVisible();
   });
 
   it("mirrors the Sobre mí group in the drawer; tapping an item closes it (AC 3)", async () => {
@@ -251,9 +214,9 @@ describe("Navbar item destinations (RV-0010)", () => {
       await openPanel(label);
       for (const href of itemHrefs()) expect(href).toMatch(/^\//);
     }
-    await openPanel("Services");
+    await openPanel("Servicios");
     expect(
-      screen.getByRole("link", { name: /Custom itinerary with\sBelén/ }),
+      screen.getByRole("link", { name: /Itinerario personalizado/ }),
     ).toHaveAttribute("href", "/#services");
   });
 
@@ -268,7 +231,9 @@ describe("Navbar item destinations (RV-0010)", () => {
       await user.click(within(menu).getByRole("button", { name: group.label }));
       hrefs.push(...itemHrefs());
     }
-    expect(hrefs.length).toBeGreaterThan(30);
+    expect(hrefs).toHaveLength(
+      NAV.flatMap((g) => g.columns.flatMap((c) => c.items)).length,
+    );
     for (const href of hrefs) expect(href).toMatch(/^\//);
   });
 });
@@ -492,11 +457,9 @@ describe("Navbar drawer chunk failure (plan § 9)", () => {
     expect(screen.queryByRole("navigation", { name: "Menú" })).toBeNull();
     // Nothing else unmounted: no error boundary replaced the page.
     expect(
-      screen.getByRole("link", { name: "Vamos a NY — home" }),
+      screen.getByRole("link", { name: "Vamos a NY — inicio" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Itineraries" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Guías" })).toBeInTheDocument();
 
     offline = false;
     const failedCalls = loadDrawer.mock.calls.length;

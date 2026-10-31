@@ -65,7 +65,9 @@ test.describe("drawer modality (AC 30, 31, 34) @feature-mobile-nav", () => {
     page,
   }) => {
     await openLanding(page);
-    const logo = header(page).getByRole("link", { name: "Vamos a NY — home" });
+    const logo = header(page).getByRole("link", {
+      name: "Vamos a NY — inicio",
+    });
     const mainLink = page.locator("main a").first();
     const footerLink = page.locator("footer a").first();
 
@@ -74,7 +76,7 @@ test.describe("drawer modality (AC 30, 31, 34) @feature-mobile-nav", () => {
       expect(await takesFocus(target)).toBe(false);
     }
     const tree = await exposed(page);
-    expect(tree).not.toContainEqual(["link", "Vamos a NY — home"]);
+    expect(tree).not.toContainEqual(["link", "Vamos a NY — inicio"]);
     expect(tree.map(([role]) => role)).not.toContain("main");
     expect(tree.map(([role]) => role)).not.toContain("contentinfo");
     expect(tree).toContainEqual(["navigation", "Menú"]);
@@ -191,8 +193,8 @@ test.describe("drawer focus (AC 25, 28, 29, 32, 33) @feature-mobile-nav", () => 
   }
 
   for (const [name, href] of [
-    ["Log in", /#login$/],
-    ["Sign up", /#signup$/],
+    ["Ingresar", /#login$/],
+    ["Crear cuenta", /#signup$/],
   ] as const) {
     test(`${name} closes the drawer and navigates`, async ({ page }) => {
       await openLanding(page);
@@ -465,7 +467,7 @@ test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
       await burger(page).click();
       const drawer = panel(page);
       await expect(drawer).toBeVisible();
-      for (const label of ["Itineraries", "Guides", "Blog", "Services"]) {
+      for (const label of ["Guías", "Blog", "Servicios"]) {
         const h = drawer.getByRole("button", { name: label, exact: true });
         if ((await h.getAttribute("aria-expanded")) !== "true") await h.click();
         const report = await drawer.evaluate((n) => {
@@ -504,7 +506,7 @@ test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
     page,
   }) => {
     const { drawer, b } = await openAt(page, 360, 640);
-    await drawer.getByRole("button", { name: "Itineraries" }).click();
+    await drawer.getByRole("button", { name: "Guías" }).click();
     await waitForGsapIdle(page); // the accordion settles (T012)
     const list = drawer.locator("[data-drawer-list]");
     const footer = drawer.locator("[data-drawer-footer]");
@@ -526,12 +528,11 @@ test.describe("drawer panel box (AC 9, 49, 50, 51) @feature-mobile-nav", () => {
   });
 });
 
-const LABELS = ["Itineraries", "Guides", "Blog", "Services", "Sobre mí"];
+const LABELS = ["Guías", "Blog", "Servicios", "Sobre mí"];
 const SCENTS = [
-  "By length · By season · By appetite",
-  "Getting around · Neighbourhoods · Before you fly",
-  "Latest · Readers",
-  "Ready-made · One to one · In person",
+  "Moverte por la ciudad · Barrios · Antes de viajar",
+  "Categorías",
+  "Asesoramiento · A medida · En grupo · Trámites",
   "Vamos a New York · Ayuda",
 ];
 const SOBRE_MI_PATHS = [
@@ -551,13 +552,13 @@ test.describe("drawer index (AC 6, 7, 11, 20, 22, 23, 24, 32, 36) @feature-mobil
     test.skip(isDesktop(page), "drawer exists below 1024 only");
   });
 
-  test("first level: five closed headers in desktop order, Montserrat bold, scent lines, no item links", async ({
+  test("first level: four closed headers in desktop order, Montserrat bold, scent lines, no item links", async ({
     page,
   }) => {
     await openLanding(page);
     const drawer = await openDrawer(page);
     const hs = groupHeaders(drawer);
-    await expect(hs).toHaveCount(5);
+    await expect(hs).toHaveCount(4);
     for (const [i, label] of LABELS.entries()) {
       const h = hs.nth(i);
       await expect(h).toHaveAccessibleName(label);
@@ -590,21 +591,18 @@ test.describe("drawer index (AC 6, 7, 11, 20, 22, 23, 24, 32, 36) @feature-mobil
     const drawer = await openDrawer(page);
     const header = (name: string) =>
       drawer.getByRole("button", { name, exact: true });
-    await header("Itineraries").click();
-    await expect(drawer.getByRole("heading", { level: 2 })).toHaveCount(5);
+    await header("Guías").click();
+    await expect(drawer.getByRole("heading", { level: 2 })).toHaveCount(4);
     await expect(
-      drawer.getByRole("link", { name: "Weekend Escape" }),
+      drawer.getByRole("link", { name: "Desde el aeropuerto" }),
     ).toBeVisible();
-    await header("Guides").click();
-    await expect(header("Itineraries")).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
-    await expect(header("Guides")).toHaveAttribute("aria-expanded", "true");
-    await header("Guides").focus();
+    await header("Blog").click();
+    await expect(header("Guías")).toHaveAttribute("aria-expanded", "false");
+    await expect(header("Blog")).toHaveAttribute("aria-expanded", "true");
+    await header("Blog").focus();
     await page.keyboard.press("Enter");
-    await expect(header("Guides")).toHaveAttribute("aria-expanded", "false");
-    await expect(header("Guides")).toBeFocused();
+    await expect(header("Blog")).toHaveAttribute("aria-expanded", "false");
+    await expect(header("Blog")).toBeFocused();
     await expect(drawer.getByRole("link")).toHaveCount(2);
   });
 
@@ -621,7 +619,7 @@ test.describe("drawer index (AC 6, 7, 11, 20, 22, 23, 24, 32, 36) @feature-mobil
       await expect(sobreMi).toHaveAttribute("aria-expanded", "true");
       await expect(sobreMi.locator("[data-header-dot]")).toBeVisible();
       await expect(
-        drawer.getByRole("button", { name: "Services", exact: true }),
+        drawer.getByRole("button", { name: "Servicios", exact: true }),
       ).toHaveAttribute("aria-expanded", "false");
       await expect(drawer.locator("[aria-expanded='true']")).toHaveCount(1);
     });
@@ -640,7 +638,7 @@ test.describe("drawer index (AC 6, 7, 11, 20, 22, 23, 24, 32, 36) @feature-mobil
     await sobreMi.click();
     await expect(sobreMi).toHaveAttribute("aria-expanded", "false");
     await expect(sobreMi.locator("[data-header-dot]")).toBeVisible();
-    await drawer.getByRole("button", { name: "Itineraries" }).click();
+    await drawer.getByRole("button", { name: "Guías" }).click();
     const list = drawer.locator("[data-drawer-list]");
     await list.evaluate((el) => {
       el.scrollTop = el.scrollHeight;
@@ -652,9 +650,10 @@ test.describe("drawer index (AC 6, 7, 11, 20, 22, 23, 24, 32, 36) @feature-mobil
     await expect(
       drawer.getByRole("button", { name: "Sobre mí", exact: true }),
     ).toHaveAttribute("aria-expanded", "true");
-    await expect(
-      drawer.getByRole("button", { name: "Itineraries" }),
-    ).toHaveAttribute("aria-expanded", "false");
+    await expect(drawer.getByRole("button", { name: "Guías" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     expect(
       await drawer.locator("[data-drawer-list]").evaluate((el) => el.scrollTop),
     ).toBe(0);
@@ -666,7 +665,7 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
     test.skip(isDesktop(page), "drawer exists below 1024 only");
   });
 
-  test("tags on exactly three rows; Services' prices in Courier bold, right-aligned; no blurbs", async ({
+  test("a tag on exactly one row; Services' prices in Courier bold, right-aligned; no blurbs", async ({
     page,
   }) => {
     await openLanding(page);
@@ -686,13 +685,15 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
         expect(await row.textContent()).not.toMatch(/\.$/);
       }
     }
-    expect(tagged).toEqual(["Best seller", "New", "Most popular"]);
+    expect(tagged).toEqual(["El más completo"]);
 
     // Services is open last-but-one; open it again.
-    await drawer.getByRole("button", { name: "Services", exact: true }).click();
+    await drawer
+      .getByRole("button", { name: "Servicios", exact: true })
+      .click();
     await waitForGsapIdle(page); // the accordion settles (T012)
     const rows = drawer.locator("[data-drawer-body]:visible a");
-    await expect(rows).toHaveCount(3);
+    await expect(rows).toHaveCount(4);
     const prices = await rows.evaluateAll((as) =>
       as.map((a) => {
         const p = a.querySelector("[data-row-price]") as HTMLElement;
@@ -708,27 +709,18 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
         };
       }),
     );
-    expect(prices.map((p) => p.text)).toEqual(["from €25", "€149", "€290"]);
+    expect(prices.map((p) => p.text)).toEqual([
+      "USD 150",
+      "Desde USD 160",
+      "Reservá con USD 300",
+      "USD 70",
+    ]);
     for (const p of prices) {
       expect(p.family).toMatch(/Courier[_ ]Prime/);
       expect(p.weight).toBe("700");
       expect(p.transform).toBe("none");
       expect(p.rightGap).toBe(0);
     }
-    // "with Belén" never breaks across lines (DDR-0005).
-    const oneLine = await rows.nth(1).evaluate((a) => {
-      const title = a.querySelector("[data-row-title]")?.firstChild;
-      const text = title?.textContent ?? "";
-      const range = document.createRange();
-      const from = text.indexOf("with");
-      range.setStart(title as Node, from);
-      range.setEnd(title as Node, text.length);
-      const tops = new Set(
-        [...range.getClientRects()].map((r) => Math.round(r.top)),
-      );
-      return tops.size;
-    });
-    expect(oneLine).toBe(1);
   });
 
   test("a Services row from /sobre-mi lands on the landing's #services, in view", async ({
@@ -736,8 +728,10 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
   }) => {
     await page.goto("/sobre-mi");
     const drawer = await openDrawer(page);
-    await drawer.getByRole("button", { name: "Services", exact: true }).click();
-    await drawer.getByRole("link", { name: /^Walk with Belén/ }).click();
+    await drawer
+      .getByRole("button", { name: "Servicios", exact: true })
+      .click();
+    await drawer.getByRole("link", { name: /^Viajes grupales/ }).click();
     await expect(page).toHaveURL(/\/#services$/);
     await expect(panel(page)).toHaveCount(0);
     await expect
@@ -752,15 +746,15 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
       .toBeLessThan(1);
   });
 
-  test("360 × 640: with Itineraries open, Film Locations scrolls fully above the footer", async ({
+  test("360 × 640: with Guías open, its last row scrolls fully above the footer", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 360, height: 640 });
     await openLanding(page);
     const drawer = await openDrawer(page);
-    await drawer.getByRole("button", { name: "Itineraries" }).click();
+    await drawer.getByRole("button", { name: "Guías" }).click();
     await waitForGsapIdle(page); // the accordion settles (T012)
-    const last = drawer.getByRole("link", { name: "Film Locations" });
+    const last = drawer.getByRole("link", { name: "Entradas para Broadway" });
     await drawer.locator("[data-drawer-list]").evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
@@ -777,7 +771,7 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
     const scents = drawer.locator(
       "[data-drawer-group] h2 button [id$='-scent']",
     );
-    await expect(scents).toHaveCount(5);
+    await expect(scents).toHaveCount(4);
     const clipped = await scents.evaluateAll(
       (els) =>
         els.filter(
@@ -814,7 +808,7 @@ test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature
     await page.evaluate(() => document.fonts.ready);
     const drawer = await openDrawer(page);
     await drawer
-      .getByRole("button", { name: "Itineraries", exact: true })
+      .getByRole("button", { name: "Servicios", exact: true })
       .click();
     await waitForGsapIdle(page);
     const paint = await drawer.evaluate((nav) => {
@@ -838,7 +832,7 @@ test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature
         (b) => b.textContent === "ES",
       );
       const signup = [...nav.querySelectorAll("a")].find(
-        (a) => a.textContent === "Sign up",
+        (a) => a.textContent === "Crear cuenta",
       );
       return {
         tokens: {
@@ -882,7 +876,7 @@ test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature
     expect(paint.h3).toBe(inkMuted);
     expect(paint.row.rule).toEqual(["solid", "1px", surface1]);
     expect(paint.row.title).toEqual([ink, "600"]);
-    expect(paint.tag).toEqual([brand, ink, "Best seller"]);
+    expect(paint.tag).toEqual([brand, ink, "El más completo"]);
     expect(paint.tagRound).toBe(true);
     expect(paint.dot).toEqual([brand, 6, 6, true]);
     expect(paint.es).toEqual(["true", ink, inverse]);
@@ -891,7 +885,7 @@ test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature
 });
 
 test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav", () => {
-  test("desktop: no drawer, and the language button still reads EN", async ({
+  test("desktop: no drawer, and the language button reads its own ES", async ({
     page,
   }) => {
     test.skip(!isDesktop(page), "desktop project only");
@@ -899,8 +893,8 @@ test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav",
     await expect(panel(page)).toHaveCount(0);
     await expect(header(page).locator(".fixed.inset-0")).toHaveCount(0);
     await expect(
-      header(page).getByRole("button", { name: "Change language" }),
-    ).toHaveText("EN");
+      header(page).getByRole("button", { name: "Cambiar idioma" }),
+    ).toHaveText("ES");
   });
 
   test.describe("below 1024", () => {
@@ -943,8 +937,11 @@ test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav",
     }) => {
       await openLanding(page);
       const drawer = await openDrawer(page);
-      const login = drawer.getByRole("link", { name: "Log in", exact: true });
-      const signup = drawer.getByRole("link", { name: "Sign up", exact: true });
+      const login = drawer.getByRole("link", { name: "Ingresar", exact: true });
+      const signup = drawer.getByRole("link", {
+        name: "Crear cuenta",
+        exact: true,
+      });
       const l = await login.boundingBox();
       const s = await signup.boundingBox();
       if (!l || !s) throw new Error("no pill box");
@@ -987,23 +984,22 @@ test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav",
       expect(courier).toBe(true);
     });
 
-    test("keyboard: the full cycle from Itineraries, both ways, with the ink focus ring", async ({
+    test("keyboard: the full cycle from Guías, both ways, with the ink focus ring", async ({
       page,
     }) => {
       await openLanding(page);
       await openDrawer(page);
       const order = [
-        "Guides",
         "Blog",
-        "Services",
+        "Servicios",
         "Sobre mí",
         "ES",
         "PT",
         "EN",
-        "Log in",
-        "Sign up",
+        "Ingresar",
+        "Crear cuenta",
         "Cerrar menú",
-        "Itineraries",
+        "Guías",
       ];
       const focused = () =>
         page.evaluate(() => {
@@ -1037,7 +1033,7 @@ test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav",
         await page.keyboard.press("Shift+Tab");
         back.push((await focused()).name ?? "");
       }
-      expect(back).toEqual([...order].reverse().slice(1).concat("Itineraries"));
+      expect(back).toEqual([...order].reverse().slice(1).concat("Guías"));
     });
 
     for (const [w, h] of [
@@ -1067,7 +1063,7 @@ test.describe("drawer accessibility audit (AC 40) @feature-mobile-nav", () => {
 
   const states: Array<[string, string, string | null]> = [
     ["S2 on /", "/", null],
-    ["S3 (Itineraries open) on /", "/", "Itineraries"],
+    ["S3 (Guías open) on /", "/", "Guías"],
     ["S5 on /sobre-mi", "/sobre-mi", null],
   ];
 
@@ -1221,7 +1217,7 @@ test.describe("drawer motion: the unfold and the roll-up (AC 41–43, 45, 47) @f
     expect(settled.panelY).toBe(0);
     expect(settled.icon).toEqual({ angle: 0, scale: 1, opacity: 1 });
     expect(settled.veil).toBe(1);
-    expect(settled.groups).toEqual([1, 1, 1, 1, 1]);
+    expect(settled.groups).toEqual([1, 1, 1, 1]);
     expect(settled.footer).toBe(1);
     expect(await gsapPending(page)).toBe(0);
 
@@ -1267,14 +1263,14 @@ test.describe("drawer motion: the unfold and the roll-up (AC 41–43, 45, 47) @f
     const drawer = panel(page);
 
     await page.keyboard.press("Tab");
-    const guides = drawer.getByRole("button", { name: "Guides" });
-    await expect(guides).toBeFocused();
+    const blog = drawer.getByRole("button", { name: "Blog" });
+    await expect(blog).toBeFocused();
     const mid = await frame(page);
     expect(mid.groups[1]).toBe(1);
     expect(mid.groups[3]).toBeLessThan(1);
 
-    await guides.click();
-    await expect(guides).toHaveAttribute("aria-expanded", "true");
+    await blog.click();
+    await expect(blog).toHaveAttribute("aria-expanded", "true");
 
     await page.clock.runFor(50);
     const beforeClose = await frame(page);
@@ -1397,24 +1393,24 @@ test.describe("drawer motion: the accordion (AC 19, 44; M11–M13) @feature-mobi
     await tapOpen(page);
     await page.clock.runFor(1000);
     const drawer = panel(page);
-    await drawer.getByRole("button", { name: "Itineraries" }).click();
+    await drawer.getByRole("button", { name: "Guías" }).click();
     await page.clock.runFor(1000);
-    const blogBefore = await groupBox(page, "Blog");
+    const blogBefore = await groupBox(page, "Servicios");
 
-    await drawer.getByRole("button", { name: "Guides" }).click();
+    await drawer.getByRole("button", { name: "Blog" }).click();
     await page.clock.runFor(100);
-    const itMid = await groupBox(page, "Itineraries");
+    const itMid = await groupBox(page, "Guías");
     expect(itMid.hidden).toBe(false);
     expect(itMid.inert).toBe(true);
     expect(itMid.body).toBeGreaterThan(0);
-    const guidesMid = await groupBox(page, "Guides");
-    const blogMid = await groupBox(page, "Blog");
+    const guidesMid = await groupBox(page, "Blog");
+    const blogMid = await groupBox(page, "Servicios");
 
     await page.clock.runFor(400);
     expect(await gsapPending(page)).toBe(0);
-    const itEnd = await groupBox(page, "Itineraries");
-    const guidesEnd = await groupBox(page, "Guides");
-    const blogEnd = await groupBox(page, "Blog");
+    const itEnd = await groupBox(page, "Guías");
+    const guidesEnd = await groupBox(page, "Blog");
+    const blogEnd = await groupBox(page, "Servicios");
     expect(itEnd.hidden).toBe(true);
     expect(guidesMid.body).toBeGreaterThan(0);
     expect(guidesMid.body).toBeLessThan(guidesEnd.body);
@@ -1430,21 +1426,21 @@ test.describe("drawer motion: the accordion (AC 19, 44; M11–M13) @feature-mobi
     await pausedAt(page, "/");
     await tapOpen(page);
     await page.clock.runFor(1000);
-    const guides = panel(page).getByRole("button", { name: "Guides" });
+    const guides = panel(page).getByRole("button", { name: "Guías" });
     await guides.click();
     await page.clock.runFor(60);
     await guides.click();
     await page.clock.runFor(500);
     await expect(guides).toHaveAttribute("aria-expanded", "false");
-    expect((await groupBox(page, "Guides")).hidden).toBe(true);
+    expect((await groupBox(page, "Guías")).hidden).toBe(true);
     expect(await gsapPending(page)).toBe(0);
   });
 });
 
-/** Opens Itineraries, scrolls Blog's header near the list's bottom, taps it. */
+/** Opens Guías, scrolls Blog's header near the list's bottom, taps it. */
 async function blogAfterLongGroup(page: Page) {
   const drawer = await openDrawer(page);
-  await drawer.getByRole("button", { name: "Itineraries" }).click();
+  await drawer.getByRole("button", { name: "Guías" }).click();
   await waitForGsapIdle(page);
   const list = drawer.locator("[data-drawer-list]");
   const blog = drawer.getByRole("button", { name: "Blog", exact: true });
@@ -1491,7 +1487,7 @@ test.describe("drawer keeps the opened header in view (AC 19) @feature-mobile-na
 async function instantAccordion(page: Page) {
   await page.addStyleTag({ content: ISOLATE });
   const drawer = await openDrawer(page);
-  const guides = drawer.getByRole("button", { name: "Guides" });
+  const guides = drawer.getByRole("button", { name: "Guías" });
   // Leave the burger first: its hover fill fades out on a CSS transition
   // (the frozen navbar's, not drawer motion) when the pointer moves away.
   await guides.hover();

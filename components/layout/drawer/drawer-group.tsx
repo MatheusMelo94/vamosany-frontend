@@ -141,7 +141,7 @@ export function DrawerGroup({
                         {item.tag ? (
                           <span
                             data-row-tag
-                            className="caption bg-brand text-ink shrink-0 rounded-full px-2 py-0.5 font-semibold whitespace-nowrap"
+                            className="caption bg-brand text-ink max-w-full shrink-0 rounded-full px-2 py-0.5 font-semibold"
                           >
                             {item.tag}
                           </span>
@@ -149,11 +149,11 @@ export function DrawerGroup({
                         {/* Price, then the dot, at the row's end: the dot never
                           overlaps the title, tag or price (DDR-0003). */}
                         {item.price || current ? (
-                          <span className="ml-auto flex shrink-0 items-center gap-2">
+                          <span className="ml-auto flex max-w-full shrink-0 items-center gap-2">
                             {item.price ? (
                               <span
                                 data-row-price
-                                className="body-sm text-ink font-mono font-bold whitespace-nowrap"
+                                className="body-sm text-ink min-w-0 text-right font-mono font-bold"
                               >
                                 {item.price}
                               </span>

@@ -25,7 +25,7 @@ describe("DrawerFooter language control (AC 10, 27, 39)", () => {
 
   it("drops the visible word and hides the globe", () => {
     renderFooter();
-    expect(screen.queryByText("Language")).toBeNull();
+    expect(screen.queryByText("Idioma")).toBeNull();
     const globe = screen
       .getByRole("group", { name: "Idioma" })
       .parentElement?.querySelector("svg");
@@ -45,7 +45,10 @@ describe("DrawerFooter account buttons (AC 10, 28)", () => {
   it("puts Log in left of Sign up", () => {
     renderFooter();
     const links = screen.getAllByRole("link");
-    expect(links.map((a) => a.textContent)).toEqual(["Log in", "Sign up"]);
+    expect(links.map((a) => a.textContent)).toEqual([
+      "Ingresar",
+      "Crear cuenta",
+    ]);
     expect(links.map((a) => a.getAttribute("href"))).toEqual([
       "#login",
       "#signup",
@@ -55,7 +58,7 @@ describe("DrawerFooter account buttons (AC 10, 28)", () => {
   it("closes the drawer through onNavigate", async () => {
     const user = userEvent.setup();
     const { onNavigate } = renderFooter();
-    await user.click(screen.getByRole("link", { name: "Sign up" }));
+    await user.click(screen.getByRole("link", { name: "Crear cuenta" }));
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 });

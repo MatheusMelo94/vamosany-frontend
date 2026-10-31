@@ -34,10 +34,9 @@ async function isolate(page: Page) {
 
 /** Trigger label → snapshot slug. "About" became "Sobre mí" (DDR-0002; plan § 12 item 5). */
 const PANELS = [
-  ["Itineraries", "itineraries"],
-  ["Guides", "guides"],
+  ["Guías", "guides"],
   ["Blog", "blog"],
-  ["Services", "services"],
+  ["Servicios", "services"],
   ["Sobre mí", "sobre-mi"],
 ] as const;
 
@@ -185,8 +184,8 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
   test("language menu", async ({ page }) => {
     test.skip(!isDesktop(page), "language dropdown exists at >= 1024 only");
     await open(page);
-    await header(page).getByRole("button", { name: "Change language" }).click();
-    const menu = header(page).getByRole("listbox", { name: "Language" });
+    await header(page).getByRole("button", { name: "Cambiar idioma" }).click();
+    const menu = header(page).getByRole("listbox", { name: "Idioma" });
     await expect(menu).toBeVisible();
     await isolate(page);
     await expect(page).toHaveScreenshot("language-menu.png", {
@@ -411,12 +410,12 @@ test.describe("navbar pointer path @feature-sobre-mi", () => {
       if (from === "/") await open(page);
       else await page.goto(from);
       const trigger = header(page).getByRole("button", {
-        name: "Services",
+        name: "Servicios",
         exact: true,
       });
       await trigger.hover();
       await megaPanel(page)
-        .getByRole("link", { name: /Custom itinerary with\sBelén/ })
+        .getByRole("link", { name: /Itinerario personalizado/ })
         .click();
       await expect(page).toHaveURL(/\/#services$/);
       // Smooth scroll (CSS) settles the section at the top of the viewport.
@@ -492,16 +491,21 @@ async function highlightBox(panel: Locator): Promise<Box> {
   return panel.locator("[data-nav-marker]").evaluate((root) => {
     const layer = root.querySelector<HTMLElement>("[data-marker-layer]");
     const r = root.getBoundingClientRect();
-    const m = /inset\(([-\d.]+)px ([-\d.]+)px ([-\d.]+)px ([-\d.]+)px/.exec(
+    // The computed inset() drops repeated sides like the CSS shorthand
+    // (e.g. "inset(10px 32px 200px)" when left equals right).
+    const m = /inset\(([^)]*?)(?:\s+round[^)]*)?\)/.exec(
       layer ? getComputedStyle(layer).clipPath : "",
     );
-    if (!m) throw new Error("no clip-path inset on the highlight");
-    const [top, right, bottom, left] = m.slice(1).map(Number) as [
-      number,
-      number,
-      number,
-      number,
-    ];
+    const v = (m?.[1] ?? "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((x) => parseFloat(x));
+    if (v.length < 1 || v.length > 4 || v.some(Number.isNaN))
+      throw new Error("no clip-path inset on the highlight");
+    const top = v[0]!;
+    const right = v[1] ?? top;
+    const bottom = v[2] ?? top;
+    const left = v[3] ?? right;
     return {
       x: r.left + left,
       y: r.top + top,
@@ -572,7 +576,7 @@ test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
 
   test("retargets mid-flight to the latest item", async ({ page }) => {
     await open(page);
-    const panel = await openByHover(page, "Itineraries");
+    const panel = await openByHover(page, "Guías");
     const items = panel.locator("[data-nav-item]");
     await items.nth(0).hover();
     await expectDotOn(panel, items.nth(0));
@@ -600,11 +604,17 @@ test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
         await expectDotOn(panel, item);
         const dot = await box(panel.locator("[data-marker-dot]"));
         const blockers = [item.locator("[data-nav-title]")];
-        for (const text of ["Best seller", "New", "Most popular"]) {
+        for (const text of ["El más completo"]) {
           const tag = item.getByText(text, { exact: true });
           if (await tag.count()) blockers.push(tag);
         }
-        for (const price of ["from €25", "€149", "€290", "See details"]) {
+        for (const price of [
+          "USD 150",
+          "Desde USD 160",
+          "Reservá con USD 300",
+          "USD 70",
+          "Ver detalles",
+        ]) {
           const el = item.getByText(price, { exact: true });
           if (await el.count()) blockers.push(el);
         }
@@ -637,7 +647,7 @@ test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
 
     test("the marker jumps with no travel (AC 8)", async ({ page }) => {
       await open(page);
-      const panel = await openByHover(page, "Guides");
+      const panel = await openByHover(page, "Guías");
       const items = panel.locator("[data-nav-item]");
       await items.nth(0).hover();
       await expectDotOn(panel, items.nth(0), 500);
