@@ -1,10 +1,11 @@
 "use client";
 
 import type { JSX, KeyboardEvent } from "react";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { cn } from "@/lib/utils";
+import { announceLayoutChange } from "@/features/landing/motion/events";
 
 type Pick = {
   kicker: string;
@@ -88,6 +89,17 @@ export function Recommendations(): JSX.Element {
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const base = useId();
   const tab = TABS.find((t) => t.id === active) ?? TABS[0];
+
+  /* Each tab has a different number of cards, so the section changes height:
+     scroll animations below it must measure again. Skips the first render. */
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    announceLayoutChange();
+  }, [active]);
 
   /* Tabs WAI-ARIA: flechas, Inicio y Fin mueven el foco y activan la pestaña. */
   const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {

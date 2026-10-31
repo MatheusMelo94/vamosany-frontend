@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Recommendations } from "@/features/landing/components/recommendations";
+import { LAYOUT_CHANGE_EVENT } from "@/features/landing/motion/events";
 
 function setup() {
   const user = userEvent.setup();
@@ -65,6 +66,21 @@ describe("Recommendations (DDR-0008)", () => {
     await user.keyboard("{Home}");
     expect(tab("Pases y atracciones")).toHaveFocus();
     expect(tab("Pases y atracciones")).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("announces a layout change on each tab switch, not on mount", async () => {
+    const seen = vi.fn();
+    window.addEventListener(LAYOUT_CHANGE_EVENT, seen);
+    try {
+      const { user, tab } = setup();
+      expect(seen).not.toHaveBeenCalled();
+      await user.click(tab("Internet"));
+      expect(seen).toHaveBeenCalledTimes(1);
+      await user.click(tab("Broadway"));
+      expect(seen).toHaveBeenCalledTimes(2);
+    } finally {
+      window.removeEventListener(LAYOUT_CHANGE_EVENT, seen);
+    }
   });
 
   it("shows the affiliate note and the contact email", () => {

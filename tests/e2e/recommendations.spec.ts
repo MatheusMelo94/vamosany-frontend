@@ -58,6 +58,24 @@ test.describe("Mis recomendados tabs @feature-landing (DDR-0008, RV-0024)", () =
     }
   });
 
+  test("after a tab makes the section shorter, the stats below still count up", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await waitForLandingMotion(page);
+    const section = page.locator("#recomendados");
+    await section.scrollIntoViewIfNeeded();
+    await waitForGsapIdle(page);
+    // Three stacked cards on a phone become one: the section shrinks.
+    await section.getByRole("tab", { name: "Internet" }).click();
+    await waitForGsapIdle(page);
+
+    const stats = page.locator("[data-count]");
+    await stats.first().scrollIntoViewIfNeeded();
+    await waitForGsapIdle(page);
+    await expect(stats).toHaveText(["+200", "+20", "+1000 km"]);
+  });
+
   test("every tab fits on screen without horizontal scrolling", async ({
     page,
   }) => {
