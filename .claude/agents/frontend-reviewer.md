@@ -29,7 +29,7 @@ description: |
   Review Reports are versioned; a v2 pass tracks each prior finding by ID rather than starting from scratch.
   </commentary>
   </example>
-model: inherit
+model: opus
 color: yellow
 ---
 

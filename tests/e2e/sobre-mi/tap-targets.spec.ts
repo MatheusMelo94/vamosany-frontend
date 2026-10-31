@@ -111,7 +111,7 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
     await page.goto("/sobre-mi");
     const header = page.locator("header[data-nav]");
     for (const target of [
-      header.getByRole("link", { name: "Vamos a NY — home" }),
+      header.getByRole("link", { name: "Vamos a NY — inicio" }),
       header.getByRole("button", { name: "Abrir menú" }),
     ]) {
       const extent = await hitExtent(target);
@@ -152,7 +152,8 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
       .getByRole("heading", { level: 2 })
       .getByRole("button");
     let rows = 0;
-    for (let g = 0; g < 5; g++) {
+    await expect(headers).toHaveCount(4);
+    for (let g = 0; g < 4; g++) {
       const header = headers.nth(g);
       if ((await header.getAttribute("aria-expanded")) !== "true")
         await header.click();
@@ -173,6 +174,6 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
       }
       rows += n;
     }
-    expect(rows).toBe(40); // 12 + 12 + 8 + 3 + 5
+    expect(rows).toBe(25); // 12 + 4 + 4 + 5
   });
 });

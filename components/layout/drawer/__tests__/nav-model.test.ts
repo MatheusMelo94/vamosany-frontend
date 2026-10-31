@@ -24,10 +24,9 @@ function group(label: string): NavGroup {
 
 describe("scentLine (spec § Content & Copy)", () => {
   it.each([
-    ["Itineraries", "By length · By season · By appetite"],
-    ["Guides", "Getting around · Neighbourhoods · Before you fly"],
-    ["Blog", "Latest · Readers"],
-    ["Services", "Ready-made · One to one · In person"],
+    ["Guías", "Moverte por la ciudad · Barrios · Antes de viajar"],
+    ["Blog", "Categorías"],
+    ["Servicios", "Asesoramiento · A medida · En grupo · Trámites"],
     ["Sobre mí", "Vamos a New York · Ayuda"],
   ])("gives %s the spec's scent line", (label, expected) => {
     expect(scentLine(group(label))).toBe(expected);
@@ -66,7 +65,7 @@ describe("current page (DDR-0002/0003: derived from the URL)", () => {
 
   it("never marks Services as current, whatever the path", () => {
     for (const path of ["/", "/#services", ...SOBRE_MI_PATHS]) {
-      expect(groupHasCurrent(group("Services"), path)).toBe(false);
+      expect(groupHasCurrent(group("Servicios"), path)).toBe(false);
     }
   });
 

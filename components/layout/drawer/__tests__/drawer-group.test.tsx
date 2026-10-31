@@ -34,20 +34,18 @@ function renderGroup(label: string, o: Overrides = {}) {
 
 describe("DrawerGroup header (AC 6, 7, 35, 36, 37)", () => {
   it("is a button inside an h2, named by the label and described by the scent line", () => {
-    renderGroup("Itineraries");
-    const header = screen.getByRole("button", { name: "Itineraries" });
+    renderGroup("Blog");
+    const header = screen.getByRole("button", { name: "Blog" });
     expect(header.parentElement?.tagName).toBe("H2");
-    expect(header).toHaveAccessibleDescription(
-      "By length · By season · By appetite",
-    );
+    expect(header).toHaveAccessibleDescription("Categorías");
     expect(
-      screen.getByRole("heading", { level: 2, name: "Itineraries" }),
+      screen.getByRole("heading", { level: 2, name: "Blog" }),
     ).toContainElement(header);
   });
 
   it("points aria-controls at its body and reflects the expanded state", () => {
-    const { rerender } = renderGroup("Guides");
-    const header = screen.getByRole("button", { name: "Guides" });
+    const { rerender } = renderGroup("Guías");
+    const header = screen.getByRole("button", { name: "Guías" });
     expect(header).toHaveAttribute("aria-expanded", "false");
     const body = document.getElementById(
       header.getAttribute("aria-controls") ?? "",
@@ -56,7 +54,7 @@ describe("DrawerGroup header (AC 6, 7, 35, 36, 37)", () => {
     expect(body).not.toBeVisible();
     rerender(
       <DrawerGroup
-        group={group("Guides")}
+        group={group("Guías")}
         expanded
         hasCurrent={false}
         pathname="/"
@@ -79,8 +77,8 @@ describe("DrawerGroup header (AC 6, 7, 35, 36, 37)", () => {
   it("calls onToggle on a click, on Enter and on Space, and keeps focus on the header", async () => {
     const user = userEvent.setup();
     const onToggle = vi.fn();
-    renderGroup("Services", { onToggle });
-    const header = screen.getByRole("button", { name: "Services" });
+    renderGroup("Servicios", { onToggle });
+    const header = screen.getByRole("button", { name: "Servicios" });
     await user.click(header);
     header.focus();
     await user.keyboard("{Enter}");
@@ -153,7 +151,7 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     }
   });
 
-  it("puts the three tags on exactly their rows", () => {
+  it("puts the one tag on exactly its row", () => {
     const tagged: Array<[string, string]> = [];
     for (const g of NAV) {
       const { unmount } = renderGroup(g.label, { expanded: true });
@@ -167,20 +165,16 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
       }
       unmount();
     }
-    expect(tagged).toEqual([
-      ["5 Days — The Classic", "Best seller"],
-      ["Christmas in New York", "New"],
-      ["Custom itinerary with Belén", "Most popular"],
-    ]);
+    expect(tagged).toEqual([["Itinerario personalizado", "El más completo"]]);
   });
 
-  it("shows Services' three prices, pointing at /#services", () => {
-    renderGroup("Services", { expanded: true });
+  it("shows Services' four prices, pointing at /#services", () => {
+    renderGroup("Servicios", { expanded: true });
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(3);
+    expect(links).toHaveLength(4);
     expect(
       links.map((a) => a.querySelector("[data-row-price]")?.textContent),
-    ).toEqual(["from €25", "€149", "€290"]);
+    ).toEqual(["USD 150", "Desde USD 160", "Reservá con USD 300", "USD 70"]);
     for (const a of links) {
       expect(a).toHaveAttribute("href", "/#services");
     }
@@ -215,22 +209,22 @@ describe("DrawerGroup body motion hooks (M11–M12; ADR-0009; plan § 7.4)", () 
     document.querySelector("[data-drawer-body]") as HTMLElement;
 
   it("paints the body only while expanded by default", () => {
-    renderGroup("Guides");
+    renderGroup("Guías");
     expect(bodyEl()).toHaveAttribute("hidden");
   });
 
   it("keeps a collapsing body painted but inert: its links leave the tab order at once", () => {
-    renderGroup("Guides", { expanded: false, painted: true });
+    renderGroup("Guías", { expanded: false, painted: true });
     expect(bodyEl()).not.toHaveAttribute("hidden");
     expect(bodyEl()).toHaveAttribute("inert");
-    expect(screen.getByRole("button", { name: "Guides" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Guías" })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
   });
 
   it("an expanded body is neither hidden nor inert", () => {
-    renderGroup("Guides", { expanded: true, painted: true });
+    renderGroup("Guías", { expanded: true, painted: true });
     expect(bodyEl()).not.toHaveAttribute("hidden");
     expect(bodyEl()).not.toHaveAttribute("inert");
   });

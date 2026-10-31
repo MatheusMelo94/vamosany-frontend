@@ -6,8 +6,9 @@ type Props = { children: ReactNode };
 
 /**
  * Shell of the Sobre mí pages ("Cuaderno de campo"): the site navbar and
- * footer around a Spanish <main> (spec § Locale Behavior: the root is
- * lang="en" until i18n routing lands). The landing keeps its own shell.
+ * footer around a Spanish <main>. The root is lang="es" since DDR-0008; the
+ * explicit lang stays so the pages keep it if the root changes with i18n
+ * routing. The landing keeps its own shell.
  */
 export default function CuadernoLayout({ children }: Props): JSX.Element {
   return (

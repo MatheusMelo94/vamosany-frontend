@@ -4,6 +4,7 @@ import { gsap, useGSAP, ScrollTrigger } from "@/lib/gsap";
 import { getEases, SplitText } from "@/lib/gsap-text";
 import { MOTION } from "@/lib/motion";
 import { motionEnabled, sel } from "./attributes";
+import { LAYOUT_CHANGE_EVENT } from "./events";
 
 /**
  * Scroll motion for the landing page.
@@ -71,7 +72,7 @@ export function ScrollEffects(): null {
       const suffix = el.dataset.suffix ?? "";
       const counter = { value: 0 };
       const render = (v: number) =>
-        `${prefix}${Math.round(v).toLocaleString("en-US")}${suffix}`;
+        `${prefix}${Math.round(v).toLocaleString("es")}${suffix}`;
 
       el.textContent = render(0);
 
@@ -362,8 +363,14 @@ export function ScrollEffects(): null {
     /* Fonts change metrics, which moves every trigger. */
     document.fonts?.ready.then(() => ScrollTrigger.refresh());
 
+    /* A section that changes height after load (tabs) moves every trigger
+       below it; measure again (PR #36 review). */
+    const onLayoutChange = () => ScrollTrigger.refresh();
+    window.addEventListener(LAYOUT_CHANGE_EVENT, onLayoutChange);
+
     return () => {
       cancelled = true;
+      window.removeEventListener(LAYOUT_CHANGE_EVENT, onLayoutChange);
     };
   }, []);
 

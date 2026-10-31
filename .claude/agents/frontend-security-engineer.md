@@ -29,7 +29,7 @@ description: |
   Build-vs-buy is a Security Engineer responsibility. The role owns the Decisions Log per the file's own header; the user approves every entry.
   </commentary>
   </example>
-model: inherit
+model: opus
 color: red
 ---
 

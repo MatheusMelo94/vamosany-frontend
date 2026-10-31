@@ -6,36 +6,35 @@ import { SectionHeading } from "@/components/ui/section-heading";
 
 const FEATURED = {
   img: "/img/post-dumbo.webp",
-  alt: "The Brooklyn Bridge seen from the Dumbo waterfront",
-  category: "Neighbourhood diaries",
-  title: "Dumbo at seven in the morning, before the photo queue",
+  alt: "El puente de Brooklyn visto desde la costanera de Dumbo",
+  category: "Dónde comer",
+  title: "Comer como en casa: La Gran Uruguaya en Jackson Heights 🇺🇾",
   excerpt:
-    "The famous shot down Washington Street has a forty-minute wait by nine. Here is the hour we go instead, what the light does, and the three blocks nobody walks afterwards.",
-  meta: "12 min read · March 2026",
+    "Si estás en New York y te dan ganas de una comida bien uruguaya, de esas que te reconfortan, tenés que ir a La Gran Uruguaya. Fui especialmente hasta Jackson Heights, en Queens, para probarlo… ¡y superó todas mis expectativas!",
+  meta: "4 min de lectura · junio 2025",
 };
 
 const POSTS = [
   {
     img: "/img/post-night.webp",
-    alt: "A Chinatown street lit up at night",
-    category: "Food crawls",
-    title: "Nine blocks, five plates: the Chinatown route we rebuilt this year",
-    meta: "8 min read",
+    alt: "Una calle de Chinatown iluminada de noche",
+    category: "Cine y series",
+    title: "New York de película: spots de series y películas",
+    meta: "3 min de lectura",
   },
   {
     img: "/img/post-autumn.webp",
-    alt: "Central Park lake with the Midtown skyline behind",
-    category: "Seasonal guides",
-    title: "When the parks actually turn, and where to stand when they do",
-    meta: "6 min read",
+    alt: "El lago de Central Park con los edificios de Midtown atrás",
+    category: "Tips prácticos",
+    title: "Qué hacer en un día de lluvia en New York",
+    meta: "4 min de lectura",
   },
   {
     img: "/img/quote-street.webp",
-    alt: "Looking up at Manhattan office towers in black and white",
-    category: "Photo spots",
-    title:
-      "Eleven places to point a camera up, ranked by how little you'll be in the way",
-    meta: "9 min read",
+    alt: "Torres de oficinas de Manhattan vistas desde abajo, en blanco y negro",
+    category: "Barrios",
+    title: "Jardín Botánico de New York: todo lo que tenés que saber",
+    meta: "5 min de lectura",
   },
 ];
 
@@ -45,12 +44,12 @@ export function Blog(): JSX.Element {
       <div className="container-ds">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <SectionHeading
-            eyebrow="The blog"
-            title="Notes from the pavement"
-            description="Everything we learn between itinerary updates — free, and usually the first place a new route shows up."
+            eyebrow="Blog"
+            title="Diario de Belu en New York"
+            description="Mi rincón de New York: experiencias reales, lugares favoritos y piques para que descubras la ciudad a tu manera."
           />
           <Button href="#blog" variant="secondary" className="w-fit shrink-0">
-            All posts
+            Ver todos los posts
           </Button>
         </div>
 
@@ -79,7 +78,7 @@ export function Blog(): JSX.Element {
                 href="#blog"
                 className="label-button text-ink inline-flex items-center gap-2 underline-offset-4 hover:underline"
               >
-                Read the post
+                Leer el post
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </a>
               <span className="caption text-ink-tertiary">{FEATURED.meta}</span>

@@ -29,7 +29,7 @@ description: |
   Env drift between .env.example and hosting environments is the most common frontend deploy failure; the role reconciles rather than patches around validation.
   </commentary>
   </example>
-model: inherit
+model: sonnet
 color: orange
 ---
 

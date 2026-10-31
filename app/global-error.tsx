@@ -18,7 +18,7 @@ const FONT_FAMILY = `${montserrat.style.fontFamily}, Arial, sans-serif`;
 
 export default function GlobalError({ error, reset }: Props): JSX.Element {
   return (
-    <html lang="en">
+    <html lang="es">
       <body
         style={{
           fontFamily: FONT_FAMILY,
@@ -35,7 +35,7 @@ export default function GlobalError({ error, reset }: Props): JSX.Element {
               textTransform: "uppercase",
             }}
           >
-            Something broke
+            Algo se rompió
           </p>
           <h1
             style={{
@@ -44,11 +44,11 @@ export default function GlobalError({ error, reset }: Props): JSX.Element {
               margin: "0.5rem 0 1rem",
             }}
           >
-            We could not load this page.
+            No pudimos cargar esta página.
           </h1>
           <p style={{ margin: "0 0 1.5rem" }}>
-            Try again in a moment. If it keeps happening, reload the page.
-            {error.digest ? ` Reference: ${error.digest}` : null}
+            Probá de nuevo en un momento. Si sigue pasando, recargá la página.
+            {error.digest ? ` Referencia: ${error.digest}` : null}
           </p>
           <button
             type="button"
@@ -63,7 +63,7 @@ export default function GlobalError({ error, reset }: Props): JSX.Element {
               cursor: "pointer",
             }}
           >
-            Try again
+            Probar de nuevo
           </button>
         </main>
       </body>

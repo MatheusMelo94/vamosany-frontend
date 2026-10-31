@@ -29,7 +29,7 @@ description: |
   QA routes by owner of the fix, not by where the symptom appears.
   </commentary>
   </example>
-model: inherit
+model: sonnet
 color: cyan
 ---
 

@@ -6,9 +6,9 @@ test("unknown routes render the 404 page in the design system", async ({
   const response = await page.goto("/nao-existe");
   expect(response?.status()).toBe(404);
   await expect(
-    page.getByRole("heading", { level: 2, name: /not on the map/i }),
+    page.getByRole("heading", { level: 2, name: /no está en el mapa/i }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /back to the start/i }),
+    page.getByRole("link", { name: /volver al inicio/i }),
   ).toHaveAttribute("href", "/");
 });

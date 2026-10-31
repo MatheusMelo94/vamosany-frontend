@@ -23,7 +23,7 @@ const PILL = cn(
 
 /**
  * The footer pinned inside the panel (spec § Responsive Behavior › Footer):
- * the "Idioma" segmented control, then Log in and Sign up side by side.
+ * the "Idioma" segmented control, then Ingresar and Crear cuenta side by side.
  */
 export function DrawerFooter({ lang, onLang, onNavigate }: Props): JSX.Element {
   return (
@@ -63,14 +63,14 @@ export function DrawerFooter({ lang, onLang, onNavigate }: Props): JSX.Element {
           onClick={onNavigate}
           className={cn(PILL, "bg-ink/5 text-ink hover:bg-ink/10")}
         >
-          Log in
+          Ingresar
         </Link>
         <Link
           href="#signup"
           onClick={onNavigate}
           className={cn(PILL, "bg-ink text-inverse-ink hover:bg-ink/90")}
         >
-          Sign up
+          Crear cuenta
         </Link>
       </div>
     </div>

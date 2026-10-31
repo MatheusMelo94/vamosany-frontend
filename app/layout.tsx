@@ -6,9 +6,9 @@ import { courierPrime, montserrat } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
-  title: "Vamos a NY — New York itineraries, planned to the block",
+  title: "Vamos a NY — Tu viaje a New York, armado conmigo",
   description:
-    "Day-by-day New York itineraries written on foot, not from a spreadsheet. Download the PDF and the offline map, and walk out of the subway knowing exactly where you are going.",
+    "Itinerarios personalizados, consultorías y viajes grupales a New York con Belén, después de más de 20 visitas. Tu viaje organizado día a día, para que solo te quede disfrutar.",
 };
 
 type Props = { children: ReactNode };
@@ -16,7 +16,7 @@ type Props = { children: ReactNode };
 export default function RootLayout({ children }: Props): JSX.Element {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${courierPrime.variable} ${montserrat.variable}`}
     >
       <head>
