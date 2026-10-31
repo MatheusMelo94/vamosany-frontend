@@ -1,6 +1,6 @@
 # DDR-0008: Nova estrutura da landing e site inteiro em espanhol
 
-- **Status:** Accepted (2026-10-31)
+- **Status:** Accepted (2026-10-31). Amended before merge, same day, to record the user's later decisions (Itinerarios removed, Visa, buttons without links, newsletter, "Laura P.", footer) and review/QA outcomes (RV-0025, RV-0028); no decision was reversed.
 - **Date:** 2026-10-31
 - **Deciders:** Matheus Melo (único aprovador). Decisão tomada em sessão em 2026-10-31, a partir do brief de conteúdo "ESTRUCTURA NUEVA WEB VAMOS A NY (2).md" (não versionado; fica com o time de conteúdo). O usuário pediu "la página en español como venimos haciendo", tudo num só PR, e que os botões fiquem **sem link** e sem fotos novas por enquanto ("I will do this later").
 - **Constitution / spec reference:** constitution v1 § Non-Goals 1 (mudança visual no que está no ar exige DDR), § Experience Principles (es > pt > en); ADR-0006 § 5 (copy) e § 6 (supersessão para o escopo alterado); DDR-0001 e DDR-0007 (mesmo movimento, no hero e no preview do dashboard); DDR-0006 (menu "Índice", cujo conteúdo é traduzido aqui).

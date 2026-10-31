@@ -1,11 +1,26 @@
 import { test, expect, type Page } from "@playwright/test";
 import { waitForGsapIdle, waitForLandingMotion } from "./support/motion";
 
-/** Opacity of every card in the visible tab panel. */
-function cardOpacities(page: Page): Promise<string[]> {
+/**
+ * Effective opacity of every card in the visible tab panel: the card times
+ * its ancestors up to the panel, so a hidden <li> wrapper counts (RV-0033).
+ */
+function cardOpacities(page: Page): Promise<number[]> {
   return page
     .locator("#recomendados [role=tabpanel] article")
-    .evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity));
+    .evaluateAll((els) =>
+      els.map((el) => {
+        let o = 1;
+        for (
+          let n: Element | null = el;
+          n && n.getAttribute("role") !== "tabpanel";
+          n = n.parentElement
+        ) {
+          o *= Number(getComputedStyle(n).opacity);
+        }
+        return o;
+      }),
+    );
 }
 
 /** Effective opacity of an element, multiplying its ancestors' opacity. */
@@ -38,7 +53,7 @@ test.describe("Mis recomendados tabs @feature-landing (DDR-0008, RV-0024)", () =
       await section.getByRole("tab", { name }).click();
       await expect(section.getByRole("tabpanel")).toHaveAccessibleName(name);
       await waitForGsapIdle(page);
-      expect(await cardOpacities(page)).toEqual(Array(cards).fill("1"));
+      expect(await cardOpacities(page)).toEqual(Array(cards).fill(1));
       expect(await panelOpacity(page)).toBe(1);
     }
   });
