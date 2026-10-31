@@ -22,10 +22,13 @@ permissions:
 
 jobs:
   update:
+    # Repo publico: so roda em PR de branch deste repo, nunca de fork (o job builda o codigo
+    # do PR com um token que pode dar push).
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event.label.name == 'update-snapshots' ||
-      github.event.label.name == 'update-snapshots-desktop'
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       (github.event.label.name == 'update-snapshots' ||
+        github.event.label.name == 'update-snapshots-desktop'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # As duas labels no mesmo PR rodam em serie: o segundo job faz checkout do HEAD que o
@@ -36,10 +39,10 @@ jobs:
     env:
       SCOPE: ${{ github.event.label.name == 'update-snapshots-desktop' && 'desktop' || 'changed' }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.head_ref || github.ref }}
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
