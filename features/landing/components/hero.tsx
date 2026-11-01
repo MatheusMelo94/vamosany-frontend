@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 
 export function Hero(): JSX.Element {
   return (
-    // Black hero (DDR-0011): the photo ring and every motion stay as they were.
-    // arbitrary: --ring-fade pinta o degradê das pontas do anel com o fundo preto
-    <section className="theme-ink bg-inverse-canvas relative isolate pt-12 pb-8 [--ring-fade:var(--color-inverse-canvas)] sm:pt-24 sm:pb-16">
+    // Hero ground stays white; the marker is a full-height block (DDR-0011).
+    <section className="relative isolate pt-12 pb-8 sm:pt-24 sm:pb-16">
       <div className="container-ds relative z-10">
         <div
           data-hero-copy
