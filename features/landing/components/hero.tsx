@@ -4,17 +4,19 @@ import { Button } from "@/components/ui/button";
 
 export function Hero(): JSX.Element {
   return (
-    <section className="relative isolate pt-12 pb-8 sm:pt-24 sm:pb-16">
+    // Black hero (DDR-0011): the photo ring and every motion stay as they were.
+    // arbitrary: --ring-fade pinta o degradê das pontas do anel com o fundo preto
+    <section className="theme-ink bg-inverse-canvas relative isolate pt-12 pb-8 [--ring-fade:var(--color-inverse-canvas)] sm:pt-24 sm:pb-16">
       <div className="container-ds relative z-10">
         <div
           data-hero-copy
           className="mx-auto flex w-full max-w-6xl flex-col items-center text-center"
         >
-          <h1 className="display-xl text-ink text-balance">
+          <h1 className="display-xl text-on-brand text-balance">
             {/* One span across the whole headline: with box-decoration-break
                 every line gets its own marker band, and after SplitText each
                 line owns a clone of the span, so GSAP can sweep them in turn. */}
-            <span data-sweep className="highlight-heading">
+            <span data-sweep className="highlight-heading highlight-block">
               {/* Each phrase is a nowrap unit of two or more words, so no line
                   ever holds a single word at any viewport width. SplitText
                   collapses &nbsp; into plain spaces, hence spans, not &nbsp;. */}
