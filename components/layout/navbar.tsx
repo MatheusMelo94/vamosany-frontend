@@ -253,11 +253,16 @@ export function Navbar(): JSX.Element {
                       }}
                     >
                       {group.columns.map((column) => (
-                        <div key={column.heading}>
+                        // Columns stretch to the row's height; priced cards (Servicios)
+                        // fill it, so every card in the row has the same size.
+                        <div key={column.heading} className="flex flex-col">
                           <p className="eyebrow">{column.heading}</p>
-                          <ul className="mt-5 space-y-1">
+                          <ul className="mt-5 flex flex-1 flex-col gap-1">
                             {column.items.map((item) => (
-                              <li key={item.title}>
+                              <li
+                                key={item.title}
+                                className={cn(item.price && "flex flex-1")}
+                              >
                                 <Link
                                   href={item.href ?? "/#services"}
                                   data-nav-item
@@ -268,7 +273,7 @@ export function Navbar(): JSX.Element {
                                     // Once the marker is ready it is the hover highlight (DDR-0003).
                                     "group hover:bg-surface-1 block rounded-xl p-3 transition-colors in-data-marker-ready:hover:bg-transparent",
                                     item.price &&
-                                      "border-hairline hover:border-ink border",
+                                      "border-hairline hover:border-ink flex w-full flex-col border",
                                   )}
                                 >
                                   {/* pr-4: room for the marker dot, which sits
@@ -290,11 +295,13 @@ export function Navbar(): JSX.Element {
                                     {item.blurb}
                                   </span>
                                   {item.price ? (
-                                    <span className="mt-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                                      <span className="headline text-ink max-w-full shrink-0 text-balance">
+                                    // mt-auto: price and link sit on the card's bottom edge,
+                                    // at the same height in every card of the row.
+                                    <span className="mt-auto flex flex-col gap-2 pt-4">
+                                      <span className="headline text-ink text-balance">
                                         {item.price}
                                       </span>
-                                      <span className="label-button text-ink ml-auto whitespace-nowrap underline-offset-4 group-hover:underline">
+                                      <span className="label-button text-ink self-end whitespace-nowrap underline-offset-4 group-hover:underline">
                                         Ver detalles
                                       </span>
                                     </span>
