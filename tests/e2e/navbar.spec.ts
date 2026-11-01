@@ -260,9 +260,9 @@ test.describe("navbar characterization @feature-sobre-mi", () => {
   });
 });
 
-test.describe("navbar Servicios group (DDR-0009)", () => {
+test.describe("navbar Servicios group (DDR-0009, DDR-0010)", () => {
   for (const width of [1024, 1280, 1440]) {
-    test(`service cards share one size and one bottom row at ${width}px`, async ({
+    test(`service boxes share one size, with "Ver detalles" bottom-left, at ${width}px`, async ({
       page,
     }) => {
       test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
@@ -286,13 +286,34 @@ test.describe("navbar Servicios group (DDR-0009)", () => {
             height: Math.round(r.height),
             width: Math.round(r.width),
             linkBottom: Math.round(link?.getBoundingClientRect().bottom ?? -1),
+            // Left-aligned: the link starts at the box's inner left edge.
+            linkLeftGap: Math.round(
+              (link?.getBoundingClientRect().left ?? -1) - r.left,
+            ),
           };
         }),
       );
-      for (const key of ["top", "height", "width", "linkBottom"] as const) {
+      for (const key of [
+        "top",
+        "height",
+        "width",
+        "linkBottom",
+        "linkLeftGap",
+      ] as const) {
         const values = new Set(boxes.map((b) => b[key]));
         expect(values.size, `${key}: ${[...values].join(", ")}`).toBe(1);
       }
+      // Same inner padding as the title: the link sits flush left.
+      const titleGap = await cards
+        .first()
+        .locator("[data-nav-title]")
+        .evaluate((t) =>
+          Math.round(
+            t.getBoundingClientRect().left -
+              (t.closest("[data-nav-item]")?.getBoundingClientRect().left ?? 0),
+          ),
+        );
+      expect(boxes[0].linkLeftGap).toBe(titleGap);
     });
   }
 });
@@ -452,7 +473,7 @@ test.describe("navbar pointer path @feature-sobre-mi", () => {
       });
       await trigger.hover();
       await megaPanel(page)
-        .getByRole("link", { name: /Itinerario personalizado/ })
+        .getByRole("link", { name: /^Itinerario/ })
         .click();
       await expect(page).toHaveURL(/\/#services$/);
       // Smooth scroll (CSS) settles the section at the top of the viewport.
@@ -645,13 +666,7 @@ test.describe("navbar moving marker (DDR-0003) @feature-sobre-mi", () => {
           const tag = item.getByText(text, { exact: true });
           if (await tag.count()) blockers.push(tag);
         }
-        for (const price of [
-          "USD 150",
-          "Desde USD 160",
-          "Reservá con USD 300",
-          "USD 70",
-          "Ver detalles",
-        ]) {
+        for (const price of ["Ver detalles"]) {
           const el = item.getByText(price, { exact: true });
           if (await el.count()) blockers.push(el);
         }

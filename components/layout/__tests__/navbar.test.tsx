@@ -49,10 +49,10 @@ const EXPECTED: Record<string, Array<[heading: string, titles: string[]]>> = {
     ],
   ],
   Servicios: [
-    ["Asesoramiento", ["Consultoría de viaje"]],
-    ["A medida", ["Itinerario personalizado"]],
-    ["En grupo", ["Viajes grupales"]],
-    ["Trámites", ["Visa de Estados Unidos"]],
+    ["Asesoramiento", ["Consultoría"]],
+    ["A medida", ["Itinerario"]],
+    ["En grupo", ["Viaje grupal"]],
+    ["Trámites", ["Visa EE. UU."]],
   ],
   "Sobre mí": [
     ["Vamos a New York", ["Sobre mí", "Colaboraciones", "Trabajá conmigo"]],
@@ -215,9 +215,10 @@ describe("Navbar item destinations (RV-0010)", () => {
       for (const href of itemHrefs()) expect(href).toMatch(/^\//);
     }
     await openPanel("Servicios");
-    expect(
-      screen.getByRole("link", { name: /Itinerario personalizado/ }),
-    ).toHaveAttribute("href", "/#services");
+    expect(screen.getByRole("link", { name: /^Itinerario/ })).toHaveAttribute(
+      "href",
+      "/#services",
+    );
   });
 
   it("points every drawer item at a path, never a bare fragment", async () => {

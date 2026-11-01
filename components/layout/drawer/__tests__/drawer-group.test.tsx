@@ -151,7 +151,7 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     }
   });
 
-  it("puts the one tag on exactly its row", () => {
+  it("shows no tag on any row (DDR-0010: the tag lives on the landing only)", () => {
     const tagged: Array<[string, string]> = [];
     for (const g of NAV) {
       const { unmount } = renderGroup(g.label, { expanded: true });
@@ -165,16 +165,16 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
       }
       unmount();
     }
-    expect(tagged).toEqual([["Itinerario personalizado", "El más completo"]]);
+    expect(tagged).toEqual([]);
   });
 
-  it("shows Services' four prices, pointing at /#services", () => {
+  it("shows Services' four rows without prices, pointing at /#services (DDR-0010)", () => {
     renderGroup("Servicios", { expanded: true });
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(4);
     expect(
       links.map((a) => a.querySelector("[data-row-price]")?.textContent),
-    ).toEqual(["USD 150", "Desde USD 160", "Reservá con USD 300", "USD 70"]);
+    ).toEqual([undefined, undefined, undefined, undefined]);
     for (const a of links) {
       expect(a).toHaveAttribute("href", "/#services");
     }

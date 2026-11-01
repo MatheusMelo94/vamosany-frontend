@@ -10,15 +10,24 @@ describe("NAV titles (DDR-0005)", () => {
     }
   });
 
-  it("lists the four services of the brief (DDR-0008)", () => {
+  it("lists the four services, with short titles (DDR-0010)", () => {
     const services = NAV.find((g) => g.label === "Servicios");
     expect(services?.columns.map((c) => [c.heading, c.items[0].title])).toEqual(
       [
-        ["Asesoramiento", "Consultoría de viaje"],
-        ["A medida", "Itinerario personalizado"],
-        ["En grupo", "Viajes grupales"],
-        ["Trámites", "Visa de Estados Unidos"],
+        ["Asesoramiento", "Consultoría"],
+        ["A medida", "Itinerario"],
+        ["En grupo", "Viaje grupal"],
+        ["Trámites", "Visa EE.\u00a0UU."],
       ],
     );
+  });
+
+  it("shows Servicios as equal boxes, with no prices or tags (DDR-0010)", () => {
+    const services = NAV.find((g) => g.label === "Servicios");
+    expect(services?.cards).toBe(true);
+    for (const item of services?.columns.flatMap((c) => c.items) ?? []) {
+      expect(item.price).toBeUndefined();
+      expect(item.tag).toBeUndefined();
+    }
   });
 });

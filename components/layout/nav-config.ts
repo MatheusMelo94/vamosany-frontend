@@ -15,7 +15,13 @@ export type NavItem = {
 
 export type NavColumn = { heading: string; items: NavItem[] };
 
-export type NavGroup = { label: string; columns: NavColumn[] };
+export type NavGroup = {
+  label: string;
+  columns: NavColumn[];
+  /** Desktop panel shows each item as a bordered box of equal size with
+   *  "Ver detalles" at its foot (Servicios, DDR-0010). */
+  cards?: boolean;
+};
 
 /** Language menu options, shared by the desktop menu and the drawer. */
 export const LANGUAGES = [
@@ -105,14 +111,17 @@ export const NAV: NavGroup[] = [
   },
   {
     label: "Servicios",
+    // Same pieces in every box, short enough for one line each, so the four
+    // boxes match in size at every desktop width (DDR-0010). Prices and the
+    // "El más completo" tag live on the landing's cards only.
+    cards: true,
     columns: [
       {
         heading: "Asesoramiento",
         items: [
           {
-            title: "Consultoría de viaje",
-            blurb: "Una hora por videollamada para darle forma a tu viaje.",
-            price: "USD 150",
+            title: "Consultoría",
+            blurb: "1 hora por videollamada.",
             href: "/#services",
           },
         ],
@@ -121,11 +130,8 @@ export const NAV: NavGroup[] = [
         heading: "A medida",
         items: [
           {
-            title: "Itinerario personalizado",
-            blurb:
-              "Me contás cómo querés vivir New York y armo tu viaje día a día.",
-            price: "Desde USD 160",
-            tag: "El más completo",
+            title: "Itinerario",
+            blurb: "Tu viaje, día a día.",
             href: "/#services",
           },
         ],
@@ -134,10 +140,8 @@ export const NAV: NavGroup[] = [
         heading: "En grupo",
         items: [
           {
-            title: "Viajes grupales",
-            blurb:
-              "Viajes temáticos con todo organizado y conmigo acompañándote.",
-            price: "Reservá con USD 300",
+            title: "Viaje grupal",
+            blurb: "New York conmigo.",
             href: "/#services",
           },
         ],
@@ -146,9 +150,8 @@ export const NAV: NavGroup[] = [
         heading: "Trámites",
         items: [
           {
-            title: "Visa de Estados Unidos",
-            blurb: "Te acompaño en todo el trámite. Servicio para uruguayos.",
-            price: "USD 70",
+            title: "Visa EE.\u00a0UU.",
+            blurb: "El trámite, paso a paso.",
             href: "/#services",
           },
         ],

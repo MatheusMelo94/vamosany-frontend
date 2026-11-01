@@ -1,6 +1,6 @@
 # DDR-0009: Cartões do menu Servicios do mesmo tamanho
 
-- **Status:** Accepted (2026-10-31)
+- **Status:** Superseded by DDR-0010 (2026-11-01)
 - **Date:** 2026-10-31
 - **Deciders:** Matheus Melo (único aprovador). Pedido em sessão em 2026-10-31: "Every option has a different size. They all need to be on the same size."
 - **Constitution / spec reference:** constitution v1 § Non-Goals 1 (mudança visual no que está no ar exige DDR); ADR-0006 § 6; DDR-0003 (marcador do mega-menu); DDR-0008 (menu Servicios com quatro itens).
