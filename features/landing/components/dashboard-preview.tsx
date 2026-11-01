@@ -194,7 +194,7 @@ function MapSketch() {
             cy={y}
             r="4.2"
             fill="var(--color-brand)"
-            stroke="var(--color-ink)"
+            stroke="var(--color-on-brand)"
             strokeWidth="1.2"
           />
           <text
@@ -204,7 +204,7 @@ function MapSketch() {
             fontSize="4.2"
             fontFamily="var(--font-display)"
             fontWeight="700"
-            fill="var(--color-ink)"
+            fill="var(--color-on-brand)"
           >
             {i + 1}
           </text>
@@ -240,13 +240,15 @@ export function DashboardPreview(): JSX.Element {
         </div>
       </div>
 
+      {/* theme-ink: the account mockup is dark in the design system
+          (DDR-0011); same markup, the scope swaps the token values. */}
       {/* The app window sits inside the tinted section with breathing room on
           every side; the section itself still fills the viewport, so nothing
           reads as empty while it scrolls. */}
       {/* arbitrary: painel ocupa a viewport menos o padding do palco; varia por breakpoint */}
       <div
         data-reveal
-        className="border-hairline bg-canvas max-w-dashboard shadow-panel mx-auto flex min-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-7rem)]"
+        className="theme-ink border-hairline bg-canvas max-w-dashboard shadow-panel mx-auto flex min-h-[calc(100vh-3rem)] w-full flex-col overflow-hidden rounded-xl border sm:min-h-[calc(100vh-5rem)] lg:min-h-[calc(100vh-7rem)]"
         aria-label="Vista previa del panel del viajero"
       >
         <div className="border-hairline bg-surface-1 flex items-center gap-2 border-b px-4 py-2.5">
@@ -268,7 +270,7 @@ export function DashboardPreview(): JSX.Element {
           {/* Sidebar */}
           <aside className="border-hairline bg-surface-1 hidden flex-col border-r p-5 md:flex">
             <div className="flex items-center justify-between px-1">
-              <BrandLogo className="h-6" />
+              <BrandLogo tone="light" className="h-6" />
               <span className="caption border-hairline bg-canvas text-ink-subtle rounded-sm border px-1.5 py-0.5">
                 Beta
               </span>

@@ -16,7 +16,8 @@ const PLACES = [
 
 export function NeighborhoodTicker(): JSX.Element {
   return (
-    <section className="pt-16 pb-10">
+    // Yellow neighbourhood band with hearts (DDR-0011); the marquee is untouched.
+    <section className="bg-brand border-ink border-y-2 py-4">
       <div
         className="relative overflow-hidden"
         style={{
@@ -38,13 +39,12 @@ export function NeighborhoodTicker(): JSX.Element {
             >
               {PLACES.map((place) => (
                 <span key={place} className="flex items-center">
-                  <span className="headline text-ink px-7 whitespace-nowrap">
+                  <span className="headline text-on-brand px-7 whitespace-nowrap uppercase">
                     {place}
                   </span>
-                  <span
-                    className="bg-brand size-2 shrink-0 rounded-full"
-                    aria-hidden
-                  />
+                  <span className="text-on-brand shrink-0 text-sm" aria-hidden>
+                    ♥
+                  </span>
                 </span>
               ))}
             </div>

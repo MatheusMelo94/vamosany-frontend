@@ -22,7 +22,12 @@ export function Overscroll(): null {
     /* The last section isn't pinned, but it still slides over the one before
        it, so it needs the same opaque background and a top z-index. */
     all.forEach((sec, i) => {
-      sec.style.backgroundColor = "var(--color-canvas)";
+      /* Opaque either way: a section's own stripe colour (DDR-0011) stays,
+         a transparent one gets the canvas. */
+      const own = getComputedStyle(sec).backgroundColor;
+      if (own === "transparent" || own === "rgba(0, 0, 0, 0)") {
+        sec.style.backgroundColor = "var(--color-canvas)";
+      }
       sec.style.position = "relative";
       sec.style.zIndex = String(i + 1);
     });

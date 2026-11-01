@@ -575,7 +575,7 @@ test.describe("drawer index (AC 6, 7, 11, 20, 22, 23, 24, 32, 36) @feature-mobil
         return [cs.fontFamily, cs.color];
       });
       expect(scent[0]).toMatch(/Courier[_ ]Prime/);
-      expect(scent[1]).toBe("rgb(72, 72, 70)"); // ink-muted, not ink-tertiary (AC 40)
+      expect(scent[1]).toBe("rgb(93, 91, 82)"); // ink-muted #5d5b52 (DDR-0011), not ink-tertiary (AC 40)
       expect((await h.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(56);
     }
     await expect(drawer.getByRole("link")).toHaveCount(2); // Log in, Sign up
@@ -994,7 +994,7 @@ test.describe("drawer footer (AC 2, 8, 10, 27, 33, 38, 39) @feature-mobile-nav",
           expect(f.ring, f.name ?? "").toEqual([
             "solid",
             "2px",
-            "rgb(8, 10, 11)",
+            "rgb(1, 0, 0)", // ink #010000 (DDR-0011)
           ]);
       }
       expect(names).toEqual(order);

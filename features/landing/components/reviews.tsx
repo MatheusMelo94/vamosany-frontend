@@ -106,7 +106,7 @@ export function Reviews(): JSX.Element {
               aria-label={
                 dir === -1 ? "Reseñas anteriores" : "Reseñas siguientes"
               }
-              className="border-ink text-ink hover:bg-brand grid size-10 place-items-center rounded-sm border-2 transition-colors"
+              className="border-ink text-ink bg-canvas hover:bg-brand grid size-12 place-items-center rounded-full border-2 transition-colors"
             >
               <ArrowRight
                 className={cn("size-4", dir === -1 && "rotate-180")}
@@ -125,10 +125,10 @@ export function Reviews(): JSX.Element {
           {REVIEWS.map((review) => (
             <figure
               key={review.quote}
-              className="border-hairline bg-surface-1 flex w-76 shrink-0 snap-start flex-col rounded-lg border p-8 sm:w-96"
+              className="bg-surface-1 flex w-76 shrink-0 snap-start flex-col rounded-lg p-8 sm:w-96"
             >
               <span
-                className="text-brand"
+                className="text-ink tracking-widest"
                 role="img"
                 aria-label="5 de 5 estrellas"
               >

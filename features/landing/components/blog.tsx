@@ -40,7 +40,8 @@ const POSTS = [
 
 export function Blog(): JSX.Element {
   return (
-    <section id="blog" className="border-ink border-y-2 py-16 sm:py-20">
+    // Cream stripe (DDR-0011).
+    <section id="blog" className="bg-surface-1 py-16 sm:py-20">
       <div className="container-ds">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <SectionHeading
@@ -58,7 +59,7 @@ export function Blog(): JSX.Element {
           data-reveal
           className="group border-ink mt-14 grid gap-8 border-b-2 pb-14 lg:grid-cols-2 lg:items-center lg:gap-12"
         >
-          <div className="relative aspect-3/2 overflow-hidden rounded-lg">
+          <div className="border-ink rounded-xxl relative aspect-3/2 overflow-hidden border-2">
             <Image
               src={FEATURED.img}
               alt={FEATURED.alt}
@@ -69,7 +70,7 @@ export function Blog(): JSX.Element {
           </div>
           <div>
             <p className="eyebrow">{FEATURED.category}</p>
-            <h3 className="headline text-ink mt-4 text-balance">
+            <h3 className="text-ink mt-4 font-sans text-2xl leading-snug font-bold text-balance">
               {FEATURED.title}
             </h3>
             <p className="body-base text-ink-subtle mt-4">{FEATURED.excerpt}</p>
@@ -91,7 +92,7 @@ export function Blog(): JSX.Element {
           {POSTS.map((post) => (
             <li key={post.title}>
               <article className="group flex h-full flex-col">
-                <div className="relative aspect-3/2 overflow-hidden rounded-lg">
+                <div className="border-ink rounded-xxl relative aspect-3/2 overflow-hidden border-2">
                   <Image
                     src={post.img}
                     alt={post.alt}
@@ -101,10 +102,11 @@ export function Blog(): JSX.Element {
                   />
                 </div>
                 <p className="eyebrow mt-5">{post.category}</p>
-                <h3 className="card-title text-ink mt-3 flex-1 text-balance">
+                <h3 className="text-ink mt-3 flex-1 font-sans text-lg leading-snug font-bold text-balance">
+                  {/* arbitrary: o subrayado amarillo do sistema, 6px */}
                   <a
                     href="#blog"
-                    className="underline-offset-4 hover:underline"
+                    className="decoration-brand underline-offset-4 hover:underline hover:decoration-[6px]"
                   >
                     {post.title}
                   </a>
