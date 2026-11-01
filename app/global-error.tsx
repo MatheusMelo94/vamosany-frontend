@@ -24,7 +24,7 @@ export default function GlobalError({ error, reset }: Props): JSX.Element {
           fontFamily: FONT_FAMILY,
           margin: 0,
           padding: "4rem 1.5rem",
-          color: "#080a0b",
+          color: "#010000",
         }}
       >
         <main style={{ maxWidth: "40rem" }}>
@@ -54,8 +54,8 @@ export default function GlobalError({ error, reset }: Props): JSX.Element {
             type="button"
             onClick={reset}
             style={{
-              border: "2px solid #080a0b",
-              background: "#ffd800",
+              border: "2px solid #010000",
+              background: "#ffdd12",
               padding: "0.75rem 1.25rem",
               font: "inherit",
               fontWeight: 700,

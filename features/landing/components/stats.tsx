@@ -17,23 +17,28 @@ const STATS = [
 
 export function Stats(): JSX.Element {
   return (
-    <section className="border-ink border-y-2 py-16">
+    // Black stripe, yellow figures, vertical rules between them (DDR-0011).
+    <section className="theme-ink bg-inverse-canvas py-16 sm:py-20">
       <dl
         data-reveal-group
-        className="container-ds grid gap-x-6 gap-y-12 sm:grid-cols-3"
+        className="container-ds grid gap-y-12 sm:grid-cols-3"
       >
         {STATS.map((stat) => (
-          <div key={stat.label} className="flex flex-col gap-2">
+          <div
+            key={stat.label}
+            className="border-hairline flex flex-col items-center gap-2 px-7 text-center sm:border-l sm:first:border-l-0"
+          >
             <dt className="sr-only">{stat.label}</dt>
+            {/* arbitrary: escala "Números" do design system, 2,6–4rem (DDR-0011) */}
             <dd
-              className="display-md text-ink tabular-nums"
+              className="font-display text-brand text-[clamp(2.6rem,5vw,4rem)] leading-none font-bold tabular-nums"
               data-count={stat.count}
               data-prefix={stat.prefix}
               data-suffix={stat.suffix}
             >
               {`${stat.prefix}${stat.count.toLocaleString("es")}${stat.suffix}`}
             </dd>
-            <dd className="body-sm text-ink-subtle">{stat.label}</dd>
+            <dd className="body-base text-ink-subtle">{stat.label}</dd>
           </div>
         ))}
       </dl>

@@ -125,104 +125,113 @@ export function Recommendations(): JSX.Element {
   };
 
   return (
-    <section id="recomendados" className="container-ds py-16 sm:py-20">
-      <SectionHeading
-        eyebrow="Mis recomendados"
-        title="Lo que no puede faltar en tu viaje"
-        description="Después de más de 20 visitas, estas son las cosas que uso y recomiendo de verdad. Algunas tienen descuento con mi código."
-        align="center"
-        highlight
-      />
+    // Cream stripe (DDR-0011): the band spans the page, the content keeps the container.
+    <section id="recomendados" className="bg-surface-1 py-16 sm:py-20">
+      <div className="container-ds">
+        <SectionHeading
+          eyebrow="Mis recomendados"
+          title="Lo que no puede faltar en tu viaje"
+          description="Después de más de 20 visitas, estas son las cosas que uso y recomiendo de verdad. Algunas tienen descuento con mi código."
+          align="center"
+          highlight
+        />
 
-      <div
-        role="tablist"
-        aria-label="Categorías de recomendados"
-        className="border-ink mx-auto mt-10 flex w-fit max-w-full flex-wrap justify-center gap-1 rounded-sm border-2 p-1"
-      >
-        {TABS.map((t, i) => {
-          const selected = t.id === active;
-          return (
-            <button
-              key={t.id}
-              ref={(el) => {
-                tabs.current[i] = el;
-              }}
-              id={`${base}-tab-${t.id}`}
-              role="tab"
-              type="button"
-              aria-selected={selected}
-              aria-controls={`${base}-panel`}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => setActive(t.id)}
-              onKeyDown={(e) => onKeyDown(e, i)}
-              className={cn(
-                "label-button rounded-xs px-3.5 py-2 transition-colors duration-(--duration-base) ease-(--ease-default)",
-                selected
-                  ? "bg-brand text-ink"
-                  : "text-ink-subtle hover:text-ink",
-              )}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+        <div
+          role="tablist"
+          aria-label="Categorías de recomendados"
+          className="mx-auto mt-10 flex w-fit max-w-full flex-wrap justify-center gap-2.5"
+        >
+          {TABS.map((t, i) => {
+            const selected = t.id === active;
+            return (
+              <button
+                key={t.id}
+                ref={(el) => {
+                  tabs.current[i] = el;
+                }}
+                id={`${base}-tab-${t.id}`}
+                role="tab"
+                type="button"
+                aria-selected={selected}
+                aria-controls={`${base}-panel`}
+                tabIndex={selected ? 0 : -1}
+                onClick={() => setActive(t.id)}
+                onKeyDown={(e) => onKeyDown(e, i)}
+                className={cn(
+                  "label-button border-ink rounded-full border-2 px-4.5 py-2 transition-colors duration-(--duration-base) ease-(--ease-default)",
+                  selected ? "bg-ink text-canvas" : "text-ink hover:bg-canvas",
+                )}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
 
-      <div
-        id={`${base}-panel`}
-        role="tabpanel"
-        aria-labelledby={`${base}-tab-${tab.id}`}
-        /* El panel persiste entre pestañas: se revela una vez, entero. Un
+        <div
+          id={`${base}-panel`}
+          role="tabpanel"
+          aria-labelledby={`${base}-tab-${tab.id}`}
+          /* El panel persiste entre pestañas: se revela una vez, entero. Un
            data-reveal-group en la lista dejaria ocultas las tarjetas que
            aparecen despues de cambiar de pestaña (RV-0024). */
-        data-reveal
-        className="mt-12"
-      >
-        <ul className="grid gap-4 md:grid-cols-3">
-          {tab.picks.map((pick) => (
-            <li key={pick.title}>
-              <article className="border-hairline bg-surface-1 flex h-full flex-col rounded-lg border p-6">
-                <p className="eyebrow">{pick.kicker}</p>
-                <h3 className="card-title text-ink mt-3">{pick.title}</h3>
-                <p className="body-sm text-ink-subtle mt-3">{pick.blurb}</p>
-                {pick.quote ? (
-                  <blockquote className="body-sm text-ink mt-3 text-pretty">
-                    “{pick.quote}”
-                  </blockquote>
-                ) : null}
-                <div className="mt-auto pt-6">
-                  {pick.code ? (
-                    <p className="border-ink mb-3 flex items-center justify-between gap-3 rounded-sm border-2 border-dashed px-3 py-2">
-                      <span className="caption text-ink-subtle">Mi código</span>
-                      <span className="label-button text-ink">{pick.code}</span>
-                    </p>
+          data-reveal
+          className="mt-12"
+        >
+          <ul className="grid gap-4 md:grid-cols-3">
+            {tab.picks.map((pick) => (
+              <li key={pick.title}>
+                <article className="border-hairline bg-canvas flex h-full flex-col rounded-lg border p-6">
+                  <p className="eyebrow">{pick.kicker}</p>
+                  <h3 className="card-title text-ink mt-3">{pick.title}</h3>
+                  <p className="body-sm text-ink-subtle mt-3">{pick.blurb}</p>
+                  {pick.quote ? (
+                    <blockquote className="body-sm text-ink mt-3 text-pretty">
+                      “{pick.quote}”
+                    </blockquote>
                   ) : null}
-                  <Button type="button" variant="secondary" className="w-full">
-                    {pick.cta}
-                  </Button>
-                </div>
-              </article>
-            </li>
-          ))}
-        </ul>
-      </div>
+                  <div className="mt-auto pt-6">
+                    {pick.code ? (
+                      <p className="border-ink mb-3 flex items-center justify-between gap-3 rounded-xl border-2 border-dashed px-3.5 py-2.5">
+                        <span className="caption text-ink-subtle">
+                          Mi código
+                        </span>
+                        <span className="font-display text-ink font-bold">
+                          {pick.code}
+                        </span>
+                      </p>
+                    ) : null}
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="w-full"
+                    >
+                      {pick.cta}
+                    </Button>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-      <div className="mx-auto mt-12 max-w-2xl text-center">
-        <p className="body-sm text-ink">
-          ¿Necesitás algo más que no está en la lista? Escribime a{" "}
-          <a
-            href="mailto:hola@vamosany.com"
-            className="font-semibold underline underline-offset-4"
-          >
-            hola@vamosany.com
-          </a>
-          .
-        </p>
-        <p className="caption text-ink-subtle mt-3 text-pretty">
-          Algunos de estos links son de afiliados: si comprás a través de ellos,
-          recibo una pequeña comisión sin costo extra para vos. Solo recomiendo
-          lo que uso y me gusta.
-        </p>
+        <div className="mx-auto mt-12 max-w-2xl text-center">
+          <p className="body-sm text-ink">
+            ¿Necesitás algo más que no está en la lista? Escribime a{" "}
+            <a
+              href="mailto:hola@vamosany.com"
+              className="font-semibold underline underline-offset-4"
+            >
+              hola@vamosany.com
+            </a>
+            .
+          </p>
+          <p className="caption text-ink-subtle mt-3 text-pretty">
+            Algunos de estos links son de afiliados: si comprás a través de
+            ellos, recibo una pequeña comisión sin costo extra para vos. Solo
+            recomiendo lo que uso y me gusta.
+          </p>
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-import { CheckIcon } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { cn } from "@/lib/utils";
@@ -86,15 +85,17 @@ export function Services(): JSX.Element {
         {TIERS.map((tier) => (
           <li key={tier.title}>
             <article
+              // Design system card (DDR-0011): 2px ink border, 20px radius; the
+              // featured one is black, its seal riding on the top border.
               className={cn(
-                "bg-canvas flex h-full flex-col rounded-lg border p-7",
-                tier.featured ? "border-ink border-2" : "border-hairline",
+                "border-ink relative flex h-full flex-col rounded-lg border-2 p-7",
+                tier.featured ? "theme-ink bg-inverse-canvas" : "bg-canvas",
               )}
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="eyebrow">{tier.kicker}</p>
                 {tier.tag ? (
-                  <span className="caption bg-brand text-ink rounded-sm px-2 py-1 font-semibold">
+                  <span className="font-display bg-brand text-on-brand border-ink absolute -top-3.5 right-6 rounded-full border-2 px-3.5 py-1 text-sm font-bold">
                     {tier.tag}
                   </span>
                 ) : null}
@@ -104,7 +105,14 @@ export function Services(): JSX.Element {
                 {tier.pre ? (
                   <span className="caption text-ink-tertiary">{tier.pre}</span>
                 ) : null}
-                <span className="display-md text-ink">{tier.price}</span>
+                <span
+                  className={cn(
+                    "display-md tabular-nums",
+                    tier.featured ? "text-brand" : "text-ink",
+                  )}
+                >
+                  {tier.price}
+                </span>
                 {tier.per ? (
                   <span className="caption text-ink-tertiary">{tier.per}</span>
                 ) : null}
@@ -117,9 +125,11 @@ export function Services(): JSX.Element {
                     key={f}
                     className="body-sm text-ink flex items-start gap-2.5"
                   >
-                    <span className="bg-brand text-ink mt-0.5 grid size-4 shrink-0 place-items-center rounded-full">
-                      <CheckIcon className="size-2.5" />
-                    </span>
+                    {/* arbitrary: o "cuadradito amarillo" do sistema tem borda de 1,5px */}
+                    <span
+                      className="bg-brand border-on-brand mt-1.5 size-2.5 shrink-0 border-[1.5px]"
+                      aria-hidden
+                    />
                     {f}
                   </li>
                 ))}

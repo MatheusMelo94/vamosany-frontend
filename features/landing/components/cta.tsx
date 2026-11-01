@@ -69,7 +69,7 @@ export function CTA(): JSX.Element {
               type="email"
               required
               placeholder="tu@email.com"
-              className="body-sm border-inverse-ink bg-inverse-ink/10 text-inverse-ink placeholder:text-inverse-ink/55 focus:bg-inverse-ink/20 h-12 min-w-0 flex-1 rounded-sm border-2 px-4 focus:outline-none"
+              className="body-sm border-inverse-ink bg-inverse-ink/10 text-inverse-ink placeholder:text-inverse-ink/55 focus:bg-inverse-ink/20 h-12 min-w-0 flex-1 rounded-full border-2 px-5 focus:outline-none"
             />
             <Button size="lg">Suscribirme</Button>
           </form>

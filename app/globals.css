@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------
-   Design system: docs/design/vamosany-design-system.md (Vamos a NY)
-   Near-black + taxi yellow, bold mechanical display type,
-   squared-off geometry, minimal UI decoration.
+   Design system: "Design system · Vamos a New York" (Belén, 2026-10-31;
+   DDR-0011). A typewritten travel document: black / white / cream
+   stripes, Courier titles, yellow as the one strong accent, pills.
 
    The utility and token NAMES are unchanged from the previous
    system so the page markup did not have to move — only the
@@ -16,40 +16,47 @@
   --color-*: initial;
 
   --font-sans: var(--font-montserrat), Arial, Helvetica, sans-serif;
-  --font-display: var(--font-courier-prime), "Roboto Slab", Rockwell, serif;
+  --font-display: var(--font-courier-prime), "Courier New", Courier, monospace;
   --font-mono: var(--font-courier-prime), ui-monospace, "SF Mono", monospace;
 
   /* Brand — yellow is punctuation, never a flood fill */
-  --color-brand: #ffd800;
-  --color-brand-hover: #f1cc00;
-  --color-brand-focus: #f1cc00;
-  --color-brand-secure: #484846;
-  --color-on-brand: #080a0b;
+  --color-brand: #ffdd12;
+  --color-brand-hover: #f2cf00;
+  --color-brand-focus: #ffdd12;
+  --color-brand-secure: #5d5b52;
+  --color-on-brand: #010000;
 
   /* Surfaces */
   --color-canvas: #ffffff;
-  --color-surface-1: #f7f7f5;
-  --color-surface-2: #eeeeea;
-  --color-surface-3: #eeeeea;
-  --color-surface-4: #f7f7f5;
+  --color-surface-1: #f4f2ea; /* crema (--smoke) */
+  --color-surface-2: #f4f2ea;
+  --color-surface-3: #e3e0d3;
+  --color-surface-4: #f4f2ea;
 
   /* Rules & dividers */
-  --color-hairline: #eeeeea;
-  --color-hairline-strong: #a8a8a4;
-  --color-hairline-tertiary: #eeeeea;
+  --color-hairline: #e3e0d3; /* --line */
+  --color-hairline-strong: #8f8a79;
+  --color-hairline-tertiary: #e3e0d3;
 
   /* Text */
-  --color-ink: #080a0b;
-  --color-ink-muted: #484846;
-  --color-ink-subtle: #484846;
-  --color-ink-tertiary: #a8a8a4;
+  --color-ink: #010000;
+  --color-ink-muted: #5d5b52; /* gris cálido */
+  --color-ink-subtle: #5d5b52;
+  /* Was #a8a8a4 (~2.3:1, QA-0011); the system's warm grey family at 4.8:1. */
+  --color-ink-tertiary: #6e6b61;
 
   /* Inverse */
-  --color-inverse-canvas: #080a0b;
+  --color-inverse-canvas: #010000;
   --color-inverse-ink: #ffffff;
+  /* Support on black (the system's dark stripes) */
+  --color-ink-soft: #1b1a17;
+  --color-ink-panel: #1d1c1a;
+  --color-ink-line: #2c2b27;
+  --color-on-ink-2: #d9d5c6;
+  --color-on-ink-3: #8f8a79;
 
   /* Status reads through contrast, not a second accent colour */
-  --color-success: #080a0b;
+  --color-success: #010000;
 
   /* Ilustracao: agua no esboco de mapa do dashboard */
   --color-map-water: #e1e6ea;
@@ -68,11 +75,12 @@
   --text-2xs: 0.5625rem;
   --text-label-sm: 0.8125rem;
 
-  /* Radius — restrained. Buttons 4px, cards 8px, panels 12–16px */
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 4px;
-  --radius-lg: 8px;
+  /* Radius — pills for buttons, tabs, stamps and fields; 20px cards;
+     16px media; 6–12px tiles and small tags. */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 999px;
+  --radius-lg: 20px;
   --radius-xl: 12px;
   --radius-xxl: 16px;
 
@@ -120,10 +128,39 @@
     color: var(--color-ink);
   }
 
+  /* Keyboard focus: 3px yellow, 3px away; an ink halo keeps it visible on
+     yellow and white grounds alike. */
   :focus-visible {
-    outline: 2px solid var(--color-ink);
-    outline-offset: 2px;
+    outline: 3px solid var(--color-brand);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px var(--color-ink);
   }
+}
+
+/* --- Dark scope (DDR-0011): the black stripes and the dark account
+   mockup. Same token names, the system's "apoyo sobre negro" values, so
+   components need no second set of classes. Text on yellow stays black. */
+.theme-ink {
+  --color-canvas: #1b1a17;
+  --color-surface-1: #1d1c1a;
+  --color-surface-2: #1d1c1a;
+  --color-surface-3: #2c2b27;
+  --color-surface-4: #1d1c1a;
+  --color-hairline: #2c2b27;
+  --color-hairline-strong: #8f8a79;
+  --color-hairline-tertiary: #2c2b27;
+  --color-ink: #ffffff;
+  --color-ink-muted: #d9d5c6;
+  --color-ink-subtle: #d9d5c6;
+  --color-ink-tertiary: #b5b09f;
+  --color-map-water: #5d5b52;
+  --shadow-inset-hairline: inset 0 0 0 1px #2c2b27;
+  color: var(--color-ink);
+}
+
+.theme-ink .bg-brand,
+.theme-ink .bg-brand * {
+  color: var(--color-on-brand);
 }
 
 /* --- Container: 1200px, 32px desktop gutters / 20px mobile --- */
@@ -138,50 +175,47 @@
   }
 }
 
-/* --- Display type: mechanical, uppercase, tight leading --- */
+/* --- Display type: Courier Prime 700, sentence case (H1/H2/H3) --- */
 @utility display-xl {
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 4.6vw, 3.75rem);
+  /* The system says 2.4–4.6rem; the floor is 2rem so a long single word
+     ("Colaboraciones") still fits a 320px phone. Same as the system from ~590px. */
+  font-size: clamp(2rem, 5.4vw, 4.6rem);
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  line-height: 1.15;
+  letter-spacing: 0;
 }
 
 @utility display-lg {
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 3.2vw, 2.75rem);
+  font-size: clamp(1.9rem, 3.6vw, 3rem);
   font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  line-height: 1.15;
+  letter-spacing: 0;
 }
 
 @utility display-md {
   font-family: var(--font-display);
   font-size: clamp(1.75rem, 2.4vw, 2.25rem);
   font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  line-height: 1.1;
+  letter-spacing: 0;
 }
 
 @utility headline {
   font-family: var(--font-display);
   font-size: clamp(1.375rem, 1.7vw, 1.625rem);
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  line-height: 1.15;
+  letter-spacing: 0;
 }
 
 @utility card-title {
   font-family: var(--font-display);
-  font-size: 1.1875rem;
+  font-size: clamp(1.2rem, 1.6vw, 1.5rem);
   font-weight: 700;
   line-height: 1.2;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 @utility subhead {
@@ -220,24 +254,37 @@
   line-height: 1.5;
 }
 
-/* --- Buttons and labels carry the display voice --- */
+/* --- Buttons: Montserrat 700 --- */
 @utility label-button {
-  font-family: var(--font-display);
-  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.2;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
+/* Eyebrow: lowercase Courier with a 22×2 yellow dash in front, as in the
+   brandboard ("vamos a new york"). */
 @utility eyebrow {
   font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 400;
   line-height: 1.3;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-ink-tertiary);
+  text-transform: lowercase;
+  color: var(--color-ink-subtle);
+  /* Inline, not flex: the label wraps like text (200% zoom, narrow drawer). */
+  overflow-wrap: anywhere;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 22px;
+    height: 2px;
+    margin-right: 10px;
+    vertical-align: middle;
+    background: var(--color-brand);
+  }
 }
 
 /* --- Signature highlighted heading -----------------------------
