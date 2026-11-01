@@ -26,7 +26,7 @@ export function Stats(): JSX.Element {
         {STATS.map((stat) => (
           <div
             key={stat.label}
-            className="border-hairline flex flex-col gap-2 sm:border-l sm:px-7 sm:first:border-l-0 sm:first:pl-0"
+            className="border-hairline flex flex-col items-center gap-2 px-7 text-center sm:border-l sm:first:border-l-0"
           >
             <dt className="sr-only">{stat.label}</dt>
             {/* arbitrary: escala "Números" do design system, 2,6–4rem (DDR-0011) */}
