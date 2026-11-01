@@ -665,62 +665,39 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
     test.skip(isDesktop(page), "drawer exists below 1024 only");
   });
 
-  test("a tag on exactly one row; Services' prices in Courier bold, right-aligned; no blurbs", async ({
+  test("no tags, no prices and no blurbs on any row (DDR-0010)", async ({
     page,
   }) => {
     await openLanding(page);
     const drawer = await openDrawer(page);
-    const tagged: string[] = [];
     for (const label of LABELS) {
       await drawer.getByRole("button", { name: label, exact: true }).click();
       await waitForGsapIdle(page); // the accordion settles (T012)
       const body = drawer.locator("[data-drawer-body]:visible");
       await expect(body.getByRole("heading", { level: 3 })).not.toHaveCount(0);
-      for (const t of await body.locator("[data-row-tag]").all()) {
-        await expect(t).toBeVisible();
-        tagged.push((await t.textContent()) ?? "");
-      }
-      // Blurbs end with a period; no row text does.
+      await expect(body.locator("[data-row-tag]")).toHaveCount(0);
+      await expect(body.locator("[data-row-price]")).toHaveCount(0);
+      // No blurbs: a row's whole text is its title ("Visa EE. UU." ends
+      // with a period, so the old "no trailing period" check can't be used).
       for (const row of await body.getByRole("link").all()) {
-        expect(await row.textContent()).not.toMatch(/\.$/);
+        const title = await row.locator("[data-row-title]").textContent();
+        expect((await row.textContent())?.trim()).toBe(title?.trim());
       }
     }
-    expect(tagged).toEqual(["El más completo"]);
 
-    // Services is open last-but-one; open it again.
+    // Services keeps its four rows, by their short titles.
     await drawer
       .getByRole("button", { name: "Servicios", exact: true })
       .click();
     await waitForGsapIdle(page); // the accordion settles (T012)
     const rows = drawer.locator("[data-drawer-body]:visible a");
     await expect(rows).toHaveCount(4);
-    const prices = await rows.evaluateAll((as) =>
-      as.map((a) => {
-        const p = a.querySelector("[data-row-price]") as HTMLElement;
-        const cs = getComputedStyle(p);
-        const pr = p.getBoundingClientRect();
-        const ar = a.getBoundingClientRect();
-        return {
-          text: p.textContent,
-          family: cs.fontFamily,
-          weight: cs.fontWeight,
-          transform: cs.textTransform,
-          rightGap: Math.round(ar.right - pr.right),
-        };
-      }),
-    );
-    expect(prices.map((p) => p.text)).toEqual([
-      "USD 150",
-      "Desde USD 160",
-      "Reservá con USD 300",
-      "USD 70",
+    await expect(rows.locator("[data-row-title]")).toHaveText([
+      "Consultoría",
+      "Itinerario",
+      "Viaje grupal",
+      "Visa EE. UU.",
     ]);
-    for (const p of prices) {
-      expect(p.family).toMatch(/Courier[_ ]Prime/);
-      expect(p.weight).toBe("700");
-      expect(p.transform).toBe("none");
-      expect(p.rightGap).toBe(0);
-    }
   });
 
   test("a Services row from /sobre-mi lands on the landing's #services, in view", async ({
@@ -731,7 +708,7 @@ test.describe("drawer group bodies (AC 12, 16, 17, 18, 21, 25, 26, 48, 51) @feat
     await drawer
       .getByRole("button", { name: "Servicios", exact: true })
       .click();
-    await drawer.getByRole("link", { name: /^Viajes grupales/ }).click();
+    await drawer.getByRole("link", { name: /^Viaje grupal/ }).click();
     await expect(page).toHaveURL(/\/#services$/);
     await expect(panel(page)).toHaveCount(0);
     await expect
@@ -801,7 +778,7 @@ test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature
     test.skip(isDesktop(page), "drawer exists below 1024 only");
   });
 
-  test("column headings ink-muted; rows ink semibold over a surface-1 rule; tags and the header dot brand; Sign up and the pressed segment ink on inverse", async ({
+  test("column headings ink-muted; rows ink semibold over a surface-1 rule; the header dot brand; Sign up and the pressed segment ink on inverse", async ({
     page,
   }) => {
     await page.goto("/sobre-mi");
@@ -826,7 +803,6 @@ test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature
       };
       const body = nav.querySelector("[data-drawer-body]:not([hidden])");
       const row = body?.querySelector("a") ?? null;
-      const tag = body?.querySelector("[data-row-tag]") ?? null;
       const dot = nav.querySelector("[data-header-dot]");
       const es = [...nav.querySelectorAll("button")].find(
         (b) => b.textContent === "ES",
@@ -854,10 +830,6 @@ test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature
             cs(row?.querySelector("[data-row-title]") ?? null).fontWeight,
           ],
         },
-        tag: [cs(tag).backgroundColor, cs(tag).color, tag?.textContent],
-        tagRound:
-          parseFloat(cs(tag).borderTopLeftRadius) >=
-          (tag?.getBoundingClientRect().height ?? 0) / 2,
         dot: [
           cs(dot).backgroundColor,
           dot?.getBoundingClientRect().width,
@@ -876,8 +848,6 @@ test.describe("drawer paint: tokens as computed (AC 12, 16, 22, 26, 28) @feature
     expect(paint.h3).toBe(inkMuted);
     expect(paint.row.rule).toEqual(["solid", "1px", surface1]);
     expect(paint.row.title).toEqual([ink, "600"]);
-    expect(paint.tag).toEqual([brand, ink, "El más completo"]);
-    expect(paint.tagRound).toBe(true);
     expect(paint.dot).toEqual([brand, 6, 6, true]);
     expect(paint.es).toEqual(["true", ink, inverse]);
     expect(paint.signup).toEqual([ink, inverse]);
