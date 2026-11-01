@@ -1,6 +1,6 @@
 # DDR-0011: Aplicar o "Design system · Vamos a New York" sem tocar estrutura nem efeitos
 
-- **Status:** Proposed (2026-11-01). Aguarda aprovação do usuário no preview da Vercel antes do PR.
+- **Status:** Accepted (2026-11-01). Aprovado pelo usuário no preview da Vercel ("perfect!").
 - **Date:** 2026-11-01
 - **Deciders:** Matheus Melo (único aprovador). Pedido em sessão: "I want to apply this design system but without touching my effects, scroll effect… do not touch my carousel in the hero section… send me a tmp link to check before opening a pull request". Base: `Design system · Vamos a New York.md` (Belén, 2026-10-31) e o protótipo aprovado "Home con el nuevo sistema" (https://claude.ai/artifact/RgDFqDK3DAxSkA6isDiUx9, versão 3).
 - **Supersedes (parcialmente):** a direção visual de `docs/design/vamosany-design-system.md` (cores, tipografia, raios). Os nomes de tokens e utilities continuam.
@@ -40,10 +40,10 @@ Belén escreveu um sistema visual novo para a marca: um documento de viagem dati
    - imagens do blog com borda preta de 2 px;
    - campo de email em pílula.
 6. **Franjas:**
-   - hero branco (o marcador amarelo dos títulos exige fundo claro);
+   - hero branco, com o marcador original (faixa fina) e o carrossel exatamente como na main. Hero preto com bloco amarelo de altura total foi provado no preview e revertido a pedido do usuário;
    - bairros com fundo amarelo e corações;
    - painel creme, Servicios branco, Recomendados creme;
-   - números pretos, reseñas brancas, blog creme;
+   - números pretos, com as três cifras centradas e o mesmo espaço dos dois lados (pedido do usuário no preview); reseñas brancas, blog creme;
    - banda final com a foto, footer preto.
 
 **Efeitos intocados:** carrossel do hero (CSS e componente), reveals, contadores, SplitText, marcador amarelo, marquee e pan da banda. O empilhamento do overscroll ganhou uma única mudança: só pinta de `canvas` as seções sem fundo próprio. Assim cada franja mantém a sua cor; o comportamento do pin não muda.
