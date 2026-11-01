@@ -321,20 +321,6 @@
   -webkit-box-decoration-break: clone;
 }
 
-/* Hero on black (DDR-0011): the marker becomes a full-height yellow block
-   behind each line, black letters on top. Same --train sweep, same timing;
-   one solid car instead of six so no letter falls in a gap. */
-@utility highlight-block {
-  background-image: linear-gradient(
-    to right,
-    var(--color-brand) 0% 33.6%,
-    transparent 33.6% 100%
-  );
-  background-size: 300% 100%;
-  background-position: var(--train) 0;
-  padding-inline: 0.12em;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee {
     animation: none;
@@ -404,8 +390,7 @@ main > .pin-spacer {
   perspective-origin: 50% 140%;
   overflow: hidden;
 }
-/* fade on both ends of the stage, in the hero's own ground colour
-   (white by default; black in the DDR-0011 hero) */
+/* white fade on both ends of the stage */
 .ringStage::after {
   content: "";
   position: absolute;
@@ -413,10 +398,10 @@ main > .pin-spacer {
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    var(--ring-fade, #fff) 0%,
+    #fff 0%,
     transparent 4%,
     transparent 96%,
-    var(--ring-fade, #fff) 100%
+    #fff 100%
   );
 }
 .ring {
