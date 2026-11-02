@@ -123,3 +123,23 @@ describe("Desde el aeropuerto (GU-06)", () => {
     expect(labels).toContain("Bus Q70 + subte (gratis + USD 3)");
   });
 });
+
+describe("Caminar por New York (GU-07)", () => {
+  const g = () => guide("caminar-por-new-york");
+
+  it("has the 3 key facts with their sources (AC 16, 17)", () => {
+    expect(factSources(g())).toEqual([
+      "se camina en un minuto",
+      "tres o cuatro minutos",
+      "entre 15 y 20 mil pasos por día",
+    ]);
+  });
+
+  it("turns the favourite walks' labels into H3, e.g. 'High Line' (D1)", () => {
+    const labels = g()
+      .sections.flatMap((s) => s.blocks)
+      .filter((b) => b.type === "h3")
+      .map((b) => b.type === "h3" && b.text);
+    expect(labels).toEqual(["High Line", "Brooklyn Bridge", "Central Park"]);
+  });
+});

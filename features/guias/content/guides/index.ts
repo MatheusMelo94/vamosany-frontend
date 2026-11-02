@@ -1,5 +1,6 @@
 import { elSubteExplicado } from "@/features/guias/content/guides/el-subte-explicado";
 import { desdeElAeropuerto } from "@/features/guias/content/guides/desde-el-aeropuerto";
+import { caminarPorNewYork } from "@/features/guias/content/guides/caminar-por-new-york";
 import type { GuideSlug } from "@/features/guias/content/slugs";
 import type { GuideBody } from "@/features/guias/types";
 
@@ -11,4 +12,5 @@ import type { GuideBody } from "@/features/guias/types";
 export const BODIES: Partial<Record<GuideSlug, GuideBody>> = {
   "el-subte-explicado": elSubteExplicado,
   "desde-el-aeropuerto": desdeElAeropuerto,
+  "caminar-por-new-york": caminarPorNewYork,
 };
