@@ -4,7 +4,7 @@
 - **Order:** layered per `frontend-architecture-conventions.md § Engineering Workflow`: schemas/types → data → styles → route skeleton → server components → client leaves → motion → menu → E2E → budget/baselines → QA handoff. There are no Server Actions or reads from an API (plan § 0), so those layers are empty.
 - **Rules for every task:** TDD (failing test first, minimal code, `npm run typecheck && npm run lint && npm test`), one conventional commit, body cites the plan decision (D-n) and convention sections, tests line in the body. Tasks marked **build check** also run `npm run build`. Paths are exact; `@/` imports; named exports except Next route files; tokens only. Vitest tests live in `features/guias/__tests__/` unless stated.
 - **Labels:** none are Pre-Contract (no contract) and none cite an ADR (none needed). **Gated** = waits for a user answer in plan § 18.
-- **Slices** (stop for review at each boundary, plan § 19): A = GU-01–17 · B = GU-18–31 · C = GU-32–43.
+- **Slices** (stop for review at each boundary, plan § 19): A = GU-01–17 · B = GU-18–31 · C = GU-32–45 (GU-44/45 added 2026-11-02 for DDR-0013).
 - **First task to start: GU-01.**
 
 Legend per task: **Layer · What · Files · AC (test-checkable) · Test · Cites · Depends**
@@ -312,15 +312,35 @@ Legend per task: **Layer · What · Files · AC (test-checkable) · Test · Cite
 - **Test:** component
 - **Cites:** plan Q1; ADR-0006
 - **Depends:** GU-35 · **Gated** · label: **Gated: user decision Q1**
+- **Resolved 2026-11-02:** Q1 answered (a); the Guías column of the footer also got the guide hrefs (its entries were links). Q2 (structural widths in `@theme`) accepted; Q3 slug `visa-a-estados-unidos` confirmed; A-1 resolved by DDR-0013 (GU-44/45).
+
+### GU-44 · DDR-0013: "Todas las guías →" link (added 2026-11-02)
+- **Layer:** docs
+- **What:** Record the user's decision to add a "Todas las guías →" row at the foot of the Guías mega-menu panel and of the Guías drawer group (plan § 16 item 1; resolves spec A-1).
+- **Files:** `docs/ddr/0013-link-todas-las-guias.md`, `docs/specs/guias/tasks.md`
+- **AC:** DDR-0013 is Accepted 2026-11-02, decider Matheus Melo; states what does not change (columns, trigger, marker, DDR-0003 behavior), the drawer row rules (44 px, 200% text), `aria-current` on `/guias`, and the baseline impact.
+- **Test:** none (document)
+- **Cites:** `design-conventions.md § DDR Template`; ADR-0006
+- **Depends:** GU-35
+
+### GU-45 · "Todas las guías →" in the panel and the drawer (added 2026-11-02)
+- **Layer:** menu
+- **What:** `NavGroup.footerLink?: { label; href }`; `GUIAS_NAV` sets it to "Todas las guías" → `/guias`; the desktop panel renders it under the columns (not a `data-nav-item`, so the marker ignores it) and the drawer renders it as the last row of the group body, same row style; `nav-model` counts it as a current-page candidate.
+- **Files:** `components/layout/nav-config.ts`, `components/layout/navbar.tsx`, `components/layout/drawer/drawer-group.tsx`, `components/layout/drawer/nav-model.ts`, `features/guias/content/nav.ts`, tests in `components/layout/__tests__/navbar.test.tsx`, `components/layout/drawer/__tests__/drawer-group.test.tsx`, `nav-model.test.ts`, `features/guias/__tests__/nav.test.ts`
+- **AC (unit):** the link exists in the panel and in the drawer with `href="/guias"` and the text "Todas las guías"; the arrow is `aria-hidden`; on `/guias` it has `aria-current="page"` and the drawer opens the Guías group with the header dot; the other groups render no such row; the row is not a `data-nav-item`; the drawer row keeps `min-h-11` and wraps at 200% text; `nav-weight` still holds.
+- **Test:** component
+- **Cites:** DDR-0013; plan § 16; DDR-0003; ADR-0006. **build check required** (`check:first-load` for `/`).
+- **Depends:** GU-44
 
 ### GU-37 · E2E: menu navigation and CTA
 - **Layer:** E2E
 - **What:** From `/`, open the Guías menu at 1280 and the drawer at 360/768, pick items, verify navigation, marker, `aria-current`, and that every CTA reaches the Servicios section by client navigation and by full load.
 - **Files:** `tests/e2e/guias/menu.spec.ts`
 - **AC:** 12 items navigate to the right guide in mega-menu and drawer; tapping closes the drawer (AC 6); on `/guias/west-village` the marker and dot are on "West Village" with no travel, `aria-current="page"` in both (AC 7); "Taxi, Uber o subte" is absent in navbar and drawer (AC 5); the CTA lands with `#services` in the URL and the section in view, both for a client navigation (from the guide after hydration) and `page.goto('/#services')` (AC 18, release criterion 5).
+- **Also (added 2026-11-02, DDR-0013):** the "Todas las guías →" row is reachable by keyboard (Tab from the last item of the panel; Enter navigates to `/guias`), is present in the drawer's Guías group, and navigates to `/guias` from both.
 - **Test:** e2e
-- **Cites:** plan § 3, § 14; DDR-0003
-- **Depends:** GU-35
+- **Cites:** plan § 3, § 14; DDR-0003; DDR-0013
+- **Depends:** GU-35, GU-45
 
 ### GU-38 · E2E: index behavior and keyboard
 - **Layer:** E2E
