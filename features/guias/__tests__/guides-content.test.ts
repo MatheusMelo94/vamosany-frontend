@@ -1,5 +1,6 @@
 import { getGuide } from "@/features/guias/content/guides";
-import type { Block, Guide } from "@/features/guias/types";
+import type { Block, Guide, Inline } from "@/features/guias/types";
+import { plainText } from "./support/plain-text";
 
 /**
  * Per-guide structure the spec fixes beyond the text itself (key facts,
@@ -67,5 +68,58 @@ describe("El subte, explicado (GU-05)", () => {
       lead: "¿Querés que te arme el recorrido día a día, con las líneas que te convienen?",
       label: "Quiero mi itinerario",
     });
+  });
+});
+
+/** The inline nodes of every paragraph, list item and callout of a guide. */
+function inlines(g: Guide): Inline[] {
+  return allBlocks(g).flatMap((block) => {
+    switch (block.type) {
+      case "p":
+      case "tip":
+      case "fine":
+        return block.text;
+      case "ul":
+      case "ol":
+        return block.items.flat();
+      case "h3":
+        return [];
+    }
+  });
+}
+
+const factSources = (g: Guide) => g.keyFacts?.map((f) => f.source);
+
+describe("Desde el aeropuerto (GU-06)", () => {
+  const g = () => guide("desde-el-aeropuerto");
+
+  it("has a two-paragraph intro: the opening and 'Dato clave antes de arrancar'", () => {
+    expect(g().intro.map((b) => b.type)).toEqual(["p", "p"]);
+    const second = g().intro[1];
+    expect(second?.type === "p" && second.text[0]).toEqual({
+      b: "Dato clave antes de arrancar:",
+    });
+  });
+
+  it("has the 3 key facts with their sources (AC 16, 17)", () => {
+    expect(factSources(g())).toEqual([
+      "USD 8,75",
+      "tarifa fija de USD 70",
+      "Bus Q70 + subte (gratis + USD 3)",
+    ]);
+  });
+
+  it("links to 'El subte, explicado' without brackets (D3, AC 20)", () => {
+    expect(inlines(g())).toContainEqual({ guide: "el-subte-explicado" });
+    expect(plainText(g())).not.toMatch(/[[\]]/);
+  });
+
+  it("turns the bold own-line labels into H3 (D1)", () => {
+    const labels = g()
+      .sections.flatMap((s) => s.blocks)
+      .filter((b) => b.type === "h3")
+      .map((b) => b.type === "h3" && b.text);
+    expect(labels).toContain("AirTrain + subte (la opción más económica)");
+    expect(labels).toContain("Bus Q70 + subte (gratis + USD 3)");
   });
 });
