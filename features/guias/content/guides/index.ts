@@ -9,6 +9,7 @@ import { williamsburg } from "@/features/guias/content/guides/williamsburg";
 import { visaAEstadosUnidos } from "@/features/guias/content/guides/visa-a-estados-unidos";
 import { cuantoCuestaUnDiaEnNewYork } from "@/features/guias/content/guides/cuanto-cuesta-un-dia-en-new-york";
 import { queLlevarSegunLaTemporada } from "@/features/guias/content/guides/que-llevar-segun-la-temporada";
+import { entradasParaBroadway } from "@/features/guias/content/guides/entradas-para-broadway";
 import type { GuideSlug } from "@/features/guias/content/slugs";
 import type { GuideBody } from "@/features/guias/types";
 
@@ -29,4 +30,5 @@ export const BODIES: Partial<Record<GuideSlug, GuideBody>> = {
   "visa-a-estados-unidos": visaAEstadosUnidos,
   "cuanto-cuesta-un-dia-en-new-york": cuantoCuestaUnDiaEnNewYork,
   "que-llevar-segun-la-temporada": queLlevarSegunLaTemporada,
+  "entradas-para-broadway": entradasParaBroadway,
 };

@@ -1,4 +1,5 @@
 import { getGuide } from "@/features/guias/content/guides";
+import { nextGuide } from "@/features/guias/content/queries";
 import { tocItems } from "@/features/guias/content/toc";
 import type { Block, Guide, Inline } from "@/features/guias/types";
 import { plainText } from "./support/plain-text";
@@ -325,5 +326,26 @@ describe("Qué llevar según la temporada (GU-15)", () => {
 
   it("has the 3 key facts with their sources (AC 16, 17)", () => {
     expect(factSources(g())).toEqual(["3 o 5 °C", "pasan los 28 °C", "110 V"]);
+  });
+});
+
+describe("Entradas para Broadway (GU-16)", () => {
+  const g = () => guide("entradas-para-broadway");
+
+  it("has the 3 key facts with their sources (AC 16, 17)", () => {
+    expect(factSources(g())).toEqual([
+      "dos entradas por el precio de una",
+      "hasta 50% de descuento",
+      "cargo de USD 8 por entrada",
+    ]);
+    expect(g().keyFacts?.map((f) => f.value)).toEqual([
+      "2×1",
+      "Hasta 50%",
+      "USD 8",
+    ]);
+  });
+
+  it("is the last guide, so it has no next (AC 19)", () => {
+    expect(nextGuide(g().slug)).toBeUndefined();
   });
 });
