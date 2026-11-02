@@ -287,3 +287,29 @@ describe("tocItems (index data)", () => {
     expect(items.find((i) => i.label === "El tope semanal")?.id).toBe("tope");
   });
 });
+
+describe("Cuánto cuesta un día en New York (GU-14)", () => {
+  const g = () => guide("cuanto-cuesta-un-dia-en-new-york");
+
+  it("has the 3 key facts with their sources (AC 16, 17)", () => {
+    expect(factSources(g())).toEqual([
+      "entre USD 50 y 70",
+      "entre USD 120 y 160",
+      "más de USD 200",
+    ]);
+  });
+
+  it("names the box as approximate prices (spec § Content & Copy)", () => {
+    expect(g().keyFactsLabel).toBe("Datos clave, precios aproximados");
+  });
+
+  it("keeps the Doc's italic line as small print inside its section", () => {
+    const fines = g().sections.flatMap((s) =>
+      s.blocks.filter((b) => b.type === "fine"),
+    );
+    expect(fines).toHaveLength(1);
+    expect(plainText(g())).toContain(
+      "Los precios son aproximados y pueden variar según la zona y la época del año.",
+    );
+  });
+});
