@@ -44,7 +44,8 @@ function scrollTo(tops: Record<string, number>, atBottom = false) {
 }
 const frames: FrameRequestCallback[] = [];
 
-/** The (min-width: 961px) query the index gates its scroll work on (RV-0046). */
+/** The media query the index gates its scroll work on (RV-0046, RV-0048). */
+const queries: string[] = [];
 const media = {
   matches: true,
   listeners: new Set<() => void>(),
@@ -57,11 +58,12 @@ const media = {
 beforeEach(() => {
   media.matches = true;
   media.listeners.clear();
+  queries.length = 0;
   vi.stubGlobal("matchMedia", (query: string) => ({
     get matches() {
       return media.matches;
     },
-    media: query,
+    media: (queries.push(query), query),
     addEventListener: (_: string, cb: () => void) => media.listeners.add(cb),
     removeEventListener: (_: string, cb: () => void) =>
       media.listeners.delete(cb),
@@ -186,6 +188,13 @@ describe("GuideToc (plan § 7, § 10; AC 22, 23, 36)", () => {
       block: "start",
       behavior: "auto",
     });
+    cleanup();
+  });
+
+  it("gates on the same rem width as the layout's aside breakpoint, so a smaller default font cannot show an index that is not tracked (RV-0048)", () => {
+    const cleanup = mountHeadings({ "como-se-paga": 500, tope: 900 });
+    render(<GuideToc items={ITEMS} />);
+    expect(queries).toEqual(["(min-width: 60.0625rem)"]);
     cleanup();
   });
 

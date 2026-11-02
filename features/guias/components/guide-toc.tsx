@@ -11,12 +11,13 @@ import { cn } from "@/lib/utils";
 const LINE = 120;
 
 /**
- * The index is `display: none` below the aside container width (961px,
- * `--container-guide-aside`); the container is never wider than the viewport,
- * so a viewport under this width means the index is certainly hidden and its
- * scroll work is waste (RV-0046).
+ * The index is `display: none` below the aside container width
+ * (`--container-guide-aside`, 60.0625rem in app/globals.css); the container is
+ * never wider than the viewport, so a viewport under this width means the index
+ * is certainly hidden and its scroll work is waste (RV-0046). In rem, like the
+ * container query, so the two agree at any browser default font size (RV-0048).
  */
-const INDEX_VISIBLE = "(min-width: 961px)";
+const INDEX_VISIBLE = "(min-width: 60.0625rem)";
 
 /**
  * The aside's "En esta guía" index (≥961px): real anchors, the section being
