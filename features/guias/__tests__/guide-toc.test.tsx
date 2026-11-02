@@ -313,5 +313,35 @@ describe("GuideToc (plan § 7, § 10; AC 22, 23, 36)", () => {
       expect(scrollIntoView).not.toHaveBeenCalled();
       cleanup();
     });
+
+    it("ignores an oversized hash (5 KB) without scrolling or throwing", () => {
+      // A section whose id is itself 5 KB: only the length cap can reject it,
+      // the allowlist alone would match (security finding 0018).
+      const longId = "a".repeat(5 * 1024);
+      const el = document.createElement("h2");
+      el.id = longId;
+      document.body.append(el);
+      window.history.replaceState(null, "", `/#${longId}`);
+      expect(() =>
+        render(<GuideToc items={[{ id: longId, label: "Larga" }]} />),
+      ).not.toThrow();
+      window.dispatchEvent(new Event("scrollend"));
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      el.remove();
+    });
+
+    it("ignores a valid id with markup appended", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      window.history.replaceState(null, "", "/#tope%3Cimg%20src=x%3E");
+      expect(() => render(<GuideToc items={ITEMS} />)).not.toThrow();
+      window.dispatchEvent(new Event("scrollend"));
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      expect(document.querySelector("img")).toBeNull();
+      cleanup();
+    });
   });
 });
