@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { activeSectionId } from "@/features/guias/lib/active-section";
-import { useAlignToHash } from "@/features/guias/lib/use-align-to-hash";
+import { useAlignToHash } from "@/features/guias/hooks/use-align-to-hash";
 import type { TocItem } from "@/features/guias/content/toc";
 import { cn } from "@/lib/utils";
 
