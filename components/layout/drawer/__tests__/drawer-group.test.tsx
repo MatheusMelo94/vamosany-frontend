@@ -195,6 +195,27 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     expect(row.lastElementChild).toContainElement(dot as HTMLElement);
   });
 
+  it("links every Guías row to its guide, and marks only the current guide (DDR-0012, AC 6, 7)", () => {
+    renderGroup("Guías", {
+      expanded: true,
+      hasCurrent: true,
+      pathname: "/guias/west-village",
+    });
+    const links = screen
+      .getAllByRole("link")
+      .filter((a) => a.getAttribute("href")?.startsWith("/guias/"));
+    expect(links).toHaveLength(12);
+    const current = document.querySelectorAll("[aria-current]");
+    expect(current).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "West Village" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(
+      screen.getByRole("link", { name: "Caminar por New York" }),
+    ).toHaveAttribute("href", "/guias/caminar-por-new-york");
+  });
+
   it("closes the drawer through onNavigate when a row is tapped", async () => {
     const user = userEvent.setup();
     const onNavigate = vi.fn();
