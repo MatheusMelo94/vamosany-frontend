@@ -48,7 +48,7 @@ describe("the fidelity harness (it proves it can fail)", () => {
     expect(units[0]).toMatch(/^P\|Si hay un barrio de New York/);
     expect(units).toContain("H2|Por qué lo amo");
     expect(units).toContain(
-      "LI|Bleecker Street: la calle principal del barrio, con tiendas, cafés y pastelerías.",
+      "LI|**Bleecker Street:** la calle principal del barrio, con tiendas, cafés y pastelerías.",
     );
     expect(units.slice(-2)).toEqual([
       "CTA|¿Querés recorrer el West Village en tu viaje?",
@@ -62,7 +62,7 @@ describe("the fidelity harness (it proves it can fail)", () => {
     expect(units).toContain(
       "P|El AirTrain conecta todas las terminales con las estaciones Jamaica y Howard Beach, donde tomás el subte. Desde Jamaica, la línea E te lleva directo a Midtown; desde Howard Beach, la línea A va a Lower Manhattan y al West Side.",
     );
-    expect(units.join("\n")).not.toContain("*");
+    expect(units.join("\n")).not.toContain("****");
   });
 
   it("turns 'Mi pique:' paragraphs into TIP units without the label (D4)", () => {
@@ -128,5 +128,64 @@ describe("the fidelity harness (it proves it can fail)", () => {
     expect(plainText(sample)).toBe(
       "Si hay un barrio.\n¿Querés?\nQuiero mi itinerario",
     );
+  });
+});
+
+describe("emphasis fidelity (AC 27: bold and italic are preserved)", () => {
+  const section = sourceSection("El subte, explicado");
+  const bodyOf = (text: GuideBody["intro"][number]): GuideBody => ({
+    intro: [text],
+    sections: [],
+    cta: { lead: "x", label: "y" },
+  });
+
+  it("carries the Doc's bold into the units, without the export noise", () => {
+    const units = docUnits(section);
+    expect(units).toContain(
+      "P|Cada viaje en subte o bus local cuesta **USD 3**, y tenés dos formas de pagarlo.",
+    );
+    expect(units.join("\n")).not.toContain("****");
+    const airport = docUnits(sourceSection("Desde el aeropuerto")).join("\n");
+    expect(airport).toContain("el taxi tiene **tarifa fija de USD 70**, más");
+    // The stray opening "**" that follows a sub-label line break is dropped.
+    expect(airport).toContain("\nP|El AirTrain conecta todas");
+  });
+
+  it("renders the guide's {b} and {i} runs with the same markers", () => {
+    const units = bodyUnits(
+      bodyOf({
+        type: "p",
+        text: ["Cuesta ", { b: "USD 3" }, " y ", { i: "Lover" }],
+      }),
+    );
+    expect(units[0]).toBe("P|Cuesta **USD 3** y *Lover*");
+  });
+
+  it("fails when a guide drops one bold run the Doc has", () => {
+    const expected = ["P|Cada viaje cuesta **USD 3**, y tenés dos formas."];
+    const same = bodyOf({
+      type: "p",
+      text: ["Cada viaje cuesta ", { b: "USD 3" }, ", y tenés dos formas."],
+    });
+    const dropped = bodyOf({
+      type: "p",
+      text: ["Cada viaje cuesta USD 3, y tenés dos formas."],
+    });
+    expect(diffUnits(bodyUnits(same).slice(0, 1), expected)).toEqual([]);
+    expect(diffUnits(bodyUnits(dropped).slice(0, 1), expected)).not.toEqual([]);
+  });
+
+  it("fails when italic turns into plain text", () => {
+    const expected = ["P|Una *Lover* con vista."];
+    const plain = bodyOf({ type: "p", text: ["Una Lover con vista."] });
+    expect(diffUnits(bodyUnits(plain).slice(0, 1), expected)).not.toEqual([]);
+  });
+
+  it("keeps plainText free of markers", () => {
+    expect(
+      plainText(
+        bodyOf({ type: "p", text: ["a ", { b: "b" }, " ", { i: "c" }] }),
+      ),
+    ).toBe("a b c\nx\ny");
   });
 });

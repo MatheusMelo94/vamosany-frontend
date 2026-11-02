@@ -8,7 +8,8 @@ import type { SourceSection } from "./guide-source";
  *  - D1: a bold own-line label ("**Label****") is an H3;
  *  - D4: "**Mi pique:** text" is a TIP whose body is the text after the label;
  *  - D5: export noise (stray "**", "****", markdown links, "\[" escapes) is
- *    dropped, keeping bold/italic as plain text;
+ *    dropped; the real bold/italic runs stay as `**x**` / `*x*` so a guide
+ *    that loses emphasis fails (AC 27);
  *  - D7: the bold question before "Botón: X" is the band's lead (CTA), X is
  *    the button label (BTN), and an italic closing line is small print (FINE).
  * (D6, the Bajada label, is dropped when the section is read.)
@@ -16,12 +17,18 @@ import type { SourceSection } from "./guide-source";
  * DOC_EXCEPTIONS below.
  */
 function clean(text: string): string {
-  return normalizeText(
-    text
-      .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-      .replace(/\*+/g, "")
-      .replace(/\\(.)/g, "$1"),
-  );
+  let out = text
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    // "**Label****" + line break + "**Body": the seam is not emphasis.
+    .replace(/\*{4}/g, "");
+  // An unmatched "**" is export noise: the opener left behind by a sub-label
+  // line break (line start), or a dangling closer (line end).
+  if ((out.match(/\*\*/g) ?? []).length % 2 === 1) {
+    out = out.startsWith("**")
+      ? out.slice(2)
+      : out.replace(/\*\*(?!.*\*\*)/, "");
+  }
+  return normalizeText(out.replace(/\\(.)/g, "$1"));
 }
 
 export function docUnits(section: SourceSection): string[] {
@@ -107,7 +114,7 @@ export const DOC_EXCEPTIONS: readonly DocException[] = [
     reason: "Spec § Open Assumptions A-8, § Content Fidelity D4; AC 28",
     apply(units) {
       const i = units.findIndex((u) =>
-        u.startsWith("P|Con tu tarjeta o tu celular:"),
+        u.startsWith("P|**Con tu tarjeta o tu celular:**"),
       );
       const first = units[i];
       const tip = units[i + 1];
@@ -116,7 +123,7 @@ export const DOC_EXCEPTIONS: readonly DocException[] = [
         i < 0 ||
         first === undefined ||
         !tip?.startsWith("TIP|") ||
-        !second?.startsWith("P|Con la tarjeta OMNY:")
+        !second?.startsWith("P|**Con la tarjeta OMNY:**")
       )
         return null;
       return [
