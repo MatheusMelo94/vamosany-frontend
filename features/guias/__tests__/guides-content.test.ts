@@ -313,3 +313,17 @@ describe("Cuánto cuesta un día en New York (GU-14)", () => {
     );
   });
 });
+
+describe("Qué llevar según la temporada (GU-15)", () => {
+  const g = () => guide("que-llevar-segun-la-temporada");
+
+  it("has no 'Mi pique' callout: 'Mi pique de valija' is an H2 section (A-7, AC 15)", () => {
+    expect(count(g(), "tip")).toBe(0);
+    const section = g().sections.find((s) => s.title === "Mi pique de valija");
+    expect(section?.id).toBe("mi-pique-de-valija");
+  });
+
+  it("has the 3 key facts with their sources (AC 16, 17)", () => {
+    expect(factSources(g())).toEqual(["3 o 5 °C", "pasan los 28 °C", "110 V"]);
+  });
+});
