@@ -43,6 +43,7 @@ export function GuidePage({ guide }: { guide: Guide }): JSX.Element {
       <hr className="border-ink mt-10 border-t-2" />
       {/* arbitrary: 18.75rem (300px) aside in rem so it scales with text size (spec § Page Structure G4) */}
       <div className="@guide-aside:grid-cols-[minmax(0,1fr)_18.75rem] @guide-aside:gap-14 grid items-start gap-8 pt-10">
+        {/* arbitrary: 68ch reading measure, 1.05rem size and 1.6 line height, spec § Page Structure */}
         <article className="max-w-[68ch] text-[1.05rem] leading-[1.6]">
           <GuideTocDetails items={toc} />
           <Blocks blocks={guide.intro} />

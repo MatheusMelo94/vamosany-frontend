@@ -65,6 +65,7 @@ export function GuideHeading({
           aria-hidden
           {...sm("split")}
           {...sm("train")}
+          // arbitrary: the train rests at 0% without motion (ADR-0002); the motion controller drives it
           className="[--train:0%]"
         >
           {before}
