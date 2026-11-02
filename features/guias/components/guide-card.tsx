@@ -38,7 +38,7 @@ export function GuideCard({ meta, priority = false }: Props): JSX.Element {
         />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5.5">
-        <h3 className="card-title text-ink group-hover:decoration-brand min-w-0 wrap-anywhere group-hover:underline group-hover:decoration-3 group-hover:underline-offset-4">
+        <h3 className="card-title text-ink group-hover:decoration-brand group-focus-visible:decoration-brand min-w-0 wrap-anywhere group-hover:underline group-hover:decoration-3 group-hover:underline-offset-4 group-focus-visible:underline group-focus-visible:decoration-3 group-focus-visible:underline-offset-4">
           {meta.menuTitle}
         </h3>
         <p className="body-sm text-ink-muted">{meta.bajada}</p>

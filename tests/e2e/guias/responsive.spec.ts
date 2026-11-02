@@ -259,3 +259,31 @@ test.describe("motion on: the lift exists where hover does (AC 12) @feature-guia
       .toBe("0px -2px");
   });
 });
+
+test.describe("card title underline on keyboard focus (AC 12, RV-0047) @feature-guias", () => {
+  for (const reducedMotion of ["no-preference", "reduce"] as const) {
+    test(`the title underlines when the card gets keyboard focus, motion ${reducedMotion}`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ reducedMotion });
+      await page.goto("/guias");
+      const card = page.getByRole("link", { name: /West Village/ });
+      const title = card.getByRole("heading", { level: 3 });
+      expect(
+        await title.evaluate((el) => getComputedStyle(el).textDecorationLine),
+      ).toBe("none");
+      // Tab to it, so :focus-visible matches (a mouse focus would not)
+      await page.locator("body").focus();
+      for (let i = 0; i < 60; i++) {
+        await page.keyboard.press("Tab");
+        if (await card.evaluate((el) => el === document.activeElement)) break;
+      }
+      await expect(card).toBeFocused();
+      await expect
+        .poll(() =>
+          title.evaluate((el) => getComputedStyle(el).textDecorationLine),
+        )
+        .toBe("underline");
+    });
+  }
+});

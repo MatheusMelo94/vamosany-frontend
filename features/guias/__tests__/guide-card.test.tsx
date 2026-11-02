@@ -77,4 +77,20 @@ describe("GuideCard (plan D-7, § 8; AC 10, 11, 12)", () => {
     expect(title.className).toContain("min-w-0");
     expect(title.className).toContain("wrap-anywhere");
   });
+
+  it("underlines the title on keyboard focus as well as on hover (AC 12, RV-0047)", () => {
+    render(<GuideCard meta={guideMeta("west-village")} />);
+    const classes = screen
+      .getByRole("heading", { level: 3 })
+      .className.split(" ");
+    for (const base of [
+      "underline",
+      "decoration-brand",
+      "decoration-3",
+      "underline-offset-4",
+    ]) {
+      expect(classes).toContain(`group-hover:${base}`);
+      expect(classes).toContain(`group-focus-visible:${base}`);
+    }
+  });
 });
