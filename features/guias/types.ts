@@ -54,7 +54,7 @@ export type GuideCta =
   /** 11 guides: the Doc's bold question and the button label. */
   | { lead: string; label: string }
   /** Visa: the "Te ayudo con tu visa" section is the band. */
-  | { heading: string; body: string; label: string };
+  | { id: string; heading: string; body: string; label: string };
 
 /** The lean part of a guide: imported by the navbar, so it stays small. */
 export type GuideMeta = {

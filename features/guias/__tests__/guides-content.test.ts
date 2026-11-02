@@ -1,4 +1,5 @@
 import { getGuide } from "@/features/guias/content/guides";
+import { tocItems } from "@/features/guias/content/toc";
 import type { Block, Guide, Inline } from "@/features/guias/types";
 import { plainText } from "./support/plain-text";
 
@@ -214,5 +215,75 @@ describe("Williamsburg (GU-12)", () => {
     const { cta } = guide("williamsburg");
     expect("lead" in cta && cta.lead.startsWith("¿Querés")).toBe(true);
     expect(cta.label).toBe("Quiero mi itinerario");
+  });
+});
+
+describe("Visa o ESTA (GU-13)", () => {
+  const g = () => guide("visa-a-estados-unidos");
+
+  it("has exactly one numbered list with the five steps (AC 15)", () => {
+    const lists = allBlocks(g()).filter((b) => b.type === "ol");
+    expect(lists).toHaveLength(1);
+    const list = lists[0];
+    expect(list?.type === "ol" && list.items).toHaveLength(5);
+  });
+
+  it("has the two official external links, both https (AC 20)", () => {
+    const external = inlines(g()).filter(
+      (i): i is Extract<Inline, { href: string }> =>
+        typeof i === "object" && "href" in i,
+    );
+    expect(external.map((i) => i.href)).toEqual([
+      "https://travel.state.gov/content/travel/en/us-visas/tourism-visit/visa-waiver-program.html",
+      "https://esta.cbp.dhs.gov/",
+    ]);
+  });
+
+  it("uses the explicit short section ids (spec rule 2)", () => {
+    expect(g().sections.map((s) => s.id)).toEqual([
+      "visa",
+      "esta",
+      "la-diferencia-en-resumen",
+      "no-sabes-cual-te-corresponde",
+    ]);
+  });
+
+  it("makes 'Te ayudo con tu visa' the band, keeping its id in the index (AC 18)", () => {
+    expect(g().cta).toEqual({
+      id: "te-ayudo-con-tu-visa",
+      heading: "Te ayudo con tu visa",
+      body: "Si sos de Uruguay y tenés que sacar la visa, me encargo de todo el proceso con vos: el formulario DS-160, la cita en la Embajada, buscar una fecha más cercana y prepararte para la entrevista.",
+      label: "Quiero gestionar mi visa",
+    });
+    expect(tocItems(g()).map((i) => i.id)).toEqual([
+      "visa",
+      "esta",
+      "la-diferencia-en-resumen",
+      "no-sabes-cual-te-corresponde",
+      "te-ayudo-con-tu-visa",
+    ]);
+  });
+
+  it("closes with the italic disclaimer as small print after the band", () => {
+    const after = g().afterCta;
+    expect(after).toHaveLength(1);
+    expect(after?.[0]?.type).toBe("fine");
+  });
+
+  it("has the 3 key facts with their sources (AC 16, 17)", () => {
+    expect(factSources(g())).toEqual([
+      "USD 185",
+      "foto de 5×5 cm",
+      "hasta 90 días",
+    ]);
+  });
+});
+
+describe("tocItems (index data)", () => {
+  it("uses the H2 text, or tocLabel when the section has one (spec rule 3)", () => {
+    const items = tocItems(guide("el-subte-explicado"));
+    expect(items.map((i) => i.label)).toContain("El tope semanal");
+    expect(items.map((i) => i.label)).toContain("Cómo se paga");
+    expect(items.find((i) => i.label === "El tope semanal")?.id).toBe("tope");
   });
 });

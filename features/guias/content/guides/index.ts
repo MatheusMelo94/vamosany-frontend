@@ -6,6 +6,7 @@ import { westVillage } from "@/features/guias/content/guides/west-village";
 import { murrayHill } from "@/features/guias/content/guides/murray-hill";
 import { financialDistrict } from "@/features/guias/content/guides/financial-district";
 import { williamsburg } from "@/features/guias/content/guides/williamsburg";
+import { visaAEstadosUnidos } from "@/features/guias/content/guides/visa-a-estados-unidos";
 import type { GuideSlug } from "@/features/guias/content/slugs";
 import type { GuideBody } from "@/features/guias/types";
 
@@ -23,4 +24,5 @@ export const BODIES: Partial<Record<GuideSlug, GuideBody>> = {
   "murray-hill": murrayHill,
   "financial-district": financialDistrict,
   williamsburg: williamsburg,
+  "visa-a-estados-unidos": visaAEstadosUnidos,
 };
