@@ -8,10 +8,11 @@ import type { Guide } from "@/features/guias/types";
  * Metadata ⨝ body ⨝ photo, in menu order (plan D-2). Server pages only: the
  * navbar must import `meta.ts`, never this module (it pulls every body).
  */
-export const GUIDES: readonly Guide[] = GUIDE_META.flatMap((meta) => {
-  const body = BODIES[meta.slug];
-  return body ? [{ ...meta, ...body, photo: GUIDE_PHOTOS[meta.slug] }] : [];
-});
+export const GUIDES: readonly Guide[] = GUIDE_META.map((meta) => ({
+  ...meta,
+  ...BODIES[meta.slug],
+  photo: GUIDE_PHOTOS[meta.slug],
+}));
 
 export function getGuide(slug: string): Guide | undefined {
   return GUIDES.find((guide) => guide.slug === (slug as GuideSlug));

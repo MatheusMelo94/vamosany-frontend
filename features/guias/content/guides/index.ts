@@ -14,11 +14,10 @@ import type { GuideSlug } from "@/features/guias/content/slugs";
 import type { GuideBody } from "@/features/guias/types";
 
 /**
- * Guide bodies by slug, one module each (plan D-2). Partial while the guides
- * land one task at a time; GU-17 tightens it to `Record<GuideSlug,
- * GuideBody>` so a missing guide is a compile error.
+ * Guide bodies by slug, one module each (plan D-2). A complete record: a
+ * missing guide is a compile error.
  */
-export const BODIES: Partial<Record<GuideSlug, GuideBody>> = {
+export const BODIES: Record<GuideSlug, GuideBody> = {
   "el-subte-explicado": elSubteExplicado,
   "desde-el-aeropuerto": desdeElAeropuerto,
   "caminar-por-new-york": caminarPorNewYork,

@@ -14,13 +14,9 @@ import { bodyUnits, plainText } from "./support/plain-text";
 
 /**
  * Spec AC 27, 28: the rendered text of each guide equals its section of
- * docs/content/guias.md after D1-D7 only. Parametrized over the bodies that
- * exist, so each guide task (GU-05 ... GU-16) turns its case on by
- * registering the body.
+ * docs/content/guias.md after D1-D7 only. Parametrized over all 12 bodies.
  */
-const present = GUIDE_META.filter((m) => BODIES[m.slug]).map(
-  (m) => [m.slug, m.title] as const,
-);
+const present = GUIDE_META.map((m) => [m.slug, m.title] as const);
 
 function compare(slug: GuideSlug, title: string, body: GuideBody) {
   const { units, unused } = expectedUnits(slug, sourceSection(title));
@@ -28,7 +24,7 @@ function compare(slug: GuideSlug, title: string, body: GuideBody) {
 }
 
 describe.each(present)("fidelity: %s", (slug, title) => {
-  const body = BODIES[slug] as GuideBody;
+  const body: GuideBody = BODIES[slug];
 
   it("renders the Doc's text block by block (D1-D7 only)", () => {
     expect(compare(slug, title, body).diffs).toEqual([]);
