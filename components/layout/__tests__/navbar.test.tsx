@@ -352,6 +352,73 @@ describe("Navbar › Guías (DDR-0012; AC 4, 5, 6, 7, 8)", () => {
   });
 });
 
+describe("Navbar › Guías footer row (DDR-0013)", () => {
+  afterEach(() => {
+    vi.mocked(usePathname).mockReturnValue("/");
+  });
+
+  it('puts "Todas las guías →" under the columns of the Guías panel, linking to /guias', async () => {
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    const panel = panelIn(container);
+    const link = within(panel).getByRole("link", { name: "Todas las guías" });
+    expect(link).toHaveAttribute("href", "/guias");
+    expect(link.querySelector("[aria-hidden]")).toHaveTextContent("→");
+    // last link of the panel: DOM order is Tab order
+    const links = within(panel).getAllByRole("link");
+    expect(links.at(-1)).toBe(link);
+    expect(links).toHaveLength(13);
+  });
+
+  it("is not a moving-marker item: the marker keeps following the 12 guides only", async () => {
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    const link = within(panelIn(container)).getByRole("link", {
+      name: "Todas las guías",
+    });
+    expect(link).not.toHaveAttribute("data-nav-item");
+    expect(panelIn(container).querySelectorAll("[data-nav-item]")).toHaveLength(
+      12,
+    );
+  });
+
+  it("is marked as the current page on /guias", async () => {
+    vi.mocked(usePathname).mockReturnValue("/guias");
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    const current = panelIn(container).querySelectorAll(
+      '[aria-current="page"]',
+    );
+    expect(current).toHaveLength(1);
+    expect(current[0]).toHaveAttribute("href", "/guias");
+  });
+
+  it("is not in the other panels", async () => {
+    const { container } = render(<Navbar />);
+    for (const label of ["Blog", "Servicios", "Sobre mí"]) {
+      await openPanel(label);
+      expect(
+        within(panelIn(container)).queryByRole("link", {
+          name: "Todas las guías",
+        }),
+      ).toBeNull();
+    }
+  });
+
+  it("is also the last row of the drawer's Guías group, and tapping it closes the drawer", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    const toggle = screen.getByRole("button", { name: "Abrir menú" });
+    await user.click(toggle);
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(within(menu).getByRole("button", { name: "Guías" }));
+    const link = within(menu).getByRole("link", { name: "Todas las guías" });
+    expect(link).toHaveAttribute("href", "/guias");
+    await user.click(link);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+});
+
 describe("Navbar item destinations (RV-0010)", () => {
   const titles = NAV.flatMap((g) =>
     g.columns.flatMap((c) => c.items.map((i) => i.title)),

@@ -22,6 +22,9 @@ export type NavGroup = {
   /** Desktop panel shows each item as a bordered box of equal size with
    *  "Ver detalles" at its foot (Servicios, DDR-0010). */
   cards?: boolean;
+  /** An extra, unnumbered row at the foot of the desktop panel and of the
+   *  drawer group (DDR-0013: "Todas las guías →" on Guías). */
+  footerLink?: { label: string; href: string };
 };
 
 /** Language menu options, shared by the desktop menu and the drawer. */

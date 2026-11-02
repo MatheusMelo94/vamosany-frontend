@@ -50,3 +50,11 @@ describe("NAV › Guías (DDR-0012)", () => {
     expect(titles).toContain("Caminar por New York");
   });
 });
+
+describe("NAV › footer links (DDR-0013)", () => {
+  it("only the Guías group has one", () => {
+    expect(
+      NAV.filter((g) => g.footerLink).map((g) => [g.label, g.footerLink?.href]),
+    ).toEqual([["Guías", "/guias"]]);
+  });
+});

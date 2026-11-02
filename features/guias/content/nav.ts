@@ -22,4 +22,6 @@ export const GUIAS_NAV: NavGroup = {
       href: guideHref(meta.slug),
     })),
   })),
+  // DDR-0013: the front door of /guias, at the foot of the panel and the drawer group.
+  footerLink: { label: "Todas las guías", href: "/guias" },
 };

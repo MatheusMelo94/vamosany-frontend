@@ -27,8 +27,10 @@ export function isCurrentHref(
 
 /** True when one of the group's items is the current page. Never true for Services (`/#services`). */
 export function groupHasCurrent(group: NavGroup, pathname: string): boolean {
-  return group.columns.some((column) =>
-    column.items.some((item) => isCurrentHref(item.href, pathname)),
+  return (
+    group.columns.some((column) =>
+      column.items.some((item) => isCurrentHref(item.href, pathname)),
+    ) || isCurrentHref(group.footerLink?.href, pathname)
   );
 }
 

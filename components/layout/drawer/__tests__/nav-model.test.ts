@@ -112,3 +112,25 @@ describe("config invariant (spec § States Matrix › Empty)", () => {
     ).toThrow(/Hollow.*Nothing/);
   });
 });
+
+describe("the group's footer link counts as a current-page candidate (DDR-0013)", () => {
+  it("opens Guías by default on /guias and on a guide", () => {
+    expect(defaultOpenGroup(NAV, "/guias")).toBe("Guías");
+    expect(defaultOpenGroup(NAV, "/guias/west-village")).toBe("Guías");
+  });
+
+  it("holds the current page on /guias only through the footer link", () => {
+    expect(groupHasCurrent(group("Guías"), "/guias")).toBe(true);
+    expect(groupHasCurrent(group("Blog"), "/guias")).toBe(false);
+  });
+
+  it("is not triggered by a group without one", () => {
+    const fixture: NavGroup = {
+      label: "Fixture",
+      columns: [
+        { heading: "A", items: [{ title: "a", blurb: "a", href: "/a" }] },
+      ],
+    };
+    expect(groupHasCurrent(fixture, "/guias")).toBe(false);
+  });
+});

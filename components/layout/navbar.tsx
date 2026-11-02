@@ -308,6 +308,23 @@ export function Navbar(): JSX.Element {
                         </div>
                       ))}
                     </div>
+                    {/* DDR-0013: a row under the columns, not a marker item.
+                        relative: it paints above the marker's highlight. */}
+                    {group.footerLink ? (
+                      <div className="border-hairline relative border-t px-8 py-3">
+                        <Link
+                          href={group.footerLink.href}
+                          aria-current={
+                            isCurrent(group.footerLink.href)
+                              ? "page"
+                              : undefined
+                          }
+                          className="body-sm text-ink hover:bg-surface-1 inline-flex min-h-10 items-center gap-1.5 rounded-xl px-3 font-semibold underline-offset-4 transition-colors hover:underline"
+                        >
+                          {group.footerLink.label} <span aria-hidden>→</span>
+                        </Link>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </li>

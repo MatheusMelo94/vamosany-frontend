@@ -43,4 +43,11 @@ describe("GUIAS_NAV", () => {
     expect(titles).toContain("Visa a Estados Unidos");
     expect(titles.join("|")).not.toContain("Visa o ESTA");
   });
+
+  it('ends with the "Todas las guías" row to /guias (DDR-0013)', () => {
+    expect(GUIAS_NAV.footerLink).toEqual({
+      label: "Todas las guías",
+      href: "/guias",
+    });
+  });
 });
