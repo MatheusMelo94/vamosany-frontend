@@ -11,7 +11,9 @@ import { MoreInGroup } from "@/features/guias/components/more-in-group";
 import { Pager } from "@/features/guias/components/pager";
 import { GROUPS } from "@/features/guias/content/groups";
 import { tocItems } from "@/features/guias/content/toc";
+import { GuiasMotion } from "@/features/guias/motion/guias-motion";
 import type { Guide } from "@/features/guias/types";
+import { sm } from "@/features/sobre-mi/motion/attributes";
 
 /**
  * One guide (spec § Page Structure › Guide page): breadcrumb, head, hero, a 2px
@@ -25,7 +27,8 @@ export function GuidePage({ guide }: { guide: Guide }): JSX.Element {
   const toc = tocItems(guide);
 
   return (
-    <div className="container-ds pb-16">
+    <div {...sm("scene", "guias")} className="container-ds pb-16">
+      <GuiasMotion />
       <div className="pt-9 md:pt-14">
         <Breadcrumb group={group} />
       </div>
