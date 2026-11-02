@@ -5,6 +5,7 @@ import { comoMovertePorNewYork } from "@/features/guias/content/guides/como-move
 import { westVillage } from "@/features/guias/content/guides/west-village";
 import { murrayHill } from "@/features/guias/content/guides/murray-hill";
 import { financialDistrict } from "@/features/guias/content/guides/financial-district";
+import { williamsburg } from "@/features/guias/content/guides/williamsburg";
 import type { GuideSlug } from "@/features/guias/content/slugs";
 import type { GuideBody } from "@/features/guias/types";
 
@@ -21,4 +22,5 @@ export const BODIES: Partial<Record<GuideSlug, GuideBody>> = {
   "west-village": westVillage,
   "murray-hill": murrayHill,
   "financial-district": financialDistrict,
+  williamsburg: williamsburg,
 };

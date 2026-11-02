@@ -204,3 +204,15 @@ describe("Financial District (GU-11)", () => {
     expect(cta.label).toBe("Quiero mi itinerario");
   });
 });
+
+describe("Williamsburg (GU-12)", () => {
+  it("has no key-facts box: nothing is invented to fill one (AC 16)", () => {
+    expect(guide("williamsburg").keyFacts).toBeUndefined();
+  });
+
+  it("ends with the standard band: a lead and 'Quiero mi itinerario' (AC 18)", () => {
+    const { cta } = guide("williamsburg");
+    expect("lead" in cta && cta.lead.startsWith("¿Querés")).toBe(true);
+    expect(cta.label).toBe("Quiero mi itinerario");
+  });
+});
