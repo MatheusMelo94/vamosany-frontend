@@ -3,6 +3,7 @@
  * mega-menu and the mobile drawer (one concern per file, split out of
  * navbar.tsx in T007).
  */
+import { GUIAS_NAV } from "@/features/guias/content/nav";
 import { SOBRE_MI_NAV } from "@/features/sobre-mi/content/nav";
 
 export type NavItem = {
@@ -21,6 +22,9 @@ export type NavGroup = {
   /** Desktop panel shows each item as a bordered box of equal size with
    *  "Ver detalles" at its foot (Servicios, DDR-0010). */
   cards?: boolean;
+  /** An extra, unnumbered row at the foot of the desktop panel and of the
+   *  drawer group (DDR-0013: "Todas las guías →" on Guías). */
+  footerLink?: { label: string; href: string };
 };
 
 /** Language menu options, shared by the desktop menu and the drawer. */
@@ -33,68 +37,7 @@ export const LANGUAGES = [
 export type Lang = (typeof LANGUAGES)[number]["code"];
 
 export const NAV: NavGroup[] = [
-  {
-    label: "Guías",
-    columns: [
-      {
-        heading: "Moverte por la ciudad",
-        items: [
-          {
-            title: "El subte, explicado",
-            blurb: "Leé el mapa como una local.",
-          },
-          {
-            title: "Desde el aeropuerto",
-            blurb: "JFK, Newark y LaGuardia comparados.",
-          },
-          { title: "Taxi, Uber o subte", blurb: "Cuándo conviene cada uno." },
-          {
-            title: "Cómo moverte por New York",
-            blurb: "A pie, en subte, bus o ferry.",
-          },
-        ],
-      },
-      {
-        heading: "Barrios",
-        items: [
-          {
-            title: "West Village",
-            blurb: "Calles arboladas, brownstones y cafés con encanto.",
-          },
-          {
-            title: "Murray Hill",
-            blurb: "Tranquilo, céntrico y una gran base para alojarte.",
-          },
-          {
-            title: "Financial District",
-            blurb: "Wall Street, el Oculus y el Memorial del 11S.",
-          },
-          {
-            title: "Williamsburg",
-            blurb: "El Brooklyn creativo, con el skyline de frente.",
-          },
-        ],
-      },
-      {
-        heading: "Antes de viajar",
-        items: [
-          { title: "Visa a Estados Unidos", blurb: "El trámite, sin vueltas." },
-          {
-            title: "Cuánto cuesta un día en New York",
-            blurb: "Para armar tu presupuesto.",
-          },
-          {
-            title: "Qué llevar según la temporada",
-            blurb: "Siempre hace más frío (o más calor) de lo que pensás.",
-          },
-          {
-            title: "Entradas para Broadway",
-            blurb: "Dónde y cómo conseguirlas.",
-          },
-        ],
-      },
-    ],
-  },
+  GUIAS_NAV,
   {
     label: "Blog",
     columns: [

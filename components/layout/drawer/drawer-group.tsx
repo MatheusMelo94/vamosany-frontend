@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { Fragment, useId } from "react";
+import { Fragment, useId, type ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { NavGroup } from "@/components/layout/nav-config";
@@ -114,68 +114,110 @@ export function DrawerGroup({
                 {column.heading}
               </h3>
               <ul>
-                {column.items.map((item) => {
-                  const current = isCurrentHref(item.href, pathname);
-                  return (
-                    <li key={item.title}>
-                      <Link
-                        href={itemHref(item)}
-                        aria-current={current ? "page" : undefined}
-                        onClick={onNavigate}
-                        className={cn(
-                          "group/row border-surface-1 flex min-h-11 flex-wrap items-center gap-2 border-b py-1",
-                          FOCUS_RING,
-                        )}
-                      >
-                        {/* The row wraps only when even the title's narrowest
-                          form can't sit beside the tag and price (200% text,
-                          QA-0007): the line break uses its min-content basis,
-                          and it grows back to its natural width otherwise.
-                          Arbitrary value: a sizing keyword, no token exists. */}
-                        <span
-                          data-row-title
-                          className="body-sm text-ink max-w-max min-w-0 grow basis-[min-content] font-semibold underline-offset-4 group-hover/row:underline"
-                        >
-                          {item.title}
-                        </span>
-                        {item.tag ? (
-                          <span
-                            data-row-tag
-                            className="caption bg-brand text-ink max-w-full shrink-0 rounded-full px-2 py-0.5 font-semibold"
-                          >
-                            {item.tag}
-                          </span>
-                        ) : null}
-                        {/* Price, then the dot, at the row's end: the dot never
-                          overlaps the title, tag or price (DDR-0003). */}
-                        {item.price || current ? (
-                          <span className="ml-auto flex max-w-full shrink-0 items-center gap-2">
-                            {item.price ? (
-                              <span
-                                data-row-price
-                                className="body-sm text-ink min-w-0 text-right font-mono font-bold"
-                              >
-                                {item.price}
-                              </span>
-                            ) : null}
-                            {current ? (
-                              <span
-                                data-current-dot
-                                aria-hidden
-                                className="bg-brand size-1.5 rounded-full"
-                              />
-                            ) : null}
-                          </span>
-                        ) : null}
-                      </Link>
-                    </li>
-                  );
-                })}
+                {column.items.map((item) => (
+                  <li key={item.title}>
+                    <DrawerRow
+                      href={itemHref(item)}
+                      title={item.title}
+                      tag={item.tag}
+                      price={item.price}
+                      current={isCurrentHref(item.href, pathname)}
+                      onNavigate={onNavigate}
+                    />
+                  </li>
+                ))}
               </ul>
             </Fragment>
           ))}
+          {group.footerLink ? (
+            <div className="mt-3">
+              <DrawerRow
+                href={group.footerLink.href}
+                title={
+                  <>
+                    {group.footerLink.label} <span aria-hidden>→</span>
+                  </>
+                }
+                current={isCurrentHref(group.footerLink.href, pathname)}
+                onNavigate={onNavigate}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
+  );
+}
+
+type RowProps = {
+  href: string;
+  title: ReactNode;
+  tag?: string;
+  price?: string;
+  current: boolean;
+  onNavigate: () => void;
+};
+
+/** One row of a group body: the title, an optional tag and price, and the
+ *  current-page dot (DDR-0003). Items and the group's footer link share it. */
+function DrawerRow({
+  href,
+  title,
+  tag,
+  price,
+  current,
+  onNavigate,
+}: RowProps): JSX.Element {
+  return (
+    <Link
+      href={href}
+      aria-current={current ? "page" : undefined}
+      onClick={onNavigate}
+      className={cn(
+        "group/row border-surface-1 flex min-h-11 flex-wrap items-center gap-2 border-b py-1",
+        FOCUS_RING,
+      )}
+    >
+      {/* The row wraps only when even the title's narrowest
+        form can't sit beside the tag and price (200% text,
+        QA-0007): the line break uses its min-content basis,
+        and it grows back to its natural width otherwise.
+        Arbitrary value: a sizing keyword, no token exists. */}
+      <span
+        data-row-title
+        className="body-sm text-ink max-w-max min-w-0 grow basis-[min-content] font-semibold underline-offset-4 group-hover/row:underline"
+      >
+        {title}
+      </span>
+      {tag ? (
+        <span
+          data-row-tag
+          className="caption bg-brand text-ink max-w-full shrink-0 rounded-full px-2 py-0.5 font-semibold"
+        >
+          {tag}
+        </span>
+      ) : null}
+      {/* Price, then the dot, at the row's end: the dot never
+        overlaps the title, tag or price (DDR-0003). */}
+      {price || current ? (
+        <span className="ml-auto flex max-w-full shrink-0 items-center gap-2">
+          {price ? (
+            <span
+              data-row-price
+              className="body-sm text-ink min-w-0 text-right font-mono font-bold"
+            >
+              {price}
+            </span>
+          ) : null}
+          {current ? (
+            <span
+              data-current-dot
+              aria-hidden
+              className="bg-brand size-1.5 rounded-full"
+            />
+          ) : null}
+        </span>
+      ) : null}
+    </Link>
   );
 }

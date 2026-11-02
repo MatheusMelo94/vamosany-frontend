@@ -2,6 +2,8 @@ import type { JSX } from "react";
 import Link from "next/link";
 import { ArrowRight } from "@/components/ui/icons";
 import { BrandLogo } from "@/components/ui/brand-logo";
+import { GUIDE_META } from "@/features/guias/content/meta";
+import { guideHref } from "@/features/guias/content/queries";
 
 const TOP_LINKS = [
   "Mi historia",
@@ -17,7 +19,7 @@ const COLUMNS = [
     links: [
       "El subte, explicado",
       "Desde el aeropuerto",
-      "Taxi, Uber o subte",
+      "Caminar por New York",
       "Cómo moverte por New York",
       "Visa a Estados Unidos",
       "Cuánto cuesta un día en New York",
@@ -48,6 +50,11 @@ const COLUMNS = [
     ],
   },
 ];
+
+/** The Guías column's entries are links to their guide and read like the menu ("Caminar por New York"): DDR-0014. Every other footer link is still a placeholder. */
+const GUIDE_HREFS = new Map(
+  GUIDE_META.map((meta) => [meta.menuTitle, guideHref(meta.slug)]),
+);
 
 const SOCIALS = ["X", "in", "f", "IG"];
 
@@ -102,7 +109,11 @@ export function Footer(): JSX.Element {
                 {column.links.map((link) => (
                   <li key={link}>
                     <Link
-                      href="#"
+                      href={
+                        column.heading === "Guías"
+                          ? (GUIDE_HREFS.get(link) ?? "#")
+                          : "#"
+                      }
                       className="body-sm text-inverse-ink/55 hover:text-inverse-ink inline-flex items-center gap-1.5 transition-colors"
                     >
                       {link}

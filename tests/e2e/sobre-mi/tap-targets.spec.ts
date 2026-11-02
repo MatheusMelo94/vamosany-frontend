@@ -174,6 +174,6 @@ test.describe("phone navbar hit areas (QA-0004, RV-0006) @feature-sobre-mi", () 
       }
       rows += n;
     }
-    expect(rows).toBe(25); // 12 + 4 + 4 + 5
+    expect(rows).toBe(26); // 12 + 1 ("Todas las guías", DDR-0013) + 4 + 4 + 5
   });
 });

@@ -2,5 +2,13 @@
   "/": {
     "baseline": 178492,
     "runtimeAllowanceBytes": 1000
+  },
+  "/guias": {
+    "baseline": 128221,
+    "runtimeAllowanceBytes": 1000
+  },
+  "/guias/[slug]": {
+    "baseline": 128599,
+    "runtimeAllowanceBytes": 1000
   }
 }

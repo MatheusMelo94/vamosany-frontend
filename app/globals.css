@@ -70,6 +70,12 @@
   --container-rows: 47.5rem; /* 760px: audience rows side by side */
   --container-fields: 35rem; /* 560px: two form fields per row */
   --container-timeline-sm: 32.5rem; /* 520px: timeline tag beside the line */
+  /* Container-query switch points for the Guías pages (plan D-9, accepted
+     2026-11-02). Structural widths of <main>, not design tokens (the Sobre mí
+     precedent above). Used as @guide-facts:, @guide-aside:, @guide-cards:. */
+  --container-guide-facts: 35.0625rem; /* 561px: key facts in 3 columns, cards in 2, pager in 2 */
+  --container-guide-aside: 60.0625rem; /* 961px: reading column beside the aside */
+  --container-guide-cards: 62.5625rem; /* 1001px: four card columns */
 
   /* Type sizes below the base scale */
   --text-2xs: 0.5625rem;
@@ -601,4 +607,40 @@ main > .pin-spacer {
       z-index: 1;
     }
   }
+}
+
+/* Guías pages (DDR-0012). `tall`: the aside is sticky only when the viewport
+   is at least 720px tall; container queries cannot see height. */
+@custom-variant tall (@media (min-height: 45rem));
+
+/* Guide lists: no native bullets; each item gets a 10px yellow square with a
+   1.5px ink border. A pseudo-element, so it is a utility, not @apply. */
+@utility guide-list {
+  list-style: none;
+  padding-left: 0;
+
+  & > li {
+    position: relative;
+    padding-left: calc(var(--spacing) * 6);
+  }
+
+  & > li::before {
+    content: "";
+    position: absolute;
+    top: 0.5em;
+    left: 0;
+    box-sizing: border-box;
+    width: 0.625rem;
+    height: 0.625rem;
+    border: 1.5px solid var(--color-ink);
+    background: var(--color-brand);
+  }
+}
+
+/* Guías pages: keyboard focus scrolls an element at least 7rem (the sticky
+   navbar plus breathing room) from the top edge, so a focused link is never
+   hidden under the floating navbar (WCAG 2.4.11). `[data-sm-scene="guias"]`
+   is the page root the motion controller already uses. */
+[data-sm-scene="guias"] :is(a, button, summary) {
+  scroll-margin-top: calc(var(--spacing) * 28);
 }
