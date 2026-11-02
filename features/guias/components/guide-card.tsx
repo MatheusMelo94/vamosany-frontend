@@ -24,7 +24,7 @@ export function GuideCard({ meta, priority = false }: Props): JSX.Element {
   return (
     <Link
       href={guideHref(meta.slug)}
-      className="group border-ink bg-canvas flex h-full min-w-0 flex-col overflow-hidden rounded-lg border-2 transition-transform duration-150 ease-(--ease-default) hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      className="group border-ink bg-canvas flex h-full min-w-0 flex-col overflow-hidden rounded-lg border-2 transition-transform duration-(--duration-fast) ease-(--ease-default) hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
       <div className="bg-surface-1 relative aspect-3/2">
         <Image

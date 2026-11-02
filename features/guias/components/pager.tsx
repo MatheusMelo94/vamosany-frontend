@@ -4,9 +4,9 @@ import { guideHref, nextGuide } from "@/features/guias/content/queries";
 import type { GuideSlug } from "@/features/guias/content/slugs";
 import { cn } from "@/lib/utils";
 
-/** Same 2px lift as buttons and cards; `hover:` only applies where hover exists, reduced motion removes it. */
+/** Same 2px lift as buttons and cards, on --duration-fast (RV-0044); `hover:` only applies where hover exists, reduced motion removes it. */
 const CELL =
-  "tap-target border-hairline hover:border-ink flex flex-col gap-1 rounded-xl border p-4 transition-[border-color,transform] duration-150 ease-(--ease-default) hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0";
+  "tap-target border-hairline hover:border-ink flex flex-col gap-1 rounded-xl border p-4 transition-[border-color,transform] duration-(--duration-fast) ease-(--ease-default) hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 
 /**
  * End-of-guide navigation: back to all guides, and on to the next guide in

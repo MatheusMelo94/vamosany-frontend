@@ -66,3 +66,17 @@ describe("focus never lands under the floating navbar (WCAG 2.4.11; AC 39)", () 
     expect(rule).toContain("scroll-margin-top: calc(var(--spacing) * 28);");
   });
 });
+
+describe("hover transitions use the motion token (RV-0044)", () => {
+  it.each(["guide-card.tsx", "pager.tsx"])(
+    "%s takes its duration from --duration-fast, not a magic number",
+    (file) => {
+      const source = readFileSync(
+        path.resolve(__dirname, "../components", file),
+        "utf8",
+      );
+      expect(source).toContain("duration-(--duration-fast)");
+      expect(source).not.toMatch(/\bduration-\d+\b/);
+    },
+  );
+});
