@@ -143,3 +143,28 @@ describe("Caminar por New York (GU-07)", () => {
     expect(labels).toEqual(["High Line", "Brooklyn Bridge", "Central Park"]);
   });
 });
+
+describe("Cómo moverte por New York (GU-08)", () => {
+  const g = () => guide("como-moverte-por-new-york");
+
+  it("has the 3 key facts with their sources (AC 16, 17)", () => {
+    expect(factSources(g())).toEqual([
+      "USD 3 por viaje",
+      "Staten Island Ferry (gratis)",
+      "dentro de las dos horas",
+    ]);
+  });
+
+  it("links to 'El subte, explicado' without brackets (D3, AC 20)", () => {
+    expect(inlines(g())).toContainEqual({ guide: "el-subte-explicado" });
+    expect(plainText(g())).not.toMatch(/[[\]]/);
+  });
+
+  it("keeps the ferry labels as H3 (D1)", () => {
+    const labels = g()
+      .sections.flatMap((s) => s.blocks)
+      .filter((b) => b.type === "h3")
+      .map((b) => b.type === "h3" && b.text);
+    expect(labels).toEqual(["Staten Island Ferry (gratis)", "NYC Ferry"]);
+  });
+});
