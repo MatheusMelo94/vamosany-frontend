@@ -1,0 +1,136 @@
+import { BODIES } from "@/features/guias/content/guides/index";
+import { GUIDE_META } from "@/features/guias/content/meta";
+import type { GuideSlug } from "@/features/guias/content/slugs";
+import type { GuideBody } from "@/features/guias/types";
+import {
+  DOC_EXCEPTIONS,
+  diffUnits,
+  docUnits,
+  expectedUnits,
+  type DocException,
+} from "./support/fidelity";
+import { sourceSection } from "./support/guide-source";
+import { bodyUnits, plainText } from "./support/plain-text";
+
+/**
+ * Spec AC 27, 28: the rendered text of each guide equals its section of
+ * docs/content/guias.md after D1-D7 only. Parametrized over the bodies that
+ * exist, so each guide task (GU-05 ... GU-16) turns its case on by
+ * registering the body.
+ */
+const present = GUIDE_META.filter((m) => BODIES[m.slug]).map(
+  (m) => [m.slug, m.title] as const,
+);
+
+function compare(slug: GuideSlug, title: string, body: GuideBody) {
+  const { units, unused } = expectedUnits(slug, sourceSection(title));
+  return { diffs: diffUnits(bodyUnits(body), units), unused };
+}
+
+describe.each(present)("fidelity: %s", (slug, title) => {
+  const body = BODIES[slug] as GuideBody;
+
+  it("renders the Doc's text block by block (D1-D7 only)", () => {
+    expect(compare(slug, title, body).diffs).toEqual([]);
+  });
+
+  it("consumes every exception that targets this guide (no dead exception)", () => {
+    expect(compare(slug, title, body).unused).toEqual([]);
+  });
+});
+
+describe("the fidelity harness (it proves it can fail)", () => {
+  const section = sourceSection("West Village");
+  const sample: GuideBody = {
+    intro: [{ type: "p", text: ["Si hay un barrio."] }],
+    sections: [],
+    cta: { lead: "¿Querés?", label: "Quiero mi itinerario" },
+  };
+
+  it("reads the Doc into tagged units (D1, D4, D5, D7)", () => {
+    const units = docUnits(section);
+    expect(units[0]).toMatch(/^P\|Si hay un barrio de New York/);
+    expect(units).toContain("H2|Por qué lo amo");
+    expect(units).toContain(
+      "LI|Bleecker Street: la calle principal del barrio, con tiendas, cafés y pastelerías.",
+    );
+    expect(units.slice(-2)).toEqual([
+      "CTA|¿Querés recorrer el West Village en tu viaje?",
+      "BTN|Quiero mi itinerario",
+    ]);
+  });
+
+  it("turns bold own-line labels into H3 and drops export noise", () => {
+    const units = docUnits(sourceSection("Desde el aeropuerto"));
+    expect(units).toContain("H3|AirTrain + subte (la opción más económica)");
+    expect(units).toContain(
+      "P|El AirTrain conecta todas las terminales con las estaciones Jamaica y Howard Beach, donde tomás el subte. Desde Jamaica, la línea E te lleva directo a Midtown; desde Howard Beach, la línea A va a Lower Manhattan y al West Side.",
+    );
+    expect(units.join("\n")).not.toContain("*");
+  });
+
+  it("turns 'Mi pique:' paragraphs into TIP units without the label (D4)", () => {
+    const tips = docUnits(sourceSection("El subte, explicado")).filter((u) =>
+      u.startsWith("TIP|"),
+    );
+    expect(tips).toHaveLength(2);
+    expect(tips[0]).toMatch(/^TIP\|yo uso Apple Pay\./);
+  });
+
+  it("flags a deliberately altered guide with a diff", () => {
+    const expected = docUnits(section);
+    const diffs = diffUnits(bodyUnits(sample), expected);
+    expect(diffs.length).toBeGreaterThan(0);
+  });
+
+  it("fails on a single changed word, a dropped '¿', 'x' for '×' and '8.75' for '8,75'", () => {
+    const base = ["P|¿Cuánto cuesta? USD 8,75 y una foto de 5×5 cm."];
+    const probe = (text: string) =>
+      diffUnits(
+        bodyUnits({
+          ...sample,
+          intro: [{ type: "p", text: [text] }],
+          cta: sample.cta,
+        }).slice(0, 1),
+        base,
+      );
+    expect(probe("¿Cuánto cuesta? USD 8,75 y una foto de 5×5 cm.")).toEqual([]);
+    expect(probe("¿Cuánto cuesta? USD 8,75 y una foto de 5x5 cm.")).not.toEqual(
+      [],
+    );
+    expect(probe("Cuánto cuesta? USD 8,75 y una foto de 5×5 cm.")).not.toEqual(
+      [],
+    );
+    expect(probe("¿Cuánto cuesta? USD 8.75 y una foto de 5×5 cm.")).not.toEqual(
+      [],
+    );
+    expect(probe("¿Cuánto cuesta? USD 9,75 y una foto de 5×5 cm.")).not.toEqual(
+      [],
+    );
+  });
+
+  it("reports a dead exception", () => {
+    const dead: DocException = {
+      id: "never matches",
+      slug: "west-village",
+      reason: "test",
+      apply: () => null,
+    };
+    expect(expectedUnits("west-village", section, [dead]).unused).toEqual([
+      "never matches",
+    ]);
+  });
+
+  it("documents each exception with its spec reason", () => {
+    expect(DOC_EXCEPTIONS.length).toBeGreaterThanOrEqual(4);
+    for (const exception of DOC_EXCEPTIONS) {
+      expect(exception.reason).toMatch(/Spec §/);
+    }
+  });
+
+  it("plainText drops the tags and keeps one line per block", () => {
+    expect(plainText(sample)).toBe(
+      "Si hay un barrio.\n¿Querés?\nQuiero mi itinerario",
+    );
+  });
+});
