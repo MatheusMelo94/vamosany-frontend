@@ -2,7 +2,7 @@
 
 - **Severity:** LOW
 - **Found by:** E2E
-- **Status:** Open
+- **Status:** Fixed (by 69d2d08: one menu e2e test per item, and a hydration-safe GSAP probe)
 - **Posture:** Production
 - **Environment:** chromium tablet-768, `next start` from e2885e5, --workers=2 on a machine with load average ~19 (other agents building)
 
