@@ -168,3 +168,15 @@ describe("Cómo moverte por New York (GU-08)", () => {
     expect(labels).toEqual(["Staten Island Ferry (gratis)", "NYC Ferry"]);
   });
 });
+
+describe("West Village (GU-09)", () => {
+  it("has no key-facts box: nothing is invented to fill one (AC 16)", () => {
+    expect(guide("west-village").keyFacts).toBeUndefined();
+  });
+
+  it("ends with the standard band: a lead and 'Quiero mi itinerario' (AC 18)", () => {
+    const { cta } = guide("west-village");
+    expect("lead" in cta && cta.lead.startsWith("¿Querés")).toBe(true);
+    expect(cta.label).toBe("Quiero mi itinerario");
+  });
+});

@@ -2,6 +2,7 @@ import { elSubteExplicado } from "@/features/guias/content/guides/el-subte-expli
 import { desdeElAeropuerto } from "@/features/guias/content/guides/desde-el-aeropuerto";
 import { caminarPorNewYork } from "@/features/guias/content/guides/caminar-por-new-york";
 import { comoMovertePorNewYork } from "@/features/guias/content/guides/como-moverte-por-new-york";
+import { westVillage } from "@/features/guias/content/guides/west-village";
 import type { GuideSlug } from "@/features/guias/content/slugs";
 import type { GuideBody } from "@/features/guias/types";
 
@@ -15,4 +16,5 @@ export const BODIES: Partial<Record<GuideSlug, GuideBody>> = {
   "desde-el-aeropuerto": desdeElAeropuerto,
   "caminar-por-new-york": caminarPorNewYork,
   "como-moverte-por-new-york": comoMovertePorNewYork,
+  "west-village": westVillage,
 };
