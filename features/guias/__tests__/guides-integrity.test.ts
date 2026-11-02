@@ -14,6 +14,12 @@ const VISA_IDS = [
   "te-ayudo-con-tu-visa",
 ];
 
+/** Explicit ids that are not slugify(h2): the fare-cap section is `#tope` (spec AC 26). */
+const EXPLICIT_IDS: Record<string, string[]> = {
+  "visa-a-estados-unidos": VISA_IDS,
+  "el-subte-explicado": ["tope"],
+};
+
 function allInlines(body: GuideBody): Inline[] {
   const blocks: Block[] = [
     ...body.intro,
@@ -43,13 +49,11 @@ describe.each(GUIDES.map((g) => [g.slug, g] as const))(
       expect(new Set(ids).size).toBe(ids.length);
     });
 
-    it("derives each id from the H2 text (slugify), except Visa's explicit ids", () => {
+    it("derives each id from the H2 text (slugify), except the explicit ids", () => {
+      const explicit = EXPLICIT_IDS[guide.slug] ?? [];
       for (const section of guide.sections) {
-        if (guide.slug === "visa-a-estados-unidos") {
-          expect(VISA_IDS).toContain(section.id);
-        } else {
-          expect(section.id).toBe(slugify(section.title));
-        }
+        if (explicit.includes(section.id)) continue;
+        expect(section.id).toBe(slugify(section.title));
       }
     });
 
