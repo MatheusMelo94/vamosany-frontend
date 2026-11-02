@@ -31,7 +31,7 @@ export function GuideTocDetails({ items }: { items: TocItem[] }): JSX.Element {
                 ref.current?.removeAttribute("open");
                 document.getElementById(id)?.focus({ preventScroll: true });
               }}
-              className="tap-target body-sm hover:bg-surface-1 -ml-1 block rounded-lg px-1 py-2.5"
+              className="tap-target body-sm hover:bg-surface-1 -ml-1 block rounded-lg px-1 py-3"
             >
               {label}
             </a>
