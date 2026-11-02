@@ -636,3 +636,11 @@ main > .pin-spacer {
     background: var(--color-brand);
   }
 }
+
+/* Guías pages: keyboard focus scrolls an element at least 7rem (the sticky
+   navbar plus breathing room) from the top edge, so a focused link is never
+   hidden under the floating navbar (WCAG 2.4.11). `[data-sm-scene="guias"]`
+   is the page root the motion controller already uses. */
+[data-sm-scene="guias"] :is(a, button, summary) {
+  scroll-margin-top: calc(var(--spacing) * 28);
+}

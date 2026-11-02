@@ -55,3 +55,14 @@ describe("the guide-list utility (yellow square marker)", () => {
     expect(block).toContain("list-style: none;");
   });
 });
+
+describe("focus never lands under the floating navbar (WCAG 2.4.11; AC 39)", () => {
+  const rule =
+    /\[data-sm-scene="guias"\] :is\(a, button, summary\) \{([\s\S]*?)\}/.exec(
+      css,
+    )?.[1] ?? "";
+
+  it("gives the Guías page's links, buttons and summaries a 7rem scroll margin", () => {
+    expect(rule).toContain("scroll-margin-top: calc(var(--spacing) * 28);");
+  });
+});

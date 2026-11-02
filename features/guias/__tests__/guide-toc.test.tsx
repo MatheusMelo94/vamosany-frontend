@@ -198,4 +198,120 @@ describe("GuideToc (plan § 7, § 10; AC 22, 23, 36)", () => {
     }
     cleanup();
   });
+
+  describe("a #hash on load (AC 26)", () => {
+    const scrollIntoView = vi.fn();
+    beforeEach(() => {
+      scrollIntoView.mockClear();
+      Element.prototype.scrollIntoView = scrollIntoView;
+    });
+    afterEach(() => {
+      window.history.replaceState(null, "", "/");
+    });
+
+    it("aligns the named section instantly, so the scroll margin keeps it clear of the navbar", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      window.history.replaceState(null, "", "/#tope");
+      render(<GuideToc items={ITEMS} />);
+      expect(scrollIntoView).toHaveBeenCalledWith({
+        block: "start",
+        behavior: "instant",
+      });
+      expect(scrollIntoView.mock.contexts[0]).toBe(
+        document.getElementById("tope"),
+      );
+      cleanup();
+    });
+
+    it("lets go of the focus the browser put on the heading, so no ring shows on load", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      window.history.replaceState(null, "", "/#tope");
+      document.getElementById("tope")?.focus();
+      expect(document.activeElement).toBe(document.getElementById("tope"));
+      render(<GuideToc items={ITEMS} />);
+      expect(document.activeElement).toBe(document.body);
+      cleanup();
+    });
+
+    it("keeps the focus a visitor moved to the heading by clicking the index", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      window.history.replaceState(null, "", "/#tope");
+      render(<GuideToc items={ITEMS} />);
+      fireEvent.pointerDown(screen.getByRole("link", { name: "Otros datos" }));
+      fireEvent.click(screen.getByRole("link", { name: "Otros datos" }));
+      window.dispatchEvent(new Event("scrollend"));
+      expect(document.activeElement).toBe(
+        document.getElementById("otros-datos"),
+      );
+      cleanup();
+    });
+
+    it("aligns again once the browser's own scroll ends (it may have been cut short by the page's layout)", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      window.history.replaceState(null, "", "/#tope");
+      render(<GuideToc items={ITEMS} />);
+      scrollIntoView.mockClear();
+      window.dispatchEvent(new Event("scrollend"));
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      cleanup();
+    });
+
+    it("stops re-aligning once the visitor scrolls or types", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      window.history.replaceState(null, "", "/#tope");
+      render(<GuideToc items={ITEMS} />);
+      scrollIntoView.mockClear();
+      window.dispatchEvent(new Event("wheel"));
+      window.dispatchEvent(new Event("scrollend"));
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      cleanup();
+    });
+
+    it("ignores a hash that names no section of the guide", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      window.history.replaceState(null, "", "/#no-existe");
+      render(<GuideToc items={ITEMS} />);
+      window.dispatchEvent(new Event("scrollend"));
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      cleanup();
+    });
+
+    it("never aligns without a hash, and never throws on a malformed one", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      render(<GuideToc items={ITEMS} />);
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      window.history.replaceState(null, "", "/#%E0%A4%A");
+      expect(() => render(<GuideToc items={ITEMS} />)).not.toThrow();
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      cleanup();
+    });
+  });
 });

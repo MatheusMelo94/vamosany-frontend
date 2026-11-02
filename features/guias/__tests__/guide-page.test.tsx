@@ -136,6 +136,17 @@ describe("GuidePage", () => {
     expect(aside.className).not.toMatch(/(^|\s)sticky/);
   });
 
+  it("caps the sticky aside to the viewport and lets it scroll inside, so no link is unreachable (AC 21, 25)", () => {
+    const { container } = page("el-subte-explicado");
+    const aside = container.querySelector("aside") as HTMLElement;
+    expect(aside.className).toContain(
+      "@guide-aside:tall:max-h-[calc(100svh-8rem)]",
+    );
+    expect(aside.className).toContain("@guide-aside:tall:overflow-y-auto");
+    // room inside the scroll container for the 3px focus ring and its offset
+    expect(aside.className).toContain("@guide-aside:tall:p-2");
+  });
+
   it("has exactly one level-1 and never skips a heading level", () => {
     const { container } = page("desde-el-aeropuerto");
     const levels = [...container.querySelectorAll("h1,h2,h3,h4,h5,h6")].map(

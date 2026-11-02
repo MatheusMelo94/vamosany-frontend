@@ -67,9 +67,10 @@ export function GuidePage({ guide }: { guide: Guide }): JSX.Element {
           ) : null}
           <Pager slug={guide.slug} />
         </article>
+        {/* arbitrary: the sticky aside never exceeds the viewport (100svh minus the 7rem top and 1rem breathing room); it scrolls inside, so its last link stays reachable on short or text-enlarged screens */}
         <aside
           aria-label="Más sobre esta guía"
-          className="@guide-aside:tall:sticky @guide-aside:tall:top-28 flex flex-col gap-4.5"
+          className="@guide-aside:tall:sticky @guide-aside:tall:top-28 @guide-aside:tall:max-h-[calc(100svh-8rem)] @guide-aside:tall:overflow-y-auto @guide-aside:tall:p-2 flex flex-col gap-4.5"
         >
           <GuideToc items={toc} />
           <MoreInGroup slug={guide.slug} />

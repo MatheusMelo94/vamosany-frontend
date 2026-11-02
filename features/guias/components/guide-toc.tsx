@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import { activeSectionId } from "@/features/guias/lib/active-section";
+import { useAlignToHash } from "@/features/guias/lib/use-align-to-hash";
 import type { TocItem } from "@/features/guias/content/toc";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,8 @@ const LINE = 120;
  */
 export function GuideToc({ items }: { items: TocItem[] }): JSX.Element {
   const [active, setActive] = useState<string | null>(null);
+  const ids = useMemo(() => items.map((item) => item.id), [items]);
+  useAlignToHash(ids);
 
   useEffect(() => {
     let frame = 0;
