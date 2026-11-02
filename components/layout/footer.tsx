@@ -51,7 +51,7 @@ const COLUMNS = [
   },
 ];
 
-/** The Guías column's entries are links to their guide (DDR-0012); every other footer link is still a placeholder. */
+/** The Guías column's entries are links to their guide and read like the menu ("Caminar por New York"): DDR-0014. Every other footer link is still a placeholder. */
 const GUIDE_HREFS = new Map(
   GUIDE_META.map((meta) => [meta.menuTitle, guideHref(meta.slug)]),
 );
