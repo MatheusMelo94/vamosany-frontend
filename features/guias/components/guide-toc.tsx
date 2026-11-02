@@ -10,6 +10,14 @@ import { cn } from "@/lib/utils";
 const LINE = 120;
 
 /**
+ * The index is `display: none` below the aside container width (961px,
+ * `--container-guide-aside`); the container is never wider than the viewport,
+ * so a viewport under this width means the index is certainly hidden and its
+ * scroll work is waste (RV-0046).
+ */
+const INDEX_VISIBLE = "(min-width: 961px)";
+
+/**
  * The aside's "En esta guía" index (≥961px): real anchors, the section being
  * read marked `aria-current="location"` with a yellow fill and bold weight (a
  * non-colour cue), and focus moved to the target H2 on click.
@@ -42,14 +50,30 @@ export function GuideToc({ items }: { items: TocItem[] }): JSX.Element {
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
-    // Once after hydration: covers a hash jump the browser already made.
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    return () => {
+    let listening = false;
+    const start = () => {
+      if (listening) return;
+      listening = true;
+      // Once on showing: covers a hash jump the browser already made.
+      update();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+    };
+    const stop = () => {
+      if (!listening) return;
+      listening = false;
       if (frame) cancelAnimationFrame(frame);
+      frame = 0;
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+    };
+    const media = window.matchMedia(INDEX_VISIBLE);
+    const sync = () => (media.matches ? start() : stop());
+    sync();
+    media.addEventListener("change", sync);
+    return () => {
+      media.removeEventListener("change", sync);
+      stop();
     };
   }, [items]);
 

@@ -44,7 +44,28 @@ function scrollTo(tops: Record<string, number>, atBottom = false) {
 }
 const frames: FrameRequestCallback[] = [];
 
+/** The (min-width: 961px) query the index gates its scroll work on (RV-0046). */
+const media = {
+  matches: true,
+  listeners: new Set<() => void>(),
+  setMatches(next: boolean) {
+    this.matches = next;
+    act(() => this.listeners.forEach((cb) => cb()));
+  },
+};
+
 beforeEach(() => {
+  media.matches = true;
+  media.listeners.clear();
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    get matches() {
+      return media.matches;
+    },
+    media: query,
+    addEventListener: (_: string, cb: () => void) => media.listeners.add(cb),
+    removeEventListener: (_: string, cb: () => void) =>
+      media.listeners.delete(cb),
+  }));
   vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
     frames.push(cb);
     return frames.length;
@@ -197,6 +218,50 @@ describe("GuideToc (plan § 7, § 10; AC 22, 23, 36)", () => {
       expect(link.className).toContain("tap-target");
     }
     cleanup();
+  });
+
+  describe("below the desktop index width (RV-0046)", () => {
+    it("does no scroll work while the index is hidden, and resumes when it shows", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": -600,
+        tope: 100,
+        "otros-datos": 700,
+      });
+      const spy = vi.spyOn(window, "addEventListener");
+      media.matches = false;
+      render(<GuideToc items={ITEMS} />);
+      expect(spy.mock.calls.map(([type]) => type)).not.toContain("scroll");
+      expect(spy.mock.calls.map(([type]) => type)).not.toContain("resize");
+      // No measuring pass either: nothing is marked active.
+      expect(
+        screen
+          .getAllByRole("link", { hidden: true })
+          .filter((a) => a.getAttribute("aria-current")),
+      ).toHaveLength(0);
+      media.setMatches(true);
+      expect(spy.mock.calls.map(([type]) => type)).toContain("scroll");
+      expect(
+        screen
+          .getAllByRole("link", { hidden: true })
+          .find((a) => a.getAttribute("aria-current"))?.textContent,
+      ).toBe("El tope semanal");
+      spy.mockRestore();
+      cleanup();
+    });
+
+    it("stops listening when the index hides again", () => {
+      const cleanup = mountHeadings({
+        "como-se-paga": 500,
+        tope: 900,
+        "otros-datos": 1400,
+      });
+      const remove = vi.spyOn(window, "removeEventListener");
+      render(<GuideToc items={ITEMS} />);
+      media.setMatches(false);
+      expect(remove.mock.calls.map(([type]) => type)).toContain("scroll");
+      remove.mockRestore();
+      cleanup();
+    });
   });
 
   describe("a #hash on load (AC 26)", () => {
