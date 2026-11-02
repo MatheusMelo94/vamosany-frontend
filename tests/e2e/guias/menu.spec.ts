@@ -55,31 +55,31 @@ async function openDrawerGuias(page: Page): Promise<Locator> {
 }
 
 test.describe("Guías menu: navigation @feature-guias", () => {
-  test("each of the 12 mega-menu items goes to its guide (AC 4)", async ({
-    page,
-  }) => {
-    test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
-    for (const [title, slug] of ITEMS) {
+  // One test per item (RV-0042, bug 0016): a single 12-navigation loop blew
+  // the 30 s budget under load and hid which item broke.
+  for (const [title, slug] of ITEMS) {
+    test(`mega-menu item "${title}" goes to its guide (AC 4)`, async ({
+      page,
+    }) => {
+      test.skip(!isDesktop(page), "mega-menu exists at >= 1024 only");
       await page.goto("/");
       const panel = await openMegaMenu(page);
       await panel.getByRole("link", { name: new RegExp(`^${title}`) }).click();
       await expect(page).toHaveURL(new RegExp(`/guias/${slug}$`));
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    }
-  });
+    });
 
-  test("each of the 12 drawer items goes to its guide and closes the drawer (AC 6)", async ({
-    page,
-  }) => {
-    test.skip(isDesktop(page), "the drawer exists below 1024 only");
-    for (const [title, slug] of ITEMS) {
+    test(`drawer item "${title}" goes to its guide and closes the drawer (AC 6)`, async ({
+      page,
+    }) => {
+      test.skip(isDesktop(page), "the drawer exists below 1024 only");
       await page.goto("/");
       const menu = await openDrawerGuias(page);
       await menu.getByRole("link", { name: title, exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`/guias/${slug}$`));
       await expect(drawer(page)).toHaveCount(0);
-    }
-  });
+    });
+  }
 
   test('"Taxi, Uber o subte" is nowhere in the navbar or the drawer (AC 5)', async ({
     page,

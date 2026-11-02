@@ -70,6 +70,10 @@ export function gsapPending(page: Page): Promise<number | null> {
       __e2eGsap?: Gsap;
       webpackChunk_N_E?: unknown[];
     };
+    // Requiring a module while the page is still hydrating can throw (a chunk
+    // whose dependencies are not registered yet: "e[o] is not a function",
+    // bug 0016). That means "not ready", never a failure: the caller polls.
+    let probeFailed = false;
     if (!w.__e2eGsap && w.webpackChunk_N_E) {
       let req: Req | undefined;
       w.webpackChunk_N_E.push([
@@ -86,7 +90,14 @@ export function gsapPending(page: Page): Promise<number | null> {
           !source.includes("getTweensOf")
         )
           continue;
-        for (const value of Object.values(req?.(id) ?? {})) {
+        let exports: Record<string, unknown> = {};
+        try {
+          exports = req?.(id) ?? {};
+        } catch {
+          probeFailed = true;
+          continue;
+        }
+        for (const value of Object.values(exports)) {
           const g = value as Partial<Gsap> | null;
           if (g?.globalTimeline && g.getTweensOf) {
             w.__e2eGsap = g as Gsap;
@@ -99,7 +110,9 @@ export function gsapPending(page: Page): Promise<number | null> {
     const g = w.__e2eGsap;
     // Without the motion gate nothing animates, loaded or not.
     if (!g)
-      return document.documentElement.classList.contains("gsap") ? null : 0;
+      return probeFailed || document.documentElement.classList.contains("gsap")
+        ? null
+        : 0;
     return g.globalTimeline.getChildren(false, true, true).filter(
       (a) =>
         !a.paused() &&

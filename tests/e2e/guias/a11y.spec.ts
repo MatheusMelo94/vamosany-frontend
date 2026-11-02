@@ -1,6 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { waitForMotionToSettle } from "../support/motion";
+import {
+  waitForMotionController,
+  waitForMotionToSettle,
+} from "../support/motion";
 
 /**
  * Accessibility of the Guías templates (spec § Accessibility Acceptance;
@@ -69,6 +72,8 @@ test.describe("axe @feature-guias", () => {
       "the details index is for < 961px",
     );
     await page.goto("/guias/el-subte-explicado");
+    // The motion controller has mounted before GSAP is probed (bug 0016).
+    await waitForMotionController(page);
     await waitForMotionToSettle(page);
     await page
       .locator("details > summary", { hasText: "En esta guía" })
