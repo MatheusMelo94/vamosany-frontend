@@ -4,7 +4,7 @@
 - **Date:** 2026-11-01
 - **Owner:** Matheus Melo
 - **Constitution reference:** serves the **Visitor** (constitution § Users, frontend addition: pre-customer, mostly on a phone) on 360 first, 1280 second. Public-site success criteria are not defined by the constitution yet ("nenhuma metrica propria em v1; a primeira feature spec de marketing define a metrica de conversao e amenda esta constituicao"). This spec proposes one (§ Success Criteria) but does **not** amend the constitution; that is a user decision (A-9).
-- **Related DDRs:** **DDR-0012** (this feature: Guías pages, menu swap, photos, motion scope). Builds on DDR-0011 (design system tokens, no new tokens here), DDR-0004 (motion on content pages; only M1 is extended here), DDR-0003 (navbar moving marker, now has real routes to mark), DDR-0002 (pattern for a menu group that gets real pages). All *Accepted*. Also ADR-0002 (`.gsap` gate), ADR-0003 (headless motion controllers), ADR-0006 (frozen landing and navbar).
+- **Related DDRs:** **DDR-0012** (this feature: Guías pages, menu swap, photos, motion scope). Builds on DDR-0011 (design system tokens, no new tokens here), DDR-0004 (motion on content pages; only M1 is extended here), DDR-0003 (navbar moving marker, now has real routes to mark), DDR-0002 (pattern for a menu group that gets real pages). All *Accepted*. **DDR-0013** ("Todas las guías" link in the menu) and **DDR-0014** (footer Guías column: text and links). Also ADR-0002 (`.gsap` gate), ADR-0003 (headless motion controllers), ADR-0006 (frozen landing and navbar).
 - **Backend contract:** none. Static content owned by the frontend. No endpoint, no Server Action, no form (§ Data Dependencies).
 - **Content source:** `docs/content/guias.md` (Belén's Google Doc, section GUIDES, exported 2026-11-01). **Verbatim, no rewriting** (§ Content Fidelity).
 - **Approved prototype:** https://claude.ai/artifact/UcHUFFiweoJnuvBWu9vfMA (two templates: Guías home; one guide, shown with "El subte, explicado"). It is the visual and structural source of truth for layout, tokens and the two templates. **The photos are not in the prototype**; they are a later user decision (§ Photos). The prototype is illustration; **this text is the contract**. Where the two differ, § Where This Spec and the Prototype Differ lists it.
@@ -270,8 +270,8 @@ Cross-cutting conditions (apply to every screen above):
 | Condition | What the Visitor gets |
 |---|---|
 | **No JS** | Everything readable and navigable: all text, the hero, the credit, links, the pager, the CTA. The index links are plain anchors and work; the mobile `<details>` opens natively; there is no active-section highlight (no item is marked active); the heading marker sits in place (no entrance). Nothing is hidden waiting for a script. |
-| **Reduced motion** (`prefers-reduced-motion: reduce`, i.e. no `.gsap` class per ADR-0002) | No heading entrance: eyebrow, H1 with the marker in place, and dek are visible immediately, no transforms. Smooth scroll off (jump to anchors). Hover lift off (cards, buttons, pager cells keep their border/background change only). The index highlight changes instantly. |
-| **200% text size** (text-only enlargement) and **200% browser zoom** (640 CSS px at a 1280 window) | No loss of content, no horizontal scroll, no overlap. 200% zoom lands in the ≤960 layout automatically (single column, `<details>` index). Text-only 200% at a wide window keeps 2 columns because the aside width is in rem; the sticky behavior is conditional (below) so the aside never becomes taller than the screen and unreachable. |
+| **Reduced motion** (`prefers-reduced-motion: reduce`, i.e. no `.gsap` class per ADR-0002) | No heading entrance: eyebrow, H1 with the marker in place, and dek are visible immediately, no transforms. Smooth scroll off (jump to anchors). Hover lift off (cards keep the title underline, pager cells their border change). The index highlight changes instantly. |
+| **200% text size** (text-only enlargement) and **200% browser zoom** (640 CSS px at a 1280 window) | No loss of content, no horizontal scroll, no overlap. 200% zoom lands in the ≤960 layout automatically (single column, `<details>` index). Text-only 200% at a 1280 window collapses to one column with the `<details>` index: the container widths are in rem (the aside needs about 1,922 px at 200%), so the two-column layout waits for a wider window. That is the intended, accessible outcome (the text reflows into one reading column; amended 2026-11-02, RV-0037). Where two columns do show, the sticky behavior is conditional (below) so the aside never becomes taller than the screen and unreachable. |
 | **320 px width** | No horizontal scroll; the longest unbroken strings (card titles, section ids, URLs in the Visa guide) wrap. |
 | **Short viewport** (height < 720px at ≥961) | The aside is **not sticky**; it flows with the page. Sticky applies only when the viewport is at least 720px tall. |
 | **Hash on load** (`/guias/x#tope`) | Opens with the section clear of the navbar (110px margin), index marks that section active, focus does not jump. |
@@ -342,7 +342,7 @@ Explicitly **not** used here, and why:
 - **Card hover lift on the home** is CSS only (below), not GSAP.
 
 CSS-only transitions (state feedback, `--duration-fast`, `--ease-out-quart`; never animate layout):
-- Cards, pager cells, buttons: 2px lift on hover (pointer-fine only) and a border/background change; the prototype's 0.15 s.
+- Cards, pager cells, buttons: 2px lift on hover (pointer-fine only). The non-motion cue is the card title underline on hover and focus; pager cells also change border colour (amended 2026-11-02, RV-0036: there is no card border or background change). The prototype's 0.15 s.
 - Index items: background and weight change when active or hovered.
 - Smooth scrolling to anchors (`scroll-behavior: smooth`), disabled under reduced motion.
 
@@ -459,7 +459,7 @@ Viewports: 360, 768, 1280 unless stated. "Reduced" = `reducedMotion: 'reduce'`. 
 9. Renders, in order: eyebrow "Guías", the H1 with the marker only on "Todo lo que necesitás", the approved intro, and three stripes (white, cream, white) titled "Moverte por la ciudad", "Barrios", "Antes de viajar", each with eyebrow 01/02/03, a "4 guías" count and 4 cards.
 10. Each card shows the photo of § Photos (3:2, `alt=""`), the title, the bajada and "Leer la guía →", has a 2px `ink` border and 20px radius, and links to its guide. The whole card is the link.
 11. Cards: 4 columns at 1280, 2 at 768, 1 at 360. No horizontal scroll at 320.
-12. Hover (pointer-fine) lifts a card by 2px; Reduced: no lift, the border change remains.
+12. Hover (pointer-fine) lifts a card by 2px and underlines its title; Reduced: no lift, the title underline remains (amended 2026-11-02, RV-0036).
 
 **Guide: structure**
 13. Order: breadcrumb → eyebrow → H1 → dek → hero + credit → 2px rule → grid. Breadcrumb "Guías" links to `/guias`; the group crumb links to `/guias#<group-anchor>` and that anchor exists on the home.
@@ -502,7 +502,7 @@ Viewports: 360, 768, 1280 unless stated. "Reduced" = `reducedMotion: 'reduce'`. 
 38. axe: no violations on `/guias`, on the subte, Visa and West Village guides, on the 404 and with the mobile `<details>` open, at 360 and 1280.
 39. Keyboard: the full path of § Accessibility Acceptance works with no pointer; focus is always visible and never hidden under the navbar; Esc closes the navbar menu and returns focus to its trigger (existing behavior, unchanged).
 40. One H1; heading levels never skip; "En esta guía", "Más de" and "Mi pique" are not headings; landmarks as listed.
-41. Text at 200% (text-only, and browser zoom): no content loss, no horizontal scroll, no overlap; at 320px no horizontal scroll.
+41. Text at 200% (text-only, and browser zoom): no content loss, no horizontal scroll from Guías content, no overlap; at 320px no horizontal scroll. Text-only 200% at a 1280 window shows one column (see § States Matrix, RV-0037).
 42. Contrast of every text/background pair on the two templates meets the ratios in § Accessibility Acceptance (axe plus a manual check of the black band and the active index item).
 43. Targets: cards, index rows, "Más de" rows, pager cells and `<summary>` are ≥44×44px on a coarse pointer; the CTA button is ≥48px tall.
 
@@ -564,3 +564,11 @@ Recorded because the user approved the scope and the visual direction but did no
 | DDRs referenced | DDR-0012 (Accepted), DDR-0011, DDR-0004, DDR-0003, DDR-0002 |
 | Pre-Contract items for the backend team | None |
 | Prototype link (illustration) | https://claude.ai/artifact/UcHUFFiweoJnuvBWu9vfMA |
+
+## Change Log
+
+| Date | Change | Source |
+|---|---|---|
+| 2026-11-02 | AC 12, § Motion Intent and the reduced-motion row now describe the shipped, approved behaviour: the card lifts 2px and the title underlines on hover and focus; under reduced motion the lift goes and the underline stays. No border or background animation is added. | Review RV-0036 |
+| 2026-11-02 | § States Matrix (200% text) and AC 41: at text-only 200% on a 1280 window the layout is one column with the `<details>` index, because the container widths are in rem. Accepted as the accessible outcome; the code is unchanged. | Review RV-0037 |
+| 2026-11-02 | The footer's Guías column shows "Caminar por New York" instead of "Taxi, Uber o subte" and its 8 entries link to their guides. Recorded in DDR-0014 (DDR-0012 says "o rodapé não muda" and is immutable). | Review RV-0035 |
