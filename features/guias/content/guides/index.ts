@@ -3,6 +3,7 @@ import { desdeElAeropuerto } from "@/features/guias/content/guides/desde-el-aero
 import { caminarPorNewYork } from "@/features/guias/content/guides/caminar-por-new-york";
 import { comoMovertePorNewYork } from "@/features/guias/content/guides/como-moverte-por-new-york";
 import { westVillage } from "@/features/guias/content/guides/west-village";
+import { murrayHill } from "@/features/guias/content/guides/murray-hill";
 import type { GuideSlug } from "@/features/guias/content/slugs";
 import type { GuideBody } from "@/features/guias/types";
 
@@ -17,4 +18,5 @@ export const BODIES: Partial<Record<GuideSlug, GuideBody>> = {
   "caminar-por-new-york": caminarPorNewYork,
   "como-moverte-por-new-york": comoMovertePorNewYork,
   "west-village": westVillage,
+  "murray-hill": murrayHill,
 };

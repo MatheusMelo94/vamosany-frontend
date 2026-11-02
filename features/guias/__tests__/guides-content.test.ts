@@ -180,3 +180,15 @@ describe("West Village (GU-09)", () => {
     expect(cta.label).toBe("Quiero mi itinerario");
   });
 });
+
+describe("Murray Hill (GU-10)", () => {
+  it("has no key-facts box: nothing is invented to fill one (AC 16)", () => {
+    expect(guide("murray-hill").keyFacts).toBeUndefined();
+  });
+
+  it("ends with the standard band: a lead and 'Quiero mi itinerario' (AC 18)", () => {
+    const { cta } = guide("murray-hill");
+    expect("lead" in cta && cta.lead.startsWith("¿Querés")).toBe(true);
+    expect(cta.label).toBe("Quiero mi itinerario");
+  });
+});
