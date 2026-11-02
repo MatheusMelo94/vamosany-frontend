@@ -157,6 +157,28 @@ test.describe("index (aside, >= 961px) @feature-guias", () => {
     expect(after.inIndex).toBe(false);
   });
 
+  test("a click during the page's first moments still ends with the H2 at the scroll margin (AC 23, RV-0049)", async ({
+    page,
+  }) => {
+    // The motion controller's ScrollTrigger refresh resets the scroll to 0 and
+    // back, which cancels a smooth scroll already under way. Slowing the CPU
+    // and clicking as soon as the link exists makes that collision certain.
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+    await page.goto(PATH, { waitUntil: "commit" });
+    const link = aside(page).getByRole("link", { name: "Las líneas" });
+    await link.click();
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+    await expect(page).toHaveURL(/#las-lineas$/);
+    await expect
+      .poll(
+        async () =>
+          Math.round((await page.locator("#las-lineas").boundingBox())?.y ?? 0),
+        { timeout: 10_000 },
+      )
+      .toBe(112);
+  });
+
   test("a #hash on load opens at that section, clear of the navbar, with its item active (AC 26)", async ({
     page,
   }) => {

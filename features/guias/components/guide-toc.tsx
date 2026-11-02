@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { activeSectionId } from "@/features/guias/lib/active-section";
+import { settleAtMargin } from "@/features/guias/lib/settle-scroll";
 import { useAlignToHash } from "@/features/guias/hooks/use-align-to-hash";
 import type { TocItem } from "@/features/guias/content/toc";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,8 @@ export function GuideToc({ items }: { items: TocItem[] }): JSX.Element {
   const [active, setActive] = useState<string | null>(null);
   const ids = useMemo(() => items.map((item) => item.id), [items]);
   useAlignToHash(ids);
+  const cancelSettle = useRef<(() => void) | null>(null);
+  useEffect(() => () => cancelSettle.current?.(), []);
 
   useEffect(() => {
     let frame = 0;
@@ -93,9 +96,15 @@ export function GuideToc({ items }: { items: TocItem[] }): JSX.Element {
                 aria-current={current ? "location" : undefined}
                 // Not preventDefault: the browser scrolls (smoothly, or at once
                 // under reduced motion) and sets the hash; focus follows (AC 23).
-                onClick={() =>
-                  document.getElementById(id)?.focus({ preventScroll: true })
-                }
+                // A layout refresh can cancel that scroll, so settleAtMargin
+                // re-aligns the heading if it ends short (RV-0049).
+                onClick={() => {
+                  const heading = document.getElementById(id);
+                  if (!heading) return;
+                  heading.focus({ preventScroll: true });
+                  cancelSettle.current?.();
+                  cancelSettle.current = settleAtMargin(heading);
+                }}
                 className={cn(
                   "tap-target body-sm block rounded-xl px-2.5 py-1.5 transition-colors",
                   current

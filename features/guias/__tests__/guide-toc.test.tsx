@@ -168,6 +168,27 @@ describe("GuideToc (plan § 7, § 10; AC 22, 23, 36)", () => {
     cleanup();
   });
 
+  it("re-aligns the heading when the click's scroll ends short of it (RV-0049)", () => {
+    const cleanup = mountHeadings({
+      "como-se-paga": 500,
+      tope: 900,
+      "otros-datos": 1400,
+    });
+    const tope = document.getElementById("tope") as HTMLElement;
+    tope.scrollIntoView = vi.fn();
+    render(<GuideToc items={ITEMS} />);
+    fireEvent.click(screen.getByRole("link", { name: "El tope semanal" }));
+    expect(tope.scrollIntoView).not.toHaveBeenCalled();
+    act(() => {
+      window.dispatchEvent(new Event("scrollend"));
+    });
+    expect(tope.scrollIntoView).toHaveBeenCalledWith({
+      block: "start",
+      behavior: "auto",
+    });
+    cleanup();
+  });
+
   it("removes its listeners on unmount", () => {
     const cleanup = mountHeadings({
       "como-se-paga": 500,
