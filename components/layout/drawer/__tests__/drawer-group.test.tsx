@@ -131,7 +131,11 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
         within(body)
           .getAllByRole("link")
           .map((a) => a.querySelector("[data-row-title]")?.textContent),
-      ).toEqual(g.columns.flatMap((c) => c.items.map((i) => i.title)));
+      ).toEqual([
+        ...g.columns.flatMap((c) => c.items.map((i) => i.title)),
+        // the group's footer row (DDR-0013) comes last, after the columns
+        ...(g.footerLink ? [`${g.footerLink.label} →`] : []),
+      ]);
       for (const list of within(body).getAllByRole("list")) {
         expect(list.previousElementSibling?.tagName).toBe("H3");
       }
@@ -193,6 +197,74 @@ describe("DrawerGroup body (AC 12, 15–18, 21, 36, 37)", () => {
     const dot = row.querySelector("[data-current-dot]");
     expect(dot).toHaveAttribute("aria-hidden", "true");
     expect(row.lastElementChild).toContainElement(dot as HTMLElement);
+  });
+
+  it("links every Guías row to its guide, and marks only the current guide (DDR-0012, AC 6, 7)", () => {
+    renderGroup("Guías", {
+      expanded: true,
+      hasCurrent: true,
+      pathname: "/guias/west-village",
+    });
+    const links = screen
+      .getAllByRole("link")
+      .filter((a) => a.getAttribute("href")?.startsWith("/guias/"));
+    expect(links).toHaveLength(12);
+    const current = document.querySelectorAll("[aria-current]");
+    expect(current).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "West Village" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(
+      screen.getByRole("link", { name: "Caminar por New York" }),
+    ).toHaveAttribute("href", "/guias/caminar-por-new-york");
+  });
+
+  describe("footer row (DDR-0013)", () => {
+    it('ends the Guías body with "Todas las guías →" to /guias, in the existing row style', () => {
+      renderGroup("Guías", { expanded: true });
+      const row = screen.getByRole("link", { name: "Todas las guías" });
+      expect(row).toHaveAttribute("href", "/guias");
+      expect(row.querySelector("[aria-hidden]")).toHaveTextContent("→");
+      // same row box as the other items: 44px, wraps at 200% text, hairline below
+      const other = screen.getByRole("link", { name: "West Village" });
+      expect(row.className).toBe(other.className);
+      expect(row.className).toContain("min-h-11");
+      expect(row.className).toContain("flex-wrap");
+      const links = screen.getAllByRole("link");
+      expect(links.at(-1)).toBe(row);
+    });
+
+    it("closes the drawer when tapped", async () => {
+      const user = userEvent.setup();
+      const onNavigate = vi.fn();
+      renderGroup("Guías", { expanded: true, onNavigate });
+      await user.click(screen.getByRole("link", { name: "Todas las guías" }));
+      expect(onNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it("on /guias it is the current row, with the static dot and the header dot", () => {
+      renderGroup("Guías", {
+        expanded: true,
+        hasCurrent: true,
+        pathname: "/guias",
+      });
+      const row = screen.getByRole("link", { name: "Todas las guías" });
+      expect(row).toHaveAttribute("aria-current", "page");
+      expect(row.querySelector("[data-current-dot]")).toHaveAttribute(
+        "aria-hidden",
+        "true",
+      );
+      expect(document.querySelectorAll("[aria-current]")).toHaveLength(1);
+      expect(document.querySelector("[data-header-dot]")).not.toBeNull();
+    });
+
+    it("is absent from groups without a footer link", () => {
+      renderGroup("Blog", { expanded: true });
+      expect(
+        screen.queryByRole("link", { name: "Todas las guías" }),
+      ).toBeNull();
+    });
   });
 
   it("closes the drawer through onNavigate when a row is tapped", async () => {

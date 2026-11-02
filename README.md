@@ -51,6 +51,8 @@ Copie `.env.example` para `.env.local`. Nenhum segredo existe hoje.
 | Rota | Tipo | O que |
 |---|---|---|
 | `/` | static | a landing |
+| `/guias` | public, static | home das guias: 12 guias em 3 grupos (`features/guias`) |
+| `/guias/<slug>` | public, static | 12 guias (`generateStaticParams`; slug desconhecido = 404 com `noindex`) |
 | `/api/health` | static | `{"status":"ok"}` para smoke test pos-deploy |
 
 ### Governance

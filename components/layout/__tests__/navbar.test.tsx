@@ -24,7 +24,7 @@ const EXPECTED: Record<string, Array<[heading: string, titles: string[]]>> = {
       [
         "El subte, explicado",
         "Desde el aeropuerto",
-        "Taxi, Uber o subte",
+        "Caminar por New York",
         "Cómo moverte por New York",
       ],
     ],
@@ -71,6 +71,70 @@ const SOBRE_MI_ITEMS = [
   ],
   ["Contacto", "Te respondo yo.", "/contacto"],
   ["FAQ", "Antes de viajar.", "/preguntas-frecuentes"],
+] as const;
+
+/** spec § Routes (DDR-0012): the 12 guide items, title, blurb, route. */
+const GUIAS_ITEMS = [
+  [
+    "El subte, explicado",
+    "Leé el mapa como una local.",
+    "/guias/el-subte-explicado",
+  ],
+  [
+    "Desde el aeropuerto",
+    "JFK, Newark y LaGuardia comparados.",
+    "/guias/desde-el-aeropuerto",
+  ],
+  [
+    "Caminar por New York",
+    "Cómo entender la ciudad y recorrerla a pie.",
+    "/guias/caminar-por-new-york",
+  ],
+  [
+    "Cómo moverte por New York",
+    "Subte, Uber, bus o a pie: cuándo conviene cada uno.",
+    "/guias/como-moverte-por-new-york",
+  ],
+  [
+    "West Village",
+    "Calles arboladas, brownstones y cafés con encanto.",
+    "/guias/west-village",
+  ],
+  [
+    "Murray Hill",
+    "Tranquilo, céntrico y una gran base para alojarte.",
+    "/guias/murray-hill",
+  ],
+  [
+    "Financial District",
+    "Wall Street, el Oculus y el Memorial del 11S.",
+    "/guias/financial-district",
+  ],
+  [
+    "Williamsburg",
+    "El Brooklyn creativo, con el skyline de frente.",
+    "/guias/williamsburg",
+  ],
+  [
+    "Visa a Estados Unidos",
+    "El trámite, sin vueltas.",
+    "/guias/visa-a-estados-unidos",
+  ],
+  [
+    "Cuánto cuesta un día en New York",
+    "Para armar tu presupuesto.",
+    "/guias/cuanto-cuesta-un-dia-en-new-york",
+  ],
+  [
+    "Qué llevar según la temporada",
+    "Siempre hace más frío (o más calor) de lo que pensás.",
+    "/guias/que-llevar-segun-la-temporada",
+  ],
+  [
+    "Entradas para Broadway",
+    "Dónde y cómo conseguirlas.",
+    "/guias/entradas-para-broadway",
+  ],
 ] as const;
 
 /** The old "About" items and blurb that DDR-0002 removes (AC 2). */
@@ -194,6 +258,164 @@ describe("Navbar", () => {
     await user.click(screen.getByRole("link", { name: "Colaboraciones" }));
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByText("Vamos a New York")).toBeNull();
+  });
+});
+
+describe("Navbar › Guías (DDR-0012; AC 4, 5, 6, 7, 8)", () => {
+  afterEach(() => {
+    vi.mocked(usePathname).mockReturnValue("/");
+  });
+
+  it("links the 12 items, with title, blurb and route, in 3 columns of 4 (AC 4)", async () => {
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    const panel = panelIn(container);
+    for (const [title, blurb, href] of GUIAS_ITEMS) {
+      const link = within(panel).getByText(title).closest("a");
+      expect(link).toHaveAttribute("href", href);
+      expect(link).toHaveTextContent(blurb);
+    }
+    expect(panel.querySelectorAll("[data-nav-item]")).toHaveLength(12);
+  });
+
+  it("no longer offers 'Taxi, Uber o subte' anywhere in the navbar or the drawer (AC 5)", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    expect(
+      within(panelIn(container)).queryByText("Taxi, Uber o subte"),
+    ).toBeNull();
+    expect(container.textContent).not.toContain("Taxi, Uber o subte");
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(within(menu).getByRole("button", { name: "Guías" }));
+    expect(menu.textContent).not.toContain("Taxi, Uber o subte");
+    expect(
+      within(menu).getByRole("link", { name: "Caminar por New York" }),
+    ).toBeVisible();
+  });
+
+  it("mirrors the 12 routes in the drawer; tapping one closes it (AC 6)", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    const toggle = screen.getByRole("button", { name: "Abrir menú" });
+    await user.click(toggle);
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(within(menu).getByRole("button", { name: "Guías" }));
+    for (const [title, , href] of GUIAS_ITEMS) {
+      expect(within(menu).getByRole("link", { name: title })).toHaveAttribute(
+        "href",
+        href,
+      );
+    }
+    await user.click(within(menu).getByRole("link", { name: "West Village" }));
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("marks only West Village on /guias/west-village, in the panel and the drawer (AC 7)", async () => {
+    vi.mocked(usePathname).mockReturnValue("/guias/west-village");
+    const user = userEvent.setup();
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    const current = panelIn(container).querySelectorAll(
+      '[aria-current="page"]',
+    );
+    expect(current).toHaveLength(1);
+    expect(current[0]).toHaveAttribute("href", "/guias/west-village");
+
+    await user.click(screen.getByRole("button", { name: "Abrir menú" }));
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    // the group holding the current page opens by itself, with the header dot
+    const header = within(menu).getByRole("button", { name: "Guías" });
+    expect(header).toHaveAttribute("aria-expanded", "true");
+    expect(header.querySelector("[data-header-dot]")).not.toBeNull();
+    const row = within(menu).getByRole("link", { name: "West Village" });
+    expect(row).toHaveAttribute("aria-current", "page");
+    expect(row.querySelector("[data-current-dot]")).not.toBeNull();
+    expect(menu.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+  });
+
+  it("leaves the other groups and the items' order untouched (AC 8)", () => {
+    expect(NAV.map((g) => g.label)).toEqual([
+      "Guías",
+      "Blog",
+      "Servicios",
+      "Sobre mí",
+    ]);
+    expect(NAV[1]?.columns[0]?.items.map((i) => i.title)).toEqual([
+      "Dónde comer",
+      "Cine y series",
+      "Tips prácticos",
+      "Barrios",
+    ]);
+    expect(NAV[2]?.cards).toBe(true);
+  });
+});
+
+describe("Navbar › Guías footer row (DDR-0013)", () => {
+  afterEach(() => {
+    vi.mocked(usePathname).mockReturnValue("/");
+  });
+
+  it('puts "Todas las guías →" under the columns of the Guías panel, linking to /guias', async () => {
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    const panel = panelIn(container);
+    const link = within(panel).getByRole("link", { name: "Todas las guías" });
+    expect(link).toHaveAttribute("href", "/guias");
+    expect(link.querySelector("[aria-hidden]")).toHaveTextContent("→");
+    // last link of the panel: DOM order is Tab order
+    const links = within(panel).getAllByRole("link");
+    expect(links.at(-1)).toBe(link);
+    expect(links).toHaveLength(13);
+  });
+
+  it("is not a moving-marker item: the marker keeps following the 12 guides only", async () => {
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    const link = within(panelIn(container)).getByRole("link", {
+      name: "Todas las guías",
+    });
+    expect(link).not.toHaveAttribute("data-nav-item");
+    expect(panelIn(container).querySelectorAll("[data-nav-item]")).toHaveLength(
+      12,
+    );
+  });
+
+  it("is marked as the current page on /guias", async () => {
+    vi.mocked(usePathname).mockReturnValue("/guias");
+    const { container } = render(<Navbar />);
+    await openPanel("Guías");
+    const current = panelIn(container).querySelectorAll(
+      '[aria-current="page"]',
+    );
+    expect(current).toHaveLength(1);
+    expect(current[0]).toHaveAttribute("href", "/guias");
+  });
+
+  it("is not in the other panels", async () => {
+    const { container } = render(<Navbar />);
+    for (const label of ["Blog", "Servicios", "Sobre mí"]) {
+      await openPanel(label);
+      expect(
+        within(panelIn(container)).queryByRole("link", {
+          name: "Todas las guías",
+        }),
+      ).toBeNull();
+    }
+  });
+
+  it("is also the last row of the drawer's Guías group, and tapping it closes the drawer", async () => {
+    const user = userEvent.setup();
+    render(<Navbar />);
+    const toggle = screen.getByRole("button", { name: "Abrir menú" });
+    await user.click(toggle);
+    const menu = await screen.findByRole("navigation", { name: "Menú" });
+    await user.click(within(menu).getByRole("button", { name: "Guías" }));
+    const link = within(menu).getByRole("link", { name: "Todas las guías" });
+    expect(link).toHaveAttribute("href", "/guias");
+    await user.click(link);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
   });
 });
 

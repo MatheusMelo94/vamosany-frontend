@@ -32,6 +32,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run check:first-load
+      - run: npm run check:first-load -- /guias
+      - run: npm run check:first-load -- "/guias/[slug]"
 
   e2e:
     name: playwright · axe · screenshots
